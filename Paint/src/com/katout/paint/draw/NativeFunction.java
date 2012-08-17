@@ -1,111 +1,43 @@
 package com.katout.paint.draw;
 
 public class NativeFunction {
-
-	public boolean setCanvasSize(int x, int y) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
+	static {
+		System.loadLibrary("jniimage");
 	}
 
+	public native boolean setCanvasSize(int x, int y);
 
-	public boolean deleteEditLayer() {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean deleteEditLayer();
 
+	public native boolean addLayer(int num);
 
-	public boolean addLayer(int num) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean deleteLayer(int num);
 
+	public native boolean EditLayer(int num);
 
-	public boolean deleteLayer(int num) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean setLayerMode(int num, int mode);
 
+	public native boolean Replace(int num, int move);
 
-	public boolean EditLayer(int num) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean setvisible(int num, boolean truth);
 
+	public native boolean setMask(int num, boolean truth);
 
-	public boolean setLayerMode(int num, int mode) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean setColor(int color);
 
+	public native boolean setBrushSize(int size);
 
-	public boolean Replace(int num, int move) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean startDraw(int x, int y);
 
+	public native boolean stopDraw(int x, int y);
 
-	public boolean setvisible(int num, boolean truth) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean draw(int x, int y);
 
+	public native boolean setPosition(int x, int y);
 
-	public boolean setMask(int num, boolean truth) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean setRadian(double rad);
 
+	public native boolean setScale(double scale);
 
-	public boolean setBrush(Brush brush) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean setColor(int color) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean setBrushSize(int size) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean startDraw(int x, int y) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean stopDraw(int x, int y) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean draw(int x, int y) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean setPosition(int x, int y) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean setRadian(double rad) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
-
-
-	public boolean setScale(double scale) {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	public native boolean getBitmap(int[] canvas, int width, int height);
 }
