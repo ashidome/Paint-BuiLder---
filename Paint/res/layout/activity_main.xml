@@ -17,22 +17,20 @@
 
         <LinearLayout
             android:id="@+id/paint_menu_t"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
             android:orientation="vertical"
             android:visibility="visible" >
 
             <include
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 layout="@layout/paint_menu" />
 
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#000000" >
-            </FrameLayout>
         </LinearLayout>
 
         <FrameLayout
@@ -44,22 +42,20 @@
 
         <LinearLayout
             android:id="@+id/paint_menu_b"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
             android:orientation="vertical"
             android:visibility="visible" >
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#000000" >
-            </FrameLayout>
 
             <include
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 layout="@layout/paint_menu" />
+
         </LinearLayout>
     </LinearLayout>
 

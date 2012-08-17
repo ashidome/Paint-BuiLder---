@@ -2,10 +2,6 @@ package com.katout.paint.draw;
 
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.R;
-import com.katout.paint.ColorPickerDialog.OnColorChangedListener;
-import com.katout.paint.R.id;
-import com.katout.paint.R.layout;
-import com.katout.paint.R.menu;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
