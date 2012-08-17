@@ -1,6 +1,5 @@
 package com.katout.paint.draw;
 
-
 public interface EventLisner {
 
 	// 描画周り
@@ -16,5 +15,7 @@ public interface EventLisner {
 	boolean setScale(double scale);
 
 	boolean deleteEditLayer();
+
+	boolean getBitmap(int[] canvas, int width, int height);
 
 }

@@ -1,6 +1,7 @@
 C:/Users/10x3043/Documents/GitHub/Paint-BuiLder---/Paint//obj/local/armeabi/objs/jniimage/jniimage.o: \
  C:/Users/10x3043/Documents/GitHub/Paint-BuiLder---/Paint//jni/jniimage.c \
  C:/android-ndk/platforms/android-3/arch-arm/usr/include/jni.h \
+ C:/android-ndk/platforms/android-3/arch-arm/usr/include/android/log.h \
  C:/android-ndk/platforms/android-3/arch-arm/usr/include/stdlib.h \
  C:/android-ndk/platforms/android-3/arch-arm/usr/include/sys/cdefs.h \
  C:/android-ndk/platforms/android-3/arch-arm/usr/include/sys/cdefs_elf.h \
@@ -31,6 +32,8 @@ C:/Users/10x3043/Documents/GitHub/Paint-BuiLder---/Paint//obj/local/armeabi/objs
  C:/android-ndk/platforms/android-3/arch-arm/usr/include/sys/syslimits.h
 
 C:/android-ndk/platforms/android-3/arch-arm/usr/include/jni.h:
+
+C:/android-ndk/platforms/android-3/arch-arm/usr/include/android/log.h:
 
 C:/android-ndk/platforms/android-3/arch-arm/usr/include/stdlib.h:
 

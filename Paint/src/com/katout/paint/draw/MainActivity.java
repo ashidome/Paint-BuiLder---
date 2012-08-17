@@ -1,12 +1,5 @@
 package com.katout.paint.draw;
 
-import com.katout.paint.ColorPickerDialog;
-import com.katout.paint.R;
-import com.katout.paint.ColorPickerDialog.OnColorChangedListener;
-import com.katout.paint.R.id;
-import com.katout.paint.R.layout;
-import com.katout.paint.R.menu;
-
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -21,6 +14,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+
+import com.katout.paint.ColorPickerDialog;
+import com.katout.paint.R;
 
 public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private NativeFunction nativefunc;
@@ -138,6 +134,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public boolean deleteEditLayer() {
 				return nativefunc.deleteEditLayer();
+			}
+
+			@Override
+			public boolean getBitmap(int[] canvas, int width, int height) {
+				return nativefunc.getBitmap(canvas, width, height);
 			}
 		});
 	}

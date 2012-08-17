@@ -11,5 +11,5 @@ public class Brush {
 		System.loadLibrary("jniimage");
 	}
 
-	public native int setBrush();
+	static public native int setBrush();
 }
