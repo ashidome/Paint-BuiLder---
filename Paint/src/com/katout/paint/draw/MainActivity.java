@@ -7,15 +7,18 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 
 import com.katout.paint.ColorPickerDialog;
+import com.katout.paint.OnColorChangedListener;
 import com.katout.paint.R;
 
 public class MainActivity extends Activity implements PaintView.MenuLiner {
@@ -108,37 +111,37 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean startDraw(int x, int y) {
-				return nativefunc.startDraw(x, y);
+				return true;//nativefunc.startDraw(x, y);
 			}
 
 			@Override
 			public boolean draw(int x, int y) {
-				return nativefunc.draw(x, y);
+				return true;//nativefunc.draw(x, y);
 			}
 
 			@Override
 			public boolean setPosition(int x, int y) {
-				return nativefunc.setPosition(x, y);
+				return true;//nativefunc.setPosition(x, y);
 			}
 
 			@Override
 			public boolean setRadian(double rad) {
-				return nativefunc.setRadian(rad);
+				return true;//nativefunc.setRadian(rad);
 			}
 
 			@Override
 			public boolean setScale(double scale) {
-				return nativefunc.setScale(scale);
+				return true;//nativefunc.setScale(scale);
 			}
 
 			@Override
 			public boolean deleteEditLayer() {
-				return nativefunc.deleteEditLayer();
+				return true;//nativefunc.deleteEditLayer();
 			}
 
 			@Override
 			public boolean getBitmap(int[] canvas, int width, int height) {
-				return nativefunc.getBitmap(canvas, width, height);
+				return false;//nativefunc.getBitmap(canvas, width, height);
 			}
 		});
 	}
@@ -176,8 +179,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	public void onSelectColor(View v) {
 		ColorPickerDialog mColorPickerDialog;
 
+	    
 		mColorPickerDialog = new ColorPickerDialog(this,
-				new ColorPickerDialog.OnColorChangedListener() {
+				new OnColorChangedListener() {
 					@Override
 					public void colorChanged(int color) {
 						Editor ed = sp.edit();
@@ -188,7 +192,12 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						colorV_b.setColor(color);
 					}
 				}, sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
-
+		WindowManager.LayoutParams lp = mColorPickerDialog.getWindow().getAttributes();  
+		DisplayMetrics metrics = getResources().getDisplayMetrics();  
+	    int dialogWidth = (int) (metrics.widthPixels * 0.8);  
+	    lp.width = dialogWidth;  
+	    mColorPickerDialog.getWindow().setAttributes(lp); 
+	    mColorPickerDialog.getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
 		mColorPickerDialog.show();
 	}
 }
