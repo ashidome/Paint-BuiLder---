@@ -47,6 +47,7 @@ static int height = 600;
 static int width = 800;
 static int img[600][800]; // = 0x00000000
 static int interval = 10;
+static int flag = 0;
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
@@ -153,7 +154,10 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("startDraw\n");
 	int i, j;
-	init();
+	if (flag == 0) {
+		init();
+		flag++;
+	}
 	//始点の保持
 	dp.sx = jx;
 	dp.sy = jy;
@@ -172,7 +176,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 	dp.ex = jx;
 	dp.ey = jy;
 	dst = distance(dp.sx, dp.ex, dp.sy, dp.ey);
-	theta = atan2(dp.ey - dp.sy, dp.ex - dp.sx);
+	//theta = atan2(dp.sy - dp.ey, dp.sx - dp.ex);
+	theta = atan2(dp.ey, 0);
 	cos_t = cos(theta);
 	sin_t = sin(theta);
 

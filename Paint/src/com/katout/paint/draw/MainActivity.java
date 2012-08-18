@@ -1,11 +1,5 @@
 package com.katout.paint.draw;
 
-<<<<<<< HEAD
-import com.katout.paint.ColorPickerDialog;
-import com.katout.paint.R;
-
-=======
->>>>>>> origin/master
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
