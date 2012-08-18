@@ -62,5 +62,6 @@ public class ColorView extends View{
 		
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 	}
+	
 
 }
