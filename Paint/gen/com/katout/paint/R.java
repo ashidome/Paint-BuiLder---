@@ -10,10 +10,18 @@ package com.katout.paint;
 public final class R {
     public static final class attr {
     }
+    public static final class color {
+        public static final int blue=0x7f040002;
+        public static final int green=0x7f040001;
+        public static final int list_item=0x7f040005;
+        public static final int mu=0x7f040003;
+        public static final int select=0x7f040004;
+        public static final int white=0x7f040000;
+    }
     public static final class dimen {
-        public static final int padding_large=0x7f040002;
-        public static final int padding_medium=0x7f040001;
-        public static final int padding_small=0x7f040000;
+        public static final int padding_large=0x7f050002;
+        public static final int padding_medium=0x7f050001;
+        public static final int padding_small=0x7f050000;
     }
     public static final class drawable {
         public static final int add=0x7f020000;
@@ -42,35 +50,33 @@ public final class R {
         public static final int trash_can=0x7f020017;
     }
     public static final class id {
-        public static final int ImageView01=0x7f080014;
-        public static final int ImageView02=0x7f080016;
-        public static final int ImageView03=0x7f08001b;
-        public static final int TextView01=0x7f080013;
-        public static final int TextView02=0x7f080017;
-        public static final int TextView03=0x7f080015;
-        public static final int TextView04=0x7f080019;
-        public static final int button1=0x7f080009;
-        public static final int button2=0x7f08000f;
-        public static final int button3=0x7f080011;
-        public static final int button4=0x7f080018;
-        public static final int colorPicker=0x7f080003;
-        public static final int colorview=0x7f08001a;
-        public static final int horizontalScrollView1=0x7f080012;
-        public static final int imageView1=0x7f08000a;
-        public static final int imageView2=0x7f08000b;
-        public static final int menu_settings=0x7f08001c;
-        public static final int paint_menu_b=0x7f080002;
-        public static final int paint_menu_t=0x7f080001;
-        public static final int seekBar1=0x7f080005;
-        public static final int spinner1=0x7f08000c;
-        public static final int surfaceView1=0x7f080000;
-        public static final int tableRow1=0x7f080004;
-        public static final int tableRow2=0x7f080006;
-        public static final int tableRow3=0x7f080007;
-        public static final int tableRow4=0x7f080008;
-        public static final int textView1=0x7f08000d;
-        public static final int textView2=0x7f08000e;
-        public static final int textView3=0x7f080010;
+        public static final int ImageView03=0x7f090019;
+        public static final int TextView01=0x7f090014;
+        public static final int TextView02=0x7f090016;
+        public static final int TextView03=0x7f090015;
+        public static final int TextView04=0x7f090017;
+        public static final int colorPicker=0x7f090004;
+        public static final int colorview=0x7f090018;
+        public static final int layerlist=0x7f090013;
+        public static final int menu_settings=0x7f09001a;
+        public static final int ok_button=0x7f09000d;
+        public static final int paint_menu_b=0x7f090002;
+        public static final int paint_menu_t=0x7f090001;
+        public static final int scrollView1=0x7f09000e;
+        public static final int seekBar1=0x7f09000f;
+        public static final int seekBar_alpha=0x7f090006;
+        public static final int seekBar_blue=0x7f09000c;
+        public static final int seekBar_green=0x7f09000a;
+        public static final int seekBar_red=0x7f090008;
+        public static final int spinner1=0x7f090010;
+        public static final int surfaceView1=0x7f090000;
+        public static final int tableRow1=0x7f090005;
+        public static final int tableRow2=0x7f090007;
+        public static final int tableRow3=0x7f090009;
+        public static final int tableRow4=0x7f09000b;
+        public static final int textView1=0x7f090003;
+        public static final int textView2=0x7f090011;
+        public static final int textView3=0x7f090012;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -79,25 +85,23 @@ public final class R {
         public static final int paint_menu=0x7f030003;
     }
     public static final class menu {
-        public static final int activity_main=0x7f070000;
+        public static final int activity_main=0x7f080000;
     }
     public static final class string {
-        public static final int add_layer=0x7f05000b;
-        public static final int alpha_layer=0x7f050009;
-        public static final int app_name=0x7f050000;
-        public static final int blend_mode=0x7f05000a;
-        public static final int brush=0x7f050006;
-        public static final int brush_size=0x7f050008;
-        public static final int color=0x7f050005;
-        public static final int delete_layer=0x7f05000d;
-        public static final int eraser=0x7f050007;
-        public static final int file=0x7f050004;
-        public static final int hello_world=0x7f050001;
-        public static final int mask=0x7f05000c;
-        public static final int menu_settings=0x7f050002;
-        public static final int title_activity_main=0x7f050003;
+        public static final int add_layer=0x7f060009;
+        public static final int alpha_layer=0x7f060007;
+        public static final int app_name=0x7f060000;
+        public static final int blend_mode=0x7f060008;
+        public static final int brush=0x7f060004;
+        public static final int brush_size=0x7f060006;
+        public static final int color=0x7f060003;
+        public static final int delete_layer=0x7f06000b;
+        public static final int eraser=0x7f060005;
+        public static final int file=0x7f060002;
+        public static final int mask=0x7f06000a;
+        public static final int menu_settings=0x7f060001;
     }
     public static final class style {
-        public static final int AppTheme=0x7f060000;
+        public static final int AppTheme=0x7f070000;
     }
 }
