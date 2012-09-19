@@ -1,9 +1,9 @@
 package com.katout.paint;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
@@ -19,12 +19,14 @@ public class ColorPickerView extends View {
 	private int[] mChroma;
 	private OnColorChangedListener mListener;
 	private Shader sg, lg;
-	private int selectColor = 0xFFFF00;
+	private int selectColor = 0xFFFFFF00;
 	private float selectHue = 0;
+	private int Alpha = 255;
 
 
 	private static final int CENTER_X = 100;
 	private static final int CENTER_Y = 100;
+	private static final int Rect_X = 50;
 	private static final int CENTER_RADIUS = 24;
 
 	public ColorPickerView(Context context, AttributeSet attrs) {
@@ -49,12 +51,12 @@ public class ColorPickerView extends View {
 
 		
 		OvalRect = new RectF();
-		RoundRect = new RectF();
 	}
 	
 	public void setup(OnColorChangedListener l, int color) {
 		mListener = l;
 		selectColor = color;
+		selectHue = getHue(color);
 	}
 	
 	@Override
@@ -75,17 +77,17 @@ public class ColorPickerView extends View {
         	for(float x = 0; i < 10; x += 0.1, i+=1) {
         		mChroma[i] = setHSVColor(selectHue, x, y);
         	}
-//            lg = new LinearGradient(OK_X0, 0, OK_X1, 0, mChroma, null, Shader.TileMode.CLAMP);
-//            mPaintC.setShader(lg);
-//
-//            //canvas.drawRect(OK_X0, OK_X0 + (CENTER_X * y), OK_X1, OK_X0 + (float)(CENTER_X * (y)), mPaintC);
-//        	canvas.drawLine(OK_X0, OK_X0 + (CENTER_X * y), OK_X1, OK_X0 + (float)(CENTER_X * (y)), mPaintC);
+            lg = new LinearGradient(-Rect_X, 0, Rect_X, 0, mChroma, null, Shader.TileMode.CLAMP);
+            mPaintC.setShader(lg);
+
+            //canvas.drawRect(OK_X0, OK_X0 + (CENTER_X * y), OK_X1, OK_X0 + (float)(CENTER_X * (y)), mPaintC);
+        	canvas.drawLine(-Rect_X, -Rect_X + (CENTER_X * y), Rect_X, -Rect_X + (float)(CENTER_X * (y)), mPaintC);
         }
 	}
 
 	
 	private RectF OvalRect;
-	private RectF RoundRect;
+
 	@Override
 	protected void onDraw(Canvas canvas) {
 		float r = CENTER_X - mPaint.getStrokeWidth() * 0.5f;
@@ -95,20 +97,6 @@ public class ColorPickerView extends View {
 		canvas.drawOval(OvalRect, mPaint);
 
 		drawSVRegion(canvas);
-	}
-
-
-	private int floatToByte(float x) {
-		int n = java.lang.Math.round(x);
-		return n;
-	}
-
-	private int pinToByte(int n) {
-		if (n < 0)
-			n = 0;
-		else if (n > 255)
-			n = 255;
-		return n;
 	}
 
 	private float getHue(int color) {
@@ -136,38 +124,13 @@ public class ColorPickerView extends View {
 		// now p is just the fractional part [0...1) and i is the index
 		int c0 = colors[i];
 		int c1 = colors[i + 1];
-		int a = ave(Color.alpha(c0), Color.alpha(c1), p);
 		int r = ave(Color.red(c0), Color.red(c1), p);
 		int g = ave(Color.green(c0), Color.green(c1), p);
 		int b = ave(Color.blue(c0), Color.blue(c1), p);
 
-		return Color.argb(a, r, g, b);
+		return Color.argb(Alpha, r, g, b);
 	}
 
-	private int rotateColor(int color, float rad) {
-		float deg = rad * 180 / PI;
-		int r = Color.red(color);
-		int g = Color.green(color);
-		int b = Color.blue(color);
-
-		ColorMatrix cm = new ColorMatrix();
-		ColorMatrix tmp = new ColorMatrix();
-
-		cm.setRGB2YUV();
-		tmp.setRotate(0, deg);
-		cm.postConcat(tmp);
-		tmp.setYUV2RGB();
-		cm.postConcat(tmp);
-
-		final float[] a = cm.getArray();
-
-		int ir = floatToByte(a[0] * r + a[1] * g + a[2] * b);
-		int ig = floatToByte(a[5] * r + a[6] * g + a[7] * b);
-		int ib = floatToByte(a[10] * r + a[11] * g + a[12] * b);
-
-		return Color.argb(Color.alpha(color), pinToByte(ir), pinToByte(ig),
-				pinToByte(ib));
-	}
 
 	private int setHSVColor(float hue, float saturation, float value) {
 		float[] hsv = new float[3];
@@ -189,12 +152,13 @@ public class ColorPickerView extends View {
 		hsv[0] = hue;
 		hsv[1] = saturation;
 		hsv[2] = value;
-
-		return Color.HSVToColor(hsv);
+		
+		return Color.HSVToColor(Alpha, hsv);
 	}
 
 	private static final float PI = 3.1415927f;
 
+	@SuppressLint("FloatMath")
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		float x = event.getX() - CENTER_X;
@@ -232,6 +196,7 @@ public class ColorPickerView extends View {
 				selectColor = selectColor2;
 				invalidate();
 			}
+			mListener.colorChanged(selectColor);
 			break;
 		}
 		return true;
@@ -272,7 +237,18 @@ public class ColorPickerView extends View {
 	}
 
 	public void setColor(int num){
+			selectHue = getHue(num);
 			selectColor = num;
+			mListener.colorChanged(selectColor);
+			invalidate();
     }
+	
+	public void setAlpha(int num){
+		Alpha = num;
+	}
+
+	public int getColor() {
+		return selectColor;
+	}
 
 }

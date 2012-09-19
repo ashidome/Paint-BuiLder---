@@ -10,28 +10,16 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="10dp" >
-
-            <ImageView
-                android:id="@+id/imageView1"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/selection_rectangular" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="2dp"
-                android:layout_marginLeft="10dp"
-                android:text="@string/alpha_layer"
-                android:textColor="#000000" />
-
-        </LinearLayout>
+        <TextView
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:layout_marginLeft="10dp"
+        	android:layout_marginRight="30dp"
+        	android:drawableLeft="@drawable/selection_rectangular"
+        	android:drawablePadding="10dp"
+        	android:gravity="bottom"
+        	android:text="@string/alpha_layer"
+        	android:textColor="#000000" />
 
         <SeekBar
             android:id="@+id/seekBar1"
@@ -52,29 +40,16 @@
         android:layout_marginTop="5dp"
         android:orientation="vertical" >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="3dp" >
-
-            <ImageView
-                android:id="@+id/imageView2"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/osi_model2" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="2dp"
-                android:layout_marginLeft="10dp"
-                android:text="@string/blend_mode"
-                android:textColor="#000000" />
-
-        </LinearLayout>
-
+        <TextView
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:layout_marginBottom="2dp"
+        	android:layout_marginLeft="10dp"
+        	android:layout_marginRight="30dp"
+        	android:drawableLeft="@drawable/osi_model2"
+        	android:drawablePadding="10dp"
+        	android:text="@string/blend_mode"
+        	android:textColor="#000000" />
 
         <Spinner
             android:id="@+id/spinner1"
@@ -86,77 +61,53 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
-
-        <LinearLayout
+        
+        <TextView
+            android:id="@+id/textView1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/textView1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="@string/add_layer"
-                android:textColor="#000000" />
-
-            <Button
-                android:id="@+id/button1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/add" />
-
-        </LinearLayout>
-
-        <LinearLayout
+            android:background="@color/list_item"
+            android:clickable="true"
+            android:drawableBottom="@drawable/add"
+            android:gravity="center"
+            android:text="@string/add_layer"
+            android:textColor="#000000" />
+        <TextView
+            android:background="@color/list_item"
+        	android:id="@+id/textView2"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:layout_weight="1"
+        	android:clickable="true"
+        	android:drawableBottom="@drawable/record"
+        	android:gravity="center"
+        	android:text="@string/mask"
+        	android:textColor="#000000" />
+        
+        <TextView
+            android:background="@color/list_item"
+            android:id="@+id/textView3"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="3dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="@string/mask"
-                android:textColor="#000000" />
-
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/record" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="@string/delete_layer"
-                android:textColor="#000000" />
-
-            <Button
-                android:id="@+id/button3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/trash_can" />
-
-        </LinearLayout>
+            android:clickable="true"
+            android:drawableBottom="@drawable/trash_can"
+            android:gravity="center"
+            android:text="@string/delete_layer"
+            android:textColor="#000000" />
 
     </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

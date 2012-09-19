@@ -13,7 +13,6 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".draw.MainActivity"
-            android:label="@string/title_activity_main"
 			android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
             android:screenOrientation = "landscape">
             <intent-filter>
