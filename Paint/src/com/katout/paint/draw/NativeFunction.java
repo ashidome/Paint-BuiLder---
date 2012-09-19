@@ -4,6 +4,8 @@ public class NativeFunction {
 	static {
 		System.loadLibrary("jniimage");
 	}
+	
+	public native boolean init(int x,int y);
 
 	public native boolean setCanvasSize(int x, int y);
 

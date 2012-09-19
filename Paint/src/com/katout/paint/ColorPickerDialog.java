@@ -2,29 +2,32 @@ package com.katout.paint;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.view.View;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
-public class ColorPickerDialog extends Dialog {
-	private LinearLayout mInflater;
+public class ColorPickerDialog extends Dialog implements OnSeekBarChangeListener{
 
 	private OnColorChangedListener mListener;
-	private ColorPickerView colorView;
 	private int mInitialColor;
-	private Context context;
-	public EditText text;
 	
-	public int initialColor;
+	private ColorPickerView colorView;
+	private SeekBar alpha;
+	private SeekBar red;
+	private SeekBar green;
+	private SeekBar blue;
+	private Button okButton;
+	
 
 	// コンスタント
 	public ColorPickerDialog(Context context, OnColorChangedListener listener,
 			int initialColor) {
 		super(context);
-		this.initialColor = initialColor;
+		this.mInitialColor = initialColor;
 		mListener = listener;
-		mInitialColor = initialColor;
-		this.context = context;
 	}
 
 	// 起動時
@@ -33,61 +36,85 @@ public class ColorPickerDialog extends Dialog {
 		setContentView(R.layout.colordialog);
 		setTitle("Select Color");
 		
+		alpha = (SeekBar)findViewById(R.id.seekBar_alpha);
+		alpha.setProgress((mInitialColor& 0xFF000000) >>> 24);
+		
+		red = (SeekBar)findViewById(R.id.seekBar_red);
+		red.setProgress((mInitialColor& 0x00FF0000) >>> 16);
+		
+		green = (SeekBar)findViewById(R.id.seekBar_green);
+		green.setProgress((mInitialColor& 0x0000FF00) >>> 8);
+		
+		blue = (SeekBar)findViewById(R.id.seekBar_blue);
+		blue.setProgress(mInitialColor& 0x000000FF);
+		
+		alpha.setOnSeekBarChangeListener(this);
+		red.setOnSeekBarChangeListener(this);
+		green.setOnSeekBarChangeListener(this);
+		blue.setOnSeekBarChangeListener(this);
+		
+		okButton = (Button)findViewById(R.id.ok_button);
+		okButton.setBackgroundColor(mInitialColor);
+		float[] hsv = new float [3];
+		Color.colorToHSV(mInitialColor, hsv);
+		if(hsv[2] > 0.5f){
+			okButton.setTextColor(0xFF000000);
+		}else{
+			okButton.setTextColor(0xFFFFFFFF);
+		}
+		okButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mListener.colorChanged(colorView.getColor());
+				dismiss();
+			}
+		});
+		
 		colorView = (ColorPickerView)findViewById(R.id.colorPicker);
 		OnColorChangedListener l = new OnColorChangedListener() {
 			public void colorChanged(int color) {
-				mListener.colorChanged(color);
-				dismiss();
+				okButton.setBackgroundColor(color);
+				float[] hsv = new float [3];
+				Color.colorToHSV(color, hsv);
+				if(hsv[2] > 0.5f){
+					okButton.setTextColor(0xFF000000);
+				}else{
+					okButton.setTextColor(0xFFFFFFFF);
+				}
+				
+				int c_alpha = (color & 0xFF000000) >>> 24;
+				int c_red 	= (color & 0x00FF0000) >>> 16;
+				int c_green = (color & 0x0000FF00) >>>  8;
+				int c_blue 	= (color & 0x000000FF);
+				alpha.setProgress(c_alpha);
+				red.setProgress(c_red);
+				green.setProgress(c_green);
+				blue.setProgress(c_blue);
+				
+				
 			}
 		};
-		colorView.setup(l, initialColor);
-//
-//		ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(
-//				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-//		ViewGroup.LayoutParams lp2 = new ViewGroup.LayoutParams(
-//				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-//		ViewGroup.LayoutParams lp3 = new ViewGroup.LayoutParams(
-//				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-//		lp3.width = 1;
-//
-//		text = new EditText(context);
-//		LinearLayout linear = new LinearLayout(context);
-//		linear.setOrientation(LinearLayout.VERTICAL);
-//		// linear.addView(text,lp2);
-//		// colorView = new ColorPickerView(getContext(), l, mInitialColor);
-//		linear.addView(colorView, lp3);
-//		setContentView(linear, lp);
-//		setTitle("Set Color");
-//
-//		text.setText(colorView.intToString(mInitialColor));
-//		text.setInputType(InputType.TYPE_CLASS_TEXT);
-//		text.addTextChangedListener(new TextWatcher() {
-//
-//			@Override
-//			public void onTextChanged(CharSequence s, int start, int before,
-//					int count) {
-//				try {
-//					int num = Color.parseColor(s.toString());
-//					colorView.setColor(num);
-//					colorView.invalidate();
-//				} catch (Exception e) {
-//					// TODO: handle exception
-//				}
-//			}
-//
-//			@Override
-//			public void beforeTextChanged(CharSequence s, int start, int count,
-//					int after) {
-//				// TODO 自動生成されたメソッド・スタブ
-//
-//			}
-//
-//			@Override
-//			public void afterTextChanged(Editable s) {
-//				// TODO 自動生成されたメソッド・スタブ
-//
-//			}
-//		});
+		colorView.setup(l, mInitialColor);
+	}
+	
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+		int color = Color.argb(alpha.getProgress(), red.getProgress(), green.getProgress(), blue.getProgress());
+		colorView.setAlpha(alpha.getProgress());
+		colorView.setColor(color);
+	}
+	
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+		// TODO 自動生成されたメソッド・スタブ
+		
+	}
+	
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress,
+			boolean fromUser) {
+		// TODO 自動生成されたメソッド・スタブ
+		
 	}
 
 }

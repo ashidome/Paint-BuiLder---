@@ -1,12 +1,9 @@
 package com.katout.paint.draw;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -196,6 +193,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						nowMenuPosX = -menuW;
 					}
 					pre_threeX = t_three_startX;
+					pre_threeY = t_three_startY;
+					
 
 				} else if (nowMenuPosY != 0) {
 					nowMenuPosY += t_three_startY - pre_threeY;
@@ -206,8 +205,10 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						nowMenuPosY = -menuH;
 					}
 					pre_threeY = t_three_startY;
-
-					menu_lisner.paintMenuPos(h, nowMenuPosY, false);
+					pre_threeX = t_three_startX;
+					
+					
+					
 				} else {
 					if (t_three_startX - pre_threeX > 30) {
 						nowMenuPosX = t_three_startX - pre_threeX - 30;
@@ -230,6 +231,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						// TODO visibleMenu();
 					}
 				}
+				menu_lisner.layerMenuPos(w, nowMenuPosX, false);
+				menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			}
 		}
 
@@ -249,7 +252,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			} else {
 				nowMenuPosY = 0;
 			}
-			menu_lisner.paintMenuPos(h, nowMenuPosY, true);
+			menu_lisner.layerMenuPos(w, nowMenuPosX, false);
+			menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			touch_count = 0;
 			state = State.Non;
 			if (state == State.Drawing) {
@@ -267,10 +271,11 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		w = sv.getWidth();
 		h = sv.getHeight();
 		bitmap = new int[w * h];
-
+		event_lisner.init(w, h);
 		thread = new Thread(this);
 		// ここでrun()が呼ばれる
 		thread.start();
+		
 
 	}
 
@@ -321,6 +326,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 		holder.unlockCanvasAndPost(canvas);
 	}
+	
 
 	@Override
 	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
