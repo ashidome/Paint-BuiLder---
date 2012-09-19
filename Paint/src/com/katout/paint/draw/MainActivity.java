@@ -1,5 +1,7 @@
 package com.katout.paint.draw;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -14,10 +16,13 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.OnColorChangedListener;
 import com.katout.paint.R;
+import com.katout.paint.draw.layer.LayerAdapter;
+import com.katout.paint.draw.layer.LayerData;
 
 public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private NativeFunction nativefunc;
@@ -28,8 +33,13 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private int paint_menuH;
 	
 	
+	
 	private LinearLayout paint_layer_r;
 	private LinearLayout paint_layer_l;
+	private ListView layer_r;
+	private ListView layer_l;
+	private ArrayList<LayerData> layer;
+	private LayerAdapter layerAdapter;
 	private int paint_menuW;
 	
 	private SharedPreferences sp;
@@ -137,9 +147,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		colorV_b = (ColorView) paint_menu_b.findViewById(R.id.colorview);
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
 		paint_layer_r = (LinearLayout) findViewById(R.id.layer_menu_r);
+		layer_l = (ListView)paint_layer_l.findViewById(R.id.layerlist);
+		layer_r = (ListView)paint_layer_r.findViewById(R.id.layerlist);
 		SurfaceView surface = (SurfaceView) findViewById(R.id.surfaceView1);
 		paint = new PaintView(this, surface, this, new EventLisner() {
-
 			@Override
 			public boolean startDraw(int x, int y) {
 				return true;//nativefunc.startDraw(x, y);
@@ -173,6 +184,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public boolean getBitmap(int[] canvas, int width, int height) {
 				return false;//nativefunc.getBitmap(canvas, width, height);
+			}
+
+			@Override
+			public boolean init(int x, int y) {
+				return true;//nativefunc.getBitmap(canvas, width, height);
 			}
 		});
 	}

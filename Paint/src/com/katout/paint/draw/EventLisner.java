@@ -1,6 +1,7 @@
 package com.katout.paint.draw;
 
 public interface EventLisner {
+	boolean init(int x, int y);
 
 	// 描画周り
 	boolean startDraw(int x, int y);

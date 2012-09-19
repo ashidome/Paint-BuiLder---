@@ -271,10 +271,11 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		w = sv.getWidth();
 		h = sv.getHeight();
 		bitmap = new int[w * h];
-
+		event_lisner.init(w, h);
 		thread = new Thread(this);
 		// ここでrun()が呼ばれる
 		thread.start();
+		
 
 	}
 
