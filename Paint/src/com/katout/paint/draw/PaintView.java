@@ -91,13 +91,13 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	public boolean onTouch(View v, MotionEvent event) {
 		//タッチの数を取得
 		int temp_touch_count = event.getPointerCount();
-		
+
 		//とりあえずすべて配列に保存
 		for (int i = 0; i < temp_touch_count; i++) {
 			points[0][i] = (int) event.getX(i);
 			points[1][i] = (int) event.getY(i);
 		}
-		
+
 		//タッチの数の変化により分岐
 		if (temp_touch_count != touch_count) {
 			// タッチの数に変化があった場合
@@ -143,7 +143,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				if (state == State.DrawStart) {
 					state = State.Drawing;
 				}
-				event_lisner.draw(points[0][0], points[0][1]);
+				event_lisner.draw(points[0][0], points[1][0]);
 			}
 
 			if (temp_touch_count == 2) {
@@ -194,7 +194,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 					}
 					pre_threeX = t_three_startX;
 					pre_threeY = t_three_startY;
-					
+
 
 				} else if (nowMenuPosY != 0) {
 					nowMenuPosY += t_three_startY - pre_threeY;
@@ -206,9 +206,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 					}
 					pre_threeY = t_three_startY;
 					pre_threeX = t_three_startX;
-					
-					
-					
+
+
+
 				} else {
 					if (t_three_startX - pre_threeX > 30) {
 						nowMenuPosX = t_three_startX - pre_threeX - 30;
@@ -275,7 +275,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		thread = new Thread(this);
 		// ここでrun()が呼ばれる
 		thread.start();
-		
+
 
 	}
 
@@ -297,7 +297,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		Paint paint = new Paint();
 		Canvas canvas = sv.getHolder().lockCanvas();
 		canvas.drawColor(Color.WHITE);
-		
+
 		boolean temp_flag = event_lisner.getBitmap(bitmap, w, h);
 		if (temp_flag) {
 			canvas.drawBitmap(bitmap, 0, w, 0, 0, w, h, true, paint);
@@ -326,7 +326,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 		holder.unlockCanvasAndPost(canvas);
 	}
-	
+
 
 	@Override
 	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {

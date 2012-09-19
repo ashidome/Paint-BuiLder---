@@ -3,8 +3,8 @@ package com.katout.paint.draw;
 import android.graphics.Bitmap;
 
 public class Brush {
-	Bitmap bmp; // ブラシ画像
-	int interval; // 感覚
+	char bmp[][]; // ブラシ画像
+	int interval; // 間隔
 	int radian; // 角度
 
 	static {
