@@ -111,37 +111,37 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean startDraw(int x, int y) {
-				return true;//nativefunc.startDraw(x, y);
+				return nativefunc.startDraw(x, y);
 			}
 
 			@Override
 			public boolean draw(int x, int y) {
-				return true;//nativefunc.draw(x, y);
+				return nativefunc.draw(x, y);
 			}
 
 			@Override
 			public boolean setPosition(int x, int y) {
-				return true;//nativefunc.setPosition(x, y);
+				return true;// nativefunc.setPosition(x, y);
 			}
 
 			@Override
 			public boolean setRadian(double rad) {
-				return true;//nativefunc.setRadian(rad);
+				return true;// nativefunc.setRadian(rad);
 			}
 
 			@Override
 			public boolean setScale(double scale) {
-				return true;//nativefunc.setScale(scale);
+				return true;// nativefunc.setScale(scale);
 			}
 
 			@Override
 			public boolean deleteEditLayer() {
-				return true;//nativefunc.deleteEditLayer();
+				return true;// nativefunc.deleteEditLayer();
 			}
 
 			@Override
 			public boolean getBitmap(int[] canvas, int width, int height) {
-				return false;//nativefunc.getBitmap(canvas, width, height);
+				return nativefunc.getBitmap(canvas, width, height);
 			}
 		});
 	}
@@ -179,7 +179,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	public void onSelectColor(View v) {
 		ColorPickerDialog mColorPickerDialog;
 
-	    
 		mColorPickerDialog = new ColorPickerDialog(this,
 				new OnColorChangedListener() {
 					@Override
@@ -192,12 +191,14 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						colorV_b.setColor(color);
 					}
 				}, sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
-		WindowManager.LayoutParams lp = mColorPickerDialog.getWindow().getAttributes();  
-		DisplayMetrics metrics = getResources().getDisplayMetrics();  
-	    int dialogWidth = (int) (metrics.widthPixels * 0.8);  
-	    lp.width = dialogWidth;  
-	    mColorPickerDialog.getWindow().setAttributes(lp); 
-	    mColorPickerDialog.getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+		WindowManager.LayoutParams lp = mColorPickerDialog.getWindow()
+				.getAttributes();
+		DisplayMetrics metrics = getResources().getDisplayMetrics();
+		int dialogWidth = (int) (metrics.widthPixels * 0.8);
+		lp.width = dialogWidth;
+		mColorPickerDialog.getWindow().setAttributes(lp);
+		mColorPickerDialog.getWindow().setLayout(LayoutParams.FILL_PARENT,
+				LayoutParams.WRAP_CONTENT);
 		mColorPickerDialog.show();
 	}
 }

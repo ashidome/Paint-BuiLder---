@@ -172,12 +172,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 	int i, j;
 	int dst;
 	double cos_t, sin_t;
+
 	//終点の保持
 	dp.ex = jx;
 	dp.ey = jy;
 	dst = distance(dp.sx, dp.ex, dp.sy, dp.ey);
 	//theta = atan2(dp.sy - dp.ey, dp.sx - dp.ex);
-	theta = atan2(dp.ey, 0);
+	theta = atan2(dp.ey - dp.sy, dp.ex - dp.sx);
 	cos_t = cos(theta);
 	sin_t = sin(theta);
 
@@ -194,12 +195,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	i_printf("getBitmap\n");
 	int i, j;
 	jint* colors = (*env)->GetIntArrayElements(env, color, 0);
-
+	i_printf("getBitmap1\n");
 	for (i = 0; i < jw; i++) {
 		for (j = 0; j < jh; j++) {
-			colors[j * jh + i] = img[j][i];
+			colors[i * jw + j] = img[i][j];
 		}
 	}
+	i_printf("getBitmap2\n");
 	(*env)->ReleaseIntArrayElements(env, color, colors, 0);
 	return true;
 }
@@ -225,6 +227,15 @@ JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setScale(JNIEnv* env,
 		jobject obj, jdouble scale) {
 	i_printf("setScale\n");
+	return true;
+}
+
+JNIEXPORT jboolean
+JNICALL Java_com_katout_paint_draw_NativeFunction_init(JNIEnv* env, jobject obj,
+		jint x, jint y) {
+	i_printf("init\n");
+	c.width = x;
+	c.height = y;
 	return true;
 }
 
@@ -254,6 +265,11 @@ void init() {
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 5; j++) {
 			brush[i][j] = 0xFF000000;
+		}
+	}
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j++) {
+			img[i][j] = 0xFFFFFFFF;
 		}
 	}
 }
