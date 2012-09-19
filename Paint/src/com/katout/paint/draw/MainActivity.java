@@ -240,17 +240,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						colorV_b.setColor(color);
 					}
 				}, sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
-<<<<<<< HEAD
-		WindowManager.LayoutParams lp = mColorPickerDialog.getWindow()
-				.getAttributes();
-		DisplayMetrics metrics = getResources().getDisplayMetrics();
-		int dialogWidth = (int) (metrics.widthPixels * 0.8);
-		lp.width = dialogWidth;
-		mColorPickerDialog.getWindow().setAttributes(lp);
-		mColorPickerDialog.getWindow().setLayout(LayoutParams.FILL_PARENT,
-				LayoutParams.WRAP_CONTENT);
-=======
->>>>>>> origin/master
 		mColorPickerDialog.show();
 	}
 }
