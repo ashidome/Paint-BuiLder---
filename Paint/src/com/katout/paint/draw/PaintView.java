@@ -157,7 +157,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				nowPosY += (temp_ave_y - aveY) / Scale;
 				// TODO 端処理を書け
 
-				event_lisner.setPosition(nowPosX, nowPosY);
+				event_lisner.setPosition(nowPosX - (int)(w/Scale), nowPosY - (int)(h/Scale));
 
 				aveX = temp_ave_x;
 				aveY = temp_ave_y;
