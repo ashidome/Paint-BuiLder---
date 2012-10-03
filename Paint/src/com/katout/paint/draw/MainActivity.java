@@ -165,7 +165,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean setPosition(int x, int y) {
-				return true;// nativefunc.setPosition(x, y);
+				return nativefunc.setPosition(x, y);
 			}
 
 			@Override
