@@ -69,7 +69,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		super.onWindowFocusChanged(hasFocus);
 		paint_menuH = paint_menu_t.getHeight();
 		paint_menuW = paint_layer_l.getWidth();
-		paint.setmenuwSize(paint_menuH, 100);
+		paint.setmenuwSize(paint_menuH, paint_menuW);
 		colorV_t.setColor(sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
 		colorV_b.setColor(sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
 

@@ -1,17 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="wrap_content"
-	android:layout_height="wrap_content"
-	android:background="@color/list_item"
-	android:clickable="true"
-	android:orientation="vertical" >
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/list_item"
+    android:clickable="true"
+    android:orientation="horizontal" >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="@dimen/padding_1dp"
+            android:src="@drawable/eye_open" />
 
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="@dimen/padding_1dp"
+            android:src="@drawable/record" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/select" >
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/padding_1dp"
+            android:background="@color/white"
+            android:src="@drawable/palette" />
+    </FrameLayout>
+
     <TextView
-    	android:id="@+id/textView1"
-    	android:layout_width="wrap_content"
-    	android:layout_height="wrap_content"
-    	android:text="Large Text"
-    	android:textAppearance="?android:attr/textAppearanceLarge"
-    	android:textColor="#888888" />
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
 
 </LinearLayout>
