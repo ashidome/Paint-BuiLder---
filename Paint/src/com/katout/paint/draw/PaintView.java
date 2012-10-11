@@ -231,7 +231,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						// TODO visibleMenu();
 					}
 				}
+
 				menu_lisner.layerMenuPos(w, nowMenuPosX, false);
+
 				menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			}
 		}
