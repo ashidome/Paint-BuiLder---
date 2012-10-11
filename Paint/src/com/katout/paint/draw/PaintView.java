@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -89,16 +90,16 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		//タッチの数を取得
+		// タッチの数を取得
 		int temp_touch_count = event.getPointerCount();
 
-		//とりあえずすべて配列に保存
+		// とりあえずすべて配列に保存
 		for (int i = 0; i < temp_touch_count; i++) {
 			points[0][i] = (int) event.getX(i);
 			points[1][i] = (int) event.getY(i);
 		}
 
-		//タッチの数の変化により分岐
+		// タッチの数の変化により分岐
 		if (temp_touch_count != touch_count) {
 			// タッチの数に変化があった場合
 			if (temp_touch_count > 1) {
@@ -108,7 +109,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				}
 				switch (temp_touch_count) {
 				case 2:
-					//2本指になった瞬間、各項目の初期化
+					// 2本指になった瞬間、各項目の初期化
 					state = State.Move_Zoom_tarn;
 					aveX = (points[0][0] + points[0][1]) / 2;
 					aveY = (points[1][0] + points[1][1]) / 2;
@@ -119,7 +120,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 							points[0][1] - points[0][0]);
 					break;
 				case 3:
-					//3本指になった瞬間、各項目の初期化
+					// 3本指になった瞬間、各項目の初期化
 					state = State.thirdWait;
 					pre_threeX = (points[0][0] + points[0][1] + points[0][2]) / 3;
 					pre_threeY = (points[1][0] + points[1][1] + points[1][2]) / 3;
@@ -128,7 +129,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 					break;
 				}
 			} else {
-				//タッチ数が１になった場合で待機中からの遷移
+				// タッチ数が１になった場合で待機中からの遷移
 				if (state == State.Non) {
 					state = State.DrawStart;
 					event_lisner.startDraw(points[0][0], points[1][0]);
@@ -156,8 +157,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				nowPosX += (temp_ave_x - aveX) / Scale;
 				nowPosY += (temp_ave_y - aveY) / Scale;
 				// TODO 端処理を書け
-
-				event_lisner.setPosition(nowPosX, nowPosY);
+				//Log.e("test", "x =" + nowPosX + ", y = " + nowPosY);
+				event_lisner.setPosition(nowPosX - (int) (w / Scale), nowPosY
+						- (int) (h / Scale));
 
 				aveX = temp_ave_x;
 				aveY = temp_ave_y;
@@ -195,7 +197,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 					pre_threeX = t_three_startX;
 					pre_threeY = t_three_startY;
 
-
 				} else if (nowMenuPosY != 0) {
 					nowMenuPosY += t_three_startY - pre_threeY;
 					if (nowMenuPosY > menuH) {
@@ -206,8 +207,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 					}
 					pre_threeY = t_three_startY;
 					pre_threeX = t_three_startX;
-
-
 
 				} else {
 					if (t_three_startX - pre_threeX > 30) {
@@ -276,7 +275,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		// ここでrun()が呼ばれる
 		thread.start();
 
-
 	}
 
 	@Override
@@ -326,7 +324,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 		holder.unlockCanvasAndPost(canvas);
 	}
-
 
 	@Override
 	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {

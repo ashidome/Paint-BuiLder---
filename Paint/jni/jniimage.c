@@ -197,12 +197,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	int i, j;
 	int flag = 0;
 	jint* colors = (*env)->GetIntArrayElements(env, color, 0);
-	i_printf("getBitmap\n");
+	//i_printf("getBitmap\n");
 
 	//画面サイズの代入
 	disp.width = jw;
 	disp.height = jh;
-	//i_printf( "disp.width = %d, disp.height = %d", disp.width, disp.height);
+	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 
 	//imgの二次元配列を一次元配列に変換し代入
 	for (i = 0; i < disp.width; i++) {
@@ -220,7 +220,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	if (flag == 0) {
 		return true;
 	} else {
-		return false;
+		return true;
 	}
 }
 
@@ -231,8 +231,9 @@ JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setPosition(JNIEnv* env,
 		jobject obj, jint jx, jint jy) {
 	i_printf("setPosition\n");
-	disp.x = jx;
-	disp.y = jy;
+	disp.x = -(jx + disp.width);
+	disp.y = -(jy + disp.height);
+	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 
 	return true;
 }
@@ -299,15 +300,15 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 void brush_draw(int x, int y) {
 	int i, j;
 	//描画
+	//i_printf("width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
 	for (i = 0; i < bx; i++) {
-		if (((x + i - bx / 2) < 0) || ((x + i - bx / 2) >= c.width)) {
-			continue;
-		}
 		for (j = 0; j < by; j++) {
-			if (((y + j - by / 2) < 0) || ((y + j - by / 2) >= c.height)) {
-				continue;
+			if (((x + i - bx / 2) > 0) && ((x + i - (bx + 10) / 2) < c.width)
+					&& ((y + j - by / 2) > 0)
+					&& ((y + j - (by + 10) / 2) < c.height)) {
+				i_printf("img[%d][%d] = %d", x+i, y+j, img[x+i][y+j]);
+				img[x + i][y + j] = brush[i][j];
 			}
-			img[x + i][y + j] = brush[i][j];
 		}
 	}
 }
