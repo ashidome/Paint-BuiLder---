@@ -1,12 +1,9 @@
 package com.katout.paint.draw;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -46,6 +43,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	// タッチまわり
 	private int touch_count; // 前フレームのタッチ数
 	private int[][] points;
+	private int[] bitmap;
 
 	private int aveX; // 前フレームの平均x座標
 	private int aveY; // 前フレームの平均y座標
@@ -91,12 +89,16 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
+		//タッチの数を取得
 		int temp_touch_count = event.getPointerCount();
+
+		//とりあえずすべて配列に保存
 		for (int i = 0; i < temp_touch_count; i++) {
 			points[0][i] = (int) event.getX(i);
 			points[1][i] = (int) event.getY(i);
-
 		}
+
+		//タッチの数の変化により分岐
 		if (temp_touch_count != touch_count) {
 			// タッチの数に変化があった場合
 			if (temp_touch_count > 1) {
@@ -106,6 +108,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				}
 				switch (temp_touch_count) {
 				case 2:
+					//2本指になった瞬間、各項目の初期化
 					state = State.Move_Zoom_tarn;
 					aveX = (points[0][0] + points[0][1]) / 2;
 					aveY = (points[1][0] + points[1][1]) / 2;
@@ -116,6 +119,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 							points[0][1] - points[0][0]);
 					break;
 				case 3:
+					//3本指になった瞬間、各項目の初期化
 					state = State.thirdWait;
 					pre_threeX = (points[0][0] + points[0][1] + points[0][2]) / 3;
 					pre_threeY = (points[1][0] + points[1][1] + points[1][2]) / 3;
@@ -124,6 +128,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 					break;
 				}
 			} else {
+				//タッチ数が１になった場合で待機中からの遷移
 				if (state == State.Non) {
 					state = State.DrawStart;
 					event_lisner.startDraw(points[0][0], points[1][0]);
@@ -138,7 +143,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				if (state == State.DrawStart) {
 					state = State.Drawing;
 				}
-				event_lisner.draw(points[0][0], points[0][1]);
+				event_lisner.draw(points[0][0], points[1][0]);
 			}
 
 			if (temp_touch_count == 2) {
@@ -188,6 +193,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						nowMenuPosX = -menuW;
 					}
 					pre_threeX = t_three_startX;
+					pre_threeY = t_three_startY;
+
 
 				} else if (nowMenuPosY != 0) {
 					nowMenuPosY += t_three_startY - pre_threeY;
@@ -198,8 +205,10 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						nowMenuPosY = -menuH;
 					}
 					pre_threeY = t_three_startY;
+					pre_threeX = t_three_startX;
 
-					menu_lisner.paintMenuPos(h, nowMenuPosY, false);
+
+
 				} else {
 					if (t_three_startX - pre_threeX > 30) {
 						nowMenuPosX = t_three_startX - pre_threeX - 30;
@@ -222,6 +231,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						// TODO visibleMenu();
 					}
 				}
+				menu_lisner.layerMenuPos(w, nowMenuPosX, false);
+				menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			}
 		}
 
@@ -241,7 +252,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			} else {
 				nowMenuPosY = 0;
 			}
-			menu_lisner.paintMenuPos(h, nowMenuPosY, true);
+			menu_lisner.layerMenuPos(w, nowMenuPosX, false);
+			menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			touch_count = 0;
 			state = State.Non;
 			if (state == State.Drawing) {
@@ -258,10 +270,12 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		tread_flag = true;
 		w = sv.getWidth();
 		h = sv.getHeight();
-
+		bitmap = new int[w * h];
+		event_lisner.init(w, h);
 		thread = new Thread(this);
 		// ここでrun()が呼ばれる
 		thread.start();
+
 
 	}
 
@@ -283,7 +297,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		Paint paint = new Paint();
 		Canvas canvas = sv.getHolder().lockCanvas();
 		canvas.drawColor(Color.WHITE);
-		int[] bitmap = new int[w * h];
 
 		boolean temp_flag = event_lisner.getBitmap(bitmap, w, h);
 		if (temp_flag) {
@@ -313,6 +326,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 		holder.unlockCanvasAndPost(canvas);
 	}
+
 
 	@Override
 	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {

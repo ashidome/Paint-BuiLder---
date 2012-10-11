@@ -8,15 +8,15 @@
 #define i_printf(...) __android_log_print(ANDROID_LOG_INFO, "hj", __VA_ARGS__)
 
 void brush_draw(int x, int y);
-void init();
 int distance(int x1, int x2, int y1, int y2);
+void setColor(int color);
 
 /*
  * レイヤ周り
  */
 
 struct Canvas {
-	bool flag;
+	int flag;
 	int height;
 	int width;
 };
@@ -30,8 +30,7 @@ struct Layer {
 };
 
 struct DrawPoints {
-	int sx, sy; //始点
-	int ex, ey; //終点
+	int x, y; //始点
 };
 
 static struct Canvas c;
@@ -42,11 +41,13 @@ static int Size;
 static int theta;
 
 //テスト用
-static int brush[5][5];
-static int height = 600;
-static int width = 800;
-static int img[600][800]; // = 0x00000000
+static int **brush;
+static char **brush_map;
+static int bx = 10;
+static int by = 10;
+static int **img;
 static int interval = 10;
+static int flag = 0;
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
@@ -134,7 +135,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_Brush_setBrush(
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setColor(
 		JNIEnv* env, jobject obj, jint jcolor) {
 	i_printf("setColor\n");
-	Color = jcolor;
+	setColor(jcolor);
 	return true;
 }
 
@@ -153,12 +154,11 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("startDraw\n");
 	int i, j;
-	init();
 	//始点の保持
-	dp.sx = jx;
-	dp.sy = jy;
+	dp.x = jx;
+	dp.y = jy;
 	//初期描画
-	brush_draw(dp.sx, dp.sy);
+	brush_draw(dp.x, dp.y);
 	return true;
 }
 
@@ -168,31 +168,30 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 	int i, j;
 	int dst;
 	double cos_t, sin_t;
-	//終点の保持
-	dp.ex = jx;
-	dp.ey = jy;
-	dst = distance(dp.sx, dp.ex, dp.sy, dp.ey);
-	theta = atan2(dp.ey - dp.sy, dp.ex - dp.sx);
+	dst = distance(dp.x, jx, dp.y, jy);
+	i_printf("dst = %d\n", dst);
+	theta = atan2(jy - dp.y, jx - dp.x);
+	i_printf("theta = %d\n", theta);
 	cos_t = cos(theta);
 	sin_t = sin(theta);
-
-	for (i = 0; i < dst; i += interval) {
-		dp.sx = interval * cos_t;
-		dp.sy = interval * sin_t;
-		brush_draw(dp.sx, dp.sy);
+	for (i = 0; i < dst / interval; i++) {
+		dp.x += interval * cos_t;
+		dp.y += interval * sin_t;
+		brush_draw(dp.x, dp.y);
+		i_printf("put(%d,%d)\n", dp.x, dp.y);
 	}
 	return true;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 		JNIEnv* env, jobject obj, jintArray color, jint jw, jint jh) {
-	i_printf("getBitmap\n");
 	int i, j;
 	jint* colors = (*env)->GetIntArrayElements(env, color, 0);
-
 	for (i = 0; i < jw; i++) {
 		for (j = 0; j < jh; j++) {
-			colors[j * jh + i] = img[j][i];
+			if (i < c.width && j < c.height) {
+				colors[j * jw + i] = img[i][j];
+			}
 		}
 	}
 	(*env)->ReleaseIntArrayElements(env, color, colors, 0);
@@ -223,15 +222,56 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setScale(JNIEnv* env,
 	return true;
 }
 
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
+		JNIEnv* env, jobject obj, jint x, jint y) {
+	i_printf("init\n");
+	int i, j;
+	c.width = x;
+	c.height = y;
+	img = (int **) malloc(sizeof(int*) * c.width);
+	for (i = 0; i < c.width; i++) {
+		img[i] = (int*) malloc(sizeof(int) * c.height);
+	}
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			img[i][j] = 0xFFFFFFFF;
+		}
+	}
+
+	brush_map = (char **) malloc(sizeof(char*) * bx);
+	for (i = 0; i < bx; i++) {
+		brush_map[i] = (char*) malloc(sizeof(char) * by);
+	}
+
+	for (i = 0; i < bx; i++) {
+		for (j = 0; j < by; j++) {
+			brush_map[i][j] = 255;
+		}
+	}
+
+	brush = (int **) malloc(sizeof(int*) * bx);
+	for (i = 0; i < bx; i++) {
+		brush[i] = (int*) malloc(sizeof(int) * by);
+	}
+
+	for (i = 0; i < bx; i++) {
+		for (j = 0; j < by; j++) {
+			brush[i][j] = brush_map[i][j];
+		}
+	}
+	setColor(0xFF000000);
+	return true;
+}
+
 void brush_draw(int x, int y) {
 	int i, j;
-//描画
-	for (i = 0; i < 5; i++) {
-		if (((x + i - 2) < 0) || ((x + i - 2) >= 800)) {
+	//描画
+	for (i = 0; i < bx; i++) {
+		if (((x + i - bx / 2) < 0) || ((x + i - bx / 2) >= c.width)) {
 			continue;
 		}
-		for (j = 0; j < 5; j++) {
-			if (((y + j - 2) < 0) || ((y + i - 2) >= 800)) {
+		for (j = 0; j < by; j++) {
+			if (((y + j - by / 2) < 0) || ((y + j - by / 2) >= c.height)) {
 				continue;
 			}
 			img[x + i][y + j] = brush[i][j];
@@ -244,11 +284,15 @@ int distance(int x1, int x2, int y1, int y2) {
 	return root;
 }
 
-void init() {
+void setColor(int color) {
+	int a, rgb;
 	int i, j;
-	for (i = 0; i < 5; i++) {
-		for (j = 0; j < 5; j++) {
-			brush[i][j] = 0xFF000000;
+	Color = color;
+	a = (Color & 0xFF000000) >> 24;
+	rgb = (Color & 0x00FFFFFF);
+	for (i = 0; i < bx; i++) {
+		for (j = 0; j < by; j++) {
+			brush[i][j] = (a * brush_map[i][j] / 255 << 24) | rgb;
 		}
 	}
 }
