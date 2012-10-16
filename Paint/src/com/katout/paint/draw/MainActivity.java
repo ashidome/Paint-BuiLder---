@@ -173,7 +173,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean setPosition(int x, int y) {
-				return true;// nativefunc.setPosition(x, y);
+				return nativefunc.setPosition(x, y);
 			}
 
 			@Override
@@ -253,7 +253,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				}, sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
 		mColorPickerDialog.show();
 	}
-	
+
 	public void onAddLayer(View v){
 		layerAdapter.addLayer(new LayerData());
 	}
