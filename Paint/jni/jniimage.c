@@ -326,7 +326,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 			brush[i][j] = brush_map[i][j];
 		}
 	}
-	setColor(0xFF000000);
 	return true;
 }
 
