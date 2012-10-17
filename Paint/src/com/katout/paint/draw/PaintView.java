@@ -130,7 +130,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				//タッチ数が１になった場合で待機中からの遷移
 				if (state == State.Non) {
 					state = State.DrawStart;
-					event_lisner.startDraw(points[0][0], points[1][0]);
+					event_lisner.startDraw((int )(-nowPosX + points[0][0]/Scale), 
+							(int )(-nowPosY + points[1][0]/Scale));
 				}
 			}
 		} else {
@@ -142,7 +143,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				if (state == State.DrawStart) {
 					state = State.Drawing;
 				}
-				event_lisner.draw(points[0][0], points[1][0]);
+				event_lisner.draw((int )(-nowPosX + points[0][0]/Scale), 
+						(int )(-nowPosY + points[1][0]/Scale));
 			}
 
 			if (temp_touch_count == 2) {
