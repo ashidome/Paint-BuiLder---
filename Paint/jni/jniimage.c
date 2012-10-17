@@ -58,6 +58,7 @@ static int bx = 10;
 static int by = 10;
 static int **img;
 static int frequency = 30;
+static double scale;
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
@@ -280,8 +281,9 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setRadian(JNIEnv* env,
 
 JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setScale(JNIEnv* env,
-		jobject obj, jdouble scale) {
+		jobject obj, jdouble jscale) {
 	i_printf("setScale\n");
+	scale = jscale;
 	return true;
 }
 
@@ -387,5 +389,38 @@ void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
 		x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * x2 + t * t * x3;
 		y = (1 - t) * (1 - t) * y1 + 2 * t * (1 - t) * y2 + t * t * y3;
 		brush_draw(x, y);
+	}
+}
+
+/*
+ * バイキュービック法による拡縮関数
+ */
+void Bicubic(){
+	int x, y;
+	int ix, iy;
+	double wx, wy;
+	int x0, y0;
+	double xx, yy;
+	double data;
+	int tmpx, tmpy;
+
+	for(y = 0; y < c.width; y++){
+		for(x = 0; x < c.height; y++){
+			//拡縮比率より変換先ピクセルに対応する元配列の座標を計算
+			xx = scale * (double)x;
+			ix = (int)xx;
+
+			yy = scale * (double)y;
+			iy = (int)yy;
+
+			data = 0.0;
+
+			//対象ピクセルの周囲4*4ピクセルの値を重み付けし足し合わせる
+			for(tmpy = iy-1;tmpy <= iy+2; tmpy++){
+				for(tmpx = ix-1;tmpx <= ix+2; tmpx++){
+
+				}
+			}
+		}
 	}
 }
