@@ -15,6 +15,7 @@ void Bicubic(int sx, int sy);
 double First_Neighborhood(double d);
 double Second_Neighborhood(double d);
 void Bilinear(int x, int y);
+void fill(int x, int y);
 
 /*
  * レイヤ周り
@@ -552,3 +553,41 @@ void Bilinear(int x, int y) {
 		}
 	}
 }
+
+/*
+ * 閉領域塗りつぶし関数
+ */
+void fill(int x, int y) {
+	int cl;
+	cl = img[x][y];
+	img[x][y] = Color;
+
+	//上を走査
+	if ((y - 1) >= 0) {
+		if (img[x][y - 1] == cl) {
+			fill(x, y - 1);
+		}
+	}
+
+	//右を走査
+	if ((x + 1) < c.width) {
+		if (img[x + 1][y] == cl) {
+			fill(x + 1, y);
+		}
+	}
+
+	//下を走査
+	if ((y + 1) < c.height) {
+		if (img[x][y + 1] == cl) {
+			fill(x, y + 1);
+		}
+	}
+
+	//左を走査
+	if ((x - 1) >= 0) {
+		if (img[x - 1][y] == cl) {
+			fill(x - 1, y);
+		}
+	}
+}
+
