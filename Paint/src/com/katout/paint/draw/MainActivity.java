@@ -185,7 +185,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean setScale(double scale) {
-				return true;// nativefunc.setScale(scale);
+				return nativefunc.setScale(scale);
 			}
 
 			@Override
