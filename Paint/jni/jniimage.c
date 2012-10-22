@@ -10,10 +10,18 @@
 void brush_draw(int x, int y);
 int distance(int x1, int x2, int y1, int y2);
 void setColor(int color);
+void Bezier(int x1, int y1, int x2, int y2, int x3, int y3);
 
 /*
  * レイヤ周り
  */
+
+struct Display {
+	int height;
+	int width;
+	int x;
+	int y;
+};
 
 struct Canvas {
 	int flag;
@@ -31,8 +39,11 @@ struct Layer {
 
 struct DrawPoints {
 	int x, y; //始点
+	int x2, y2; //次点
+	int flag;
 };
 
+static struct Display disp;
 static struct Canvas c;
 static struct Laler layers;
 static struct DrawPoints dp;
@@ -46,8 +57,7 @@ static char **brush_map;
 static int bx = 10;
 static int by = 10;
 static int **img;
-static int interval = 10;
-static int flag = 0;
+static int frequency = 30;
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
@@ -154,48 +164,97 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("startDraw\n");
 	int i, j;
+
 	//始点の保持
 	dp.x = jx;
 	dp.y = jy;
-	//初期描画
+
+	//始点の描画
 	brush_draw(dp.x, dp.y);
+
+	//次点フラグをオフ（次のdraw呼出ポイントを2点目とする）
+	dp.flag = 0;
 	return true;
 }
+
+/*
+ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
+ JNIEnv* env, jobject obj, jint jx, jint jy) {
+ i_printf("draw\n");
+ int i, j;
+ int dst;
+ double cos_t, sin_t;
+ dst = distance(dp.x, jx, dp.y, jy);
+ //i_printf("dst = %d\n", dst);
+ theta = atan2(jy - dp.y, jx - dp.x);
+ //i_printf("theta = %d\n", theta);
+ cos_t = cos(theta);
+ sin_t = sin(theta);
+ //始点、終点間の補間
+ for (i = 0; i < dst / interval; i++) {
+ dp.x += interval * cos_t;
+ dp.y += interval * sin_t;
+ brush_draw(dp.x, dp.y);
+ //i_printf("put(%d,%d)\n", dp.x, dp.y);
+ }
+ return true;
+ }
+ */
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("draw\n");
-	int i, j;
-	int dst;
-	double cos_t, sin_t;
-	dst = distance(dp.x, jx, dp.y, jy);
-	i_printf("dst = %d\n", dst);
-	theta = atan2(jy - dp.y, jx - dp.x);
-	i_printf("theta = %d\n", theta);
-	cos_t = cos(theta);
-	sin_t = sin(theta);
-	for (i = 0; i < dst / interval; i++) {
-		dp.x += interval * cos_t;
-		dp.y += interval * sin_t;
-		brush_draw(dp.x, dp.y);
-		i_printf("put(%d,%d)\n", dp.x, dp.y);
+
+	//3点目である場合
+	if (dp.flag == 1) {
+		//3点Bezier曲線描画
+		Bezier(dp.x, dp.y, dp.x2, dp.y2, jx, jy);
+
+		//2点目を次回の1点目にする
+		dp.x = dp.x2;
+		dp.y = dp.y2;
+		//3点目を次回の2点目にする
+		dp.x2 = jx;
+		dp.y2 = jy;
+	} else {
+		//2点目である場合
+		dp.x2 = jx;
+		dp.y2 = jy;
 	}
+	dp.flag = 1;
 	return true;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 		JNIEnv* env, jobject obj, jintArray color, jint jw, jint jh) {
 	int i, j;
+	int flag = 0;
 	jint* colors = (*env)->GetIntArrayElements(env, color, 0);
-	for (i = 0; i < jw; i++) {
-		for (j = 0; j < jh; j++) {
-			if (i < c.width && j < c.height) {
-				colors[j * jw + i] = img[i][j];
+	//i_printf("getBitmap\n");
+
+	//画面サイズの代入
+	disp.width = jw;
+	disp.height = jh;
+	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
+
+	//imgの二次元配列を一次元配列に変換し代入
+	for (i = 0; i < disp.width; i++) {
+		for (j = 0; j < disp.height; j++) {
+			if (((i + disp.x) < c.width) && ((j + disp.y) < c.height)
+					&& ((i + disp.x) > 0) && ((j + disp.y) > 0)) {
+				colors[j * disp.width + i] = img[i + disp.x][j + disp.y];
+			} else {
+				colors[j * disp.width + i] = 0xFF000000;
+				flag = 1;
 			}
 		}
 	}
 	(*env)->ReleaseIntArrayElements(env, color, colors, 0);
-	return true;
+	if (flag == 0) {
+		return true;
+	} else {
+		return true;
+	}
 }
 
 /*
@@ -205,6 +264,10 @@ JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setPosition(JNIEnv* env,
 		jobject obj, jint jx, jint jy) {
 	i_printf("setPosition\n");
+	disp.x = -(jx + disp.width);
+	disp.y = -(jy + disp.height);
+	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
+
 	return true;
 }
 
@@ -228,6 +291,10 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	int i, j;
 	c.width = x;
 	c.height = y;
+	disp.x = 0;
+	disp.y = 0;
+
+	//img配列の確保と初期化
 	img = (int **) malloc(sizeof(int*) * c.width);
 	for (i = 0; i < c.width; i++) {
 		img[i] = (int*) malloc(sizeof(int) * c.height);
@@ -238,11 +305,11 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 	}
 
+	//brush_map配列の確保と初期化
 	brush_map = (char **) malloc(sizeof(char*) * bx);
 	for (i = 0; i < bx; i++) {
 		brush_map[i] = (char*) malloc(sizeof(char) * by);
 	}
-
 	for (i = 0; i < bx; i++) {
 		for (j = 0; j < by; j++) {
 			brush_map[i][j] = 255;
@@ -259,40 +326,66 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 			brush[i][j] = brush_map[i][j];
 		}
 	}
-	setColor(0xFF000000);
 	return true;
 }
 
 void brush_draw(int x, int y) {
 	int i, j;
 	//描画
+	//i_printf("width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
 	for (i = 0; i < bx; i++) {
-		if (((x + i - bx / 2) < 0) || ((x + i - bx / 2) >= c.width)) {
-			continue;
-		}
 		for (j = 0; j < by; j++) {
-			if (((y + j - by / 2) < 0) || ((y + j - by / 2) >= c.height)) {
-				continue;
+			if (((x + i - bx / 2) > 0) && ((x + i - (bx + 10) / 2) < c.width)
+					&& ((y + j - by / 2) > 0)
+					&& ((y + j - (by + 10) / 2) < c.height)) {
+				//i_printf("img[%d][%d] = %d", x+i, y+j, img[x+i][y+j]);
+				img[x + i][y + j] = brush[i][j];
 			}
-			img[x + i][y + j] = brush[i][j];
 		}
 	}
 }
 
+/*
+ * 2点間の距離を求める関数
+ */
 int distance(int x1, int x2, int y1, int y2) {
 	int root = (int) sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 	return root;
 }
 
+/*
+ * 与えられた色をブラシに適用する関数
+ */
 void setColor(int color) {
 	int a, rgb;
 	int i, j;
 	Color = color;
+
+	//アルファ値の抽出
 	a = (Color & 0xFF000000) >> 24;
+
+	//RGB値の抽出
 	rgb = (Color & 0x00FFFFFF);
 	for (i = 0; i < bx; i++) {
 		for (j = 0; j < by; j++) {
 			brush[i][j] = (a * brush_map[i][j] / 255 << 24) | rgb;
 		}
+	}
+}
+
+/*
+ * 3点Bezier曲線を描画する関数
+ */
+void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
+	int i;
+	int x, y;
+	double t;
+
+	//frequencyが大きいほど緻密に描画する
+	for (i = 0; i <= frequency; i++) {
+		t = (double) i / frequency;
+		x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * x2 + t * t * x3;
+		y = (1 - t) * (1 - t) * y1 + 2 * t * (1 - t) * y2 + t * t * y3;
+		brush_draw(x, y);
 	}
 }

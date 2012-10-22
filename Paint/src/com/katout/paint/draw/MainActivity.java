@@ -69,9 +69,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		super.onWindowFocusChanged(hasFocus);
 		paint_menuH = paint_menu_t.getHeight();
 		paint_menuW = paint_layer_l.getWidth();
-		paint.setmenuwSize(paint_menuH, 100);
-		colorV_t.setColor(sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
-		colorV_b.setColor(sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
+		paint.setmenuwSize(paint_menuH, paint_menuW);
+		int color = sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0));
+		colorV_t.setColor(color);
+		colorV_b.setColor(color);
+		nativefunc.setColor(color);
 
 	}
 
@@ -149,9 +151,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		colorV_b = (ColorView) paint_menu_b.findViewById(R.id.colorview);
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
 		paint_layer_r = (LinearLayout) findViewById(R.id.layer_menu_r);
-		layer_l = (ListView) paint_layer_l.findViewById(R.id.layerlist);
-		layer_r = (ListView) paint_layer_r.findViewById(R.id.layerlist);
+
+		LinearLayout layer_l = (LinearLayout)paint_layer_l.findViewById(R.id.layer);
+		LinearLayout layer_r = (LinearLayout)paint_layer_r.findViewById(R.id.layer);
+		layerAdapter = new LayerAdapter(this, new LinearLayout[]{layer_l,layer_r});
+		//初期に１枚のレイヤーを登録
+		layerAdapter.addLayer(new LayerData());
+//		layerAdapter_r = new LayerAdapter(this, layer_list);
+//		layer_l.setAdapter(layerAdapter_l);
+//		layer_r.setAdapter(layerAdapter_r);
 		SurfaceView surface = (SurfaceView) findViewById(R.id.surfaceView1);
+		surface.setZOrderOnTop(false);
 		paint = new PaintView(this, surface, this, new EventLisner() {
 			@Override
 			public boolean startDraw(int x, int y) {
@@ -165,7 +175,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean setPosition(int x, int y) {
-				return true;// nativefunc.setPosition(x, y);
+				return nativefunc.setPosition(x, y);
 			}
 
 			@Override
@@ -245,4 +255,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				}, sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
 		mColorPickerDialog.show();
 	}
+
+	public void onAddLayer(View v){
+		layerAdapter.addLayer(new LayerData());
+	}
 }
+

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -32,7 +33,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	}
 
 	private SurfaceView sv;
-	private Context context;
 	public boolean tread_flag;
 	private SurfaceHolder holder;
 	public Thread thread;
@@ -59,14 +59,13 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private double Scale; // 現在の拡大率
 	private int nowMenuPosX; // 現在のメニューの位置
 	private int nowMenuPosY; // 現在のメニューの位置
-	private int menuW = 600;
+	private int menuW = 0;
 	private int menuH = 200;
 	private int w;
 	private int h;
 
 	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner,
 			EventLisner event_lisner) {
-		this.context = context;
 		this.sv = sv;
 		this.menu_lisner = menu_lisner;
 		this.event_lisner = event_lisner;
@@ -131,7 +130,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				//タッチ数が１になった場合で待機中からの遷移
 				if (state == State.Non) {
 					state = State.DrawStart;
-					event_lisner.startDraw(points[0][0], points[1][0]);
+					event_lisner.startDraw((int )(-nowPosX + points[0][0]/Scale), 
+							(int )(-nowPosY + points[1][0]/Scale));
 				}
 			}
 		} else {
@@ -143,7 +143,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				if (state == State.DrawStart) {
 					state = State.Drawing;
 				}
-				event_lisner.draw(points[0][0], points[1][0]);
+				event_lisner.draw((int )(-nowPosX + points[0][0]/Scale), 
+						(int )(-nowPosY + points[1][0]/Scale));
 			}
 
 			if (temp_touch_count == 2) {
@@ -157,7 +158,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				nowPosY += (temp_ave_y - aveY) / Scale;
 				// TODO 端処理を書け
 
-				event_lisner.setPosition(nowPosX, nowPosY);
+				event_lisner.setPosition(nowPosX - (int)(w/Scale), nowPosY - (int)(h/Scale));
 
 				aveX = temp_ave_x;
 				aveY = temp_ave_y;
@@ -231,7 +232,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						// TODO visibleMenu();
 					}
 				}
-				menu_lisner.layerMenuPos(w, nowMenuPosX, false);
+				Log.e("test", "w = " + nowMenuPosX + ":"+menuW);
+				menu_lisner.layerMenuPos(w, nowMenuPosX * 100 / menuW, false);
 				menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			}
 		}
@@ -252,7 +254,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			} else {
 				nowMenuPosY = 0;
 			}
-			menu_lisner.layerMenuPos(w, nowMenuPosX, false);
+			menu_lisner.layerMenuPos(w, nowMenuPosX * 100 / menuW, false);
 			menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			touch_count = 0;
 			state = State.Non;
@@ -346,7 +348,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 	public void setmenuwSize(int height, int wigth) {
 		menuH = height;
-		menuW = wigth;
+		menuW = (int) (wigth * 0.4f);
 	}
 
 }
