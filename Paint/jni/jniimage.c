@@ -11,11 +11,14 @@ void brush_draw(int x, int y);
 int distance(int x1, int x2, int y1, int y2);
 void setColor(int color);
 void Bezier(int x1, int y1, int x2, int y2, int x3, int y3);
+void Bicubic(int sx, int sy);
+double First_Neighborhood(double d);
+double Second_Neighborhood(double d);
+void Bilinear(int x, int y);
 
 /*
  * レイヤ周り
  */
-
 struct Display {
 	int height;
 	int width;
@@ -57,7 +60,10 @@ static char **brush_map;
 static int bx = 10;
 static int by = 10;
 static int **img;
+static int **imgs;
 static int frequency = 30;
+static double scale = 1.0;
+static int scale_flag = 0;
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
@@ -134,7 +140,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMask(
 /*
  * 描画周り
  */
-
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_Brush_setBrush(
 		JNIEnv* env, jobject obj, jobject brush) {
 	i_printf("setBrush\n");
@@ -177,30 +182,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 	return true;
 }
 
-/*
- JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
- JNIEnv* env, jobject obj, jint jx, jint jy) {
- i_printf("draw\n");
- int i, j;
- int dst;
- double cos_t, sin_t;
- dst = distance(dp.x, jx, dp.y, jy);
- //i_printf("dst = %d\n", dst);
- theta = atan2(jy - dp.y, jx - dp.x);
- //i_printf("theta = %d\n", theta);
- cos_t = cos(theta);
- sin_t = sin(theta);
- //始点、終点間の補間
- for (i = 0; i < dst / interval; i++) {
- dp.x += interval * cos_t;
- dp.y += interval * sin_t;
- brush_draw(dp.x, dp.y);
- //i_printf("put(%d,%d)\n", dp.x, dp.y);
- }
- return true;
- }
- */
-
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("draw\n");
@@ -237,12 +218,24 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	disp.height = jh;
 	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 
+	int xx, yy;
+	int x, y;
+	int s;
+
+	//浮動小数点演算対策
+	s = scale * 1000;
+
 	//imgの二次元配列を一次元配列に変換し代入
 	for (i = 0; i < disp.width; i++) {
+		//拡縮元座標の算出
+		xx = (i + disp.x) * 1000 / s;
+		x = (int) xx;
 		for (j = 0; j < disp.height; j++) {
-			if (((i + disp.x) < c.width) && ((j + disp.y) < c.height)
-					&& ((i + disp.x) > 0) && ((j + disp.y) > 0)) {
-				colors[j * disp.width + i] = img[i + disp.x][j + disp.y];
+			//拡縮元座標の算出
+			yy = (j + disp.y) * 1000 / s;
+			y = (int) yy;
+			if ((xx < c.width) && (yy < c.height) && (xx > 0) && (yy > 0)) {
+				colors[j * disp.width + i] = img[x][y];
 			} else {
 				colors[j * disp.width + i] = 0xFF000000;
 				flag = 1;
@@ -264,8 +257,8 @@ JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setPosition(JNIEnv* env,
 		jobject obj, jint jx, jint jy) {
 	i_printf("setPosition\n");
-	disp.x = -(jx + disp.width);
-	disp.y = -(jy + disp.height);
+	disp.x = -(scale * jx + disp.width);
+	disp.y = -(scale * jy + disp.height);
 	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 
 	return true;
@@ -280,8 +273,9 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setRadian(JNIEnv* env,
 
 JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setScale(JNIEnv* env,
-		jobject obj, jdouble scale) {
+		jobject obj, jdouble jscale) {
 	i_printf("setScale\n");
+	scale = jscale;
 	return true;
 }
 
@@ -302,6 +296,17 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
 			img[i][j] = 0xFFFFFFFF;
+		}
+	}
+
+	//拡縮後img配列の確保と初期化
+	imgs = (int **) malloc(sizeof(int*) * c.width);
+	for (i = 0; i < c.width; i++) {
+		imgs[i] = (int*) malloc(sizeof(int) * c.height);
+	}
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			imgs[i][j] = 0xFFFFFFFF;
 		}
 	}
 
@@ -332,12 +337,11 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 void brush_draw(int x, int y) {
 	int i, j;
 	//描画
-	//i_printf("width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
+	i_printf( "width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
 	for (i = 0; i < bx; i++) {
 		for (j = 0; j < by; j++) {
-			if (((x + i - bx / 2) > 0) && ((x + i - (bx + 10) / 2) < c.width)
-					&& ((y + j - by / 2) > 0)
-					&& ((y + j - (by + 10) / 2) < c.height)) {
+			if (((x + i) > 0) && ((x + i) < c.width) && ((y + j) > 0)
+					&& ((y + j) < c.height)) {
 				//i_printf("img[%d][%d] = %d", x+i, y+j, img[x+i][y+j]);
 				img[x + i][y + j] = brush[i][j];
 			}
@@ -387,5 +391,164 @@ void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
 		x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * x2 + t * t * x3;
 		y = (1 - t) * (1 - t) * y1 + 2 * t * (1 - t) * y2 + t * t * y3;
 		brush_draw(x, y);
+	}
+}
+
+/*
+ * バイキュービック法による拡縮関数
+ */
+void Bicubic(int sx, int sy) {
+	double nscale;	//倍率
+	int x, y;
+	int ix, iy;
+	double wx, wy;
+	int x0, y0;
+	double xx, yy;
+	double data;
+	int tmpy, tmpx;
+	double w;
+	double dx, dy;
+
+	nscale = 1.0 / scale;
+
+	//バイキュービック法
+	for (y = sy; y < sy + disp.width; y++) {
+		for (x = sx; x < sx + disp.height; x++) {
+			//拡大縮小比率から変換先ピクセルに対応する変換元の座標を計算する
+			xx = nscale * (double) x;	//変換元の比率
+			ix = (int) xx;	//変換元座標
+
+			yy = nscale * (double) y;
+			iy = (int) yy;
+
+			//printf("ix = %d, iy = %d\n",ix,iy);
+			data = 0.0;
+
+			//対象となるいちの周囲４＊４ピクセルの値を重みつけして足し合わせる
+			for (tmpy = iy - 1; tmpy <= iy + 2; tmpy++) {
+				for (tmpx = ix - 1; tmpx <= ix + 2; tmpx++) {
+
+					//printf("tmpx = %d, tmpy = %d\n",tmpx,tmpy);
+					dx = xx - (double) tmpx;
+					//printf("xx = %1f, tmpx = %1f\n",xx,(double)tmpx);
+					//printf("dx = %1f\n",dx);
+					if (dx < 0) {
+						dx *= -1;
+					}
+					dy = yy - (double) tmpy;
+					//printf("dy = %1f\n",dy);
+					//printf("yy = %1f, tmpy = %d\n",yy,tmpy);
+					if (dy < 0) {
+						dy *= -1;
+					}
+
+					//printf("dx = %1f, dy = %1f\n",dx,dy);
+					//横方向の重みを計算
+					if (dx < 1.0) {
+						wx = First_Neighborhood(dx);	//第一近傍か
+					} else {
+						wx = Second_Neighborhood(dx);
+					}
+					if (dy < 1.0) {
+						wy = First_Neighborhood(dy);	//第一近傍か
+					} else {
+						wy = Second_Neighborhood(dy);
+					}
+					w = wx * wy; //重み計算
+					//printf("w = %1f\n",w);
+
+					//縦横が変換元のピクセルからはみ出ないように位置を矯正
+					x0 = tmpx;
+					if ((x0 < 0) || (x0 > (c.height - 1))) {
+						x0 = ix;
+					}
+					y0 = tmpy;
+					if ((y0 < 0) || (y0 > (c.width - 1))) {
+						y0 = iy;
+					}
+					//printf("x0 = %d, y0 = %d\n",x0,y0);
+					//重みを乗じて16ピクセル分を足し合わせていく
+					data = data + (double) img[y0][x0] * w;
+					//printf("data = %1f\n",data);
+				}
+			}
+			if (data > 255.0) {
+				data = 255.0;
+			} else if (data < 0.0) {
+				data = 0.0;
+			}
+			//printf("data = %1f\n",data);
+			if ((y >= 0) && (y <= c.width) && (x >= 0) && (x <= c.height)) {
+				imgs[y - sy][x - sx] = data;
+			}
+			//printf("image_dec[y][x] = %s\n",g[y][x]);
+		}
+	}
+}
+
+//第一近傍
+double First_Neighborhood(double d) {
+	return (d - 1.0) * (d * d - d - 1.0);
+}
+
+//第二近傍
+double Second_Neighborhood(double d) {
+	return -1 * (d - 1.0) * (d - 2.0) * (d - 2.0);
+}
+
+/*
+ * バイリニア法による拡縮
+ * 引数のx,yは共に0以上
+ */
+void Bilinear(int x, int y) {
+	int w = c.width;
+	int h = c.height;
+	int i, j;
+	double nscale = 1 / scale;
+	double xx, yy;
+	int x0, y0;
+	double fx, fy;
+	int x1, y1;
+	double f0, f1, f2, f3;
+	int c0, c1, c2, c3;
+
+	for (i = y; i < y + disp.height; i++) {
+		yy = i * nscale;
+		y0 = (int) yy;
+		fy = yy - y0;
+		if ((y0 + 1) < h) {
+			y1 = y0 + 1;
+		} else {
+			y1 = y0;
+		}
+		for (j = x; j < x + disp.width; j++) {
+			xx = j * nscale;
+			x0 = (int) xx;
+			fx = xx - x0;
+
+			f0 = (1.0 - fx) * (1.0 - fy);
+			f1 = fx * (1.0 - fy);
+			f2 = (1.0 - fx) * fy;
+			f3 = f3 = fx * fy;
+
+			if ((x0 + 1) < w) {
+				x1 = x0 + 1;
+			} else {
+				x1 = x0;
+			}
+
+			if (((y0 + 1) < c.height) && ((x0 + 1) < c.width)) {
+				c0 = img[y0][x0];
+				c1 = img[y0][x1];
+				c2 = img[y1][x0];
+				c3 = img[y1][x1];
+			} else {
+				c0 = 0;
+				c1 = 0;
+				c2 = 0;
+				c3 = 0;
+			}
+			imgs[i - y][j - x] = c0 * f0 + c1 * f1 + c2 * f2 + c3 * f3;
+		}
 	}
 }
