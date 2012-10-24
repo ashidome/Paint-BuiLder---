@@ -51,21 +51,16 @@ public final class R {
         public static final int trash_can=0x7f020017;
     }
     public static final class id {
-        public static final int ImageView03=0x7f09001e;
-        public static final int TextView01=0x7f090018;
-        public static final int TextView02=0x7f09001b;
-        public static final int TextView03=0x7f090019;
-        public static final int TextView04=0x7f09001c;
-        public static final int TextView05=0x7f09001a;
+        public static final int TextView04=0x7f090018;
         public static final int colorPicker=0x7f090006;
-        public static final int colorview=0x7f09001d;
+        public static final int colorview=0x7f090019;
         public static final int imageView1=0x7f090012;
         public static final int imageView2=0x7f090010;
         public static final int imageView3=0x7f090011;
         public static final int layer=0x7f090017;
         public static final int layer_menu_l=0x7f090002;
         public static final int layer_menu_r=0x7f090001;
-        public static final int menu_settings=0x7f090020;
+        public static final int menu_settings=0x7f09001b;
         public static final int ok_button=0x7f09000f;
         public static final int paint_menu_b=0x7f090004;
         public static final int paint_menu_t=0x7f090003;
@@ -74,7 +69,7 @@ public final class R {
         public static final int seekBar_blue=0x7f09000e;
         public static final int seekBar_green=0x7f09000c;
         public static final int seekBar_red=0x7f09000a;
-        public static final int seek_brush=0x7f09001f;
+        public static final int seek_brush=0x7f09001a;
         public static final int spinner1=0x7f090014;
         public static final int surfaceView1=0x7f090000;
         public static final int tableRow1=0x7f090007;

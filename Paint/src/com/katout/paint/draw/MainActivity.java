@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.SurfaceView;
@@ -237,6 +238,12 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			public boolean init(int x, int y) {
 				return nativefunc.init(x, y);
 			}
+
+			@Override
+			public void bucket(int x, int y) {
+				Log.e("test", "bucket!!");
+				nativefunc.bucket(x, y, 255);
+			}
 		});
 	}
 
@@ -293,6 +300,16 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	public void onAddLayer(View v){
 		layerAdapter.addLayer(new LayerData());
+	}
+	
+	public void onBrush(View v){
+		paint.setMode(PaintMode.Brush);
+	}
+	public void onBucket(View v){
+		paint.setMode(PaintMode.Bucket);
+	}
+	public void onEraser(View v){
+		paint.setMode(PaintMode.Eraser);
 	}
 }
 
