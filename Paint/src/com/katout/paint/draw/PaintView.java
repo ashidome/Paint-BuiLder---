@@ -63,6 +63,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private int menuH = 200;
 	private int w;
 	private int h;
+	
+	private PaintMode mode;
 
 	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner,
 			EventLisner event_lisner) {
@@ -84,6 +86,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		nowPosY = 0;
 		Scale = 1.0;
 		rad = 1.0;
+		mode = PaintMode.Brush;
 	}
 
 	@Override
@@ -130,8 +133,11 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				//タッチ数が１になった場合で待機中からの遷移
 				if (state == State.Non) {
 					state = State.DrawStart;
-					event_lisner.startDraw((int )(-nowPosX + points[0][0]/Scale), 
-							(int )(-nowPosY + points[1][0]/Scale));
+					if(mode == PaintMode.Brush){
+						event_lisner.startDraw((int )(-nowPosX + points[0][0]/Scale), 
+								(int )(-nowPosY + points[1][0]/Scale));
+					}
+					
 				}
 			}
 		} else {
@@ -143,8 +149,10 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				if (state == State.DrawStart) {
 					state = State.Drawing;
 				}
-				event_lisner.draw((int )(-nowPosX + points[0][0]/Scale), 
-						(int )(-nowPosY + points[1][0]/Scale));
+				if(mode == PaintMode.Brush){
+					event_lisner.draw((int )(-nowPosX + points[0][0]/Scale), 
+							(int )(-nowPosY + points[1][0]/Scale));
+				}
 			}
 
 			if (temp_touch_count == 2) {
@@ -261,6 +269,10 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			if (state == State.Drawing) {
 				// TODO event_lisner.stopDraw(points[0][0], points[1][0]);
 			}
+			if(mode == PaintMode.Bucket){
+				event_lisner.bucket((int )(-nowPosX + points[0][0]/Scale), 
+						(int )(-nowPosY + points[1][0]/Scale));
+			}
 		} else {
 			touch_count = temp_touch_count;
 		}
@@ -349,6 +361,11 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	public void setmenuwSize(int height, int wigth) {
 		menuH = height;
 		menuW = (int) (wigth * 0.4f);
+	}
+
+
+	public void setMode(PaintMode mode) {
+		this.mode = mode;
 	}
 
 }

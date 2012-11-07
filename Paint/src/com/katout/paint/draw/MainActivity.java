@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.SurfaceView;
@@ -17,6 +18,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.OnColorChangedListener;
@@ -44,6 +47,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	private ColorView colorV_t;
 	private ColorView colorV_b;
+	
+	private SeekBar seek_brush_t;
+	private SeekBar seek_brush_b;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -155,6 +161,36 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		LinearLayout layer_l = (LinearLayout)paint_layer_l.findViewById(R.id.layer);
 		LinearLayout layer_r = (LinearLayout)paint_layer_r.findViewById(R.id.layer);
 		layerAdapter = new LayerAdapter(this, new LinearLayout[]{layer_l,layer_r});
+		
+		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
+		seek_brush_b = (SeekBar) paint_menu_b.findViewById(R.id.seek_brush);
+		
+		seek_brush_t.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				int brush = seekBar.getProgress();
+				seek_brush_b.setProgress(brush);
+				nativefunc.setBrushSize(brush);
+			}
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
+		});
+		
+		seek_brush_b.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				int brush = seekBar.getProgress();
+				seek_brush_t.setProgress(brush);
+				nativefunc.setBrushSize(brush);
+			}
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
+		});
+		
 		//初期に１枚のレイヤーを登録
 		layerAdapter.addLayer(new LayerData());
 //		layerAdapter_r = new LayerAdapter(this, layer_list);
@@ -201,6 +237,12 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public boolean init(int x, int y) {
 				return nativefunc.init(x, y);
+			}
+
+			@Override
+			public void bucket(int x, int y) {
+				Log.e("test", "bucket!!");
+				nativefunc.bucket(x, y, 255);
 			}
 		});
 	}
@@ -258,6 +300,16 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	public void onAddLayer(View v){
 		layerAdapter.addLayer(new LayerData());
+	}
+	
+	public void onBrush(View v){
+		paint.setMode(PaintMode.Brush);
+	}
+	public void onBucket(View v){
+		paint.setMode(PaintMode.Bucket);
+	}
+	public void onEraser(View v){
+		paint.setMode(PaintMode.Eraser);
 	}
 }
 

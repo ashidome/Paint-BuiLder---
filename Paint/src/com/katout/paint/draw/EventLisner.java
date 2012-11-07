@@ -19,4 +19,6 @@ public interface EventLisner {
 
 	boolean getBitmap(int[] canvas, int width, int height);
 
+	void bucket(int i, int j);
+
 }

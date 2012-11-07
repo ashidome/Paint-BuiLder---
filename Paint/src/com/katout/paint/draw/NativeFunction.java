@@ -42,4 +42,6 @@ public class NativeFunction {
 	public native boolean setScale(double scale);
 
 	public native boolean getBitmap(int[] canvas, int width, int height);
+	
+	public native boolean bucket(int x, int y, int t);
 }
