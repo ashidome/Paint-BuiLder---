@@ -8,17 +8,20 @@
 #define i_printf(...) __android_log_print(ANDROID_LOG_INFO, "hj", __VA_ARGS__)
 
 #define MAXSIZE 40000000
+#define MAX_BRUSH_WIDTH 100
+#define MAX_BRUSH_HEIGHT 100
 
 void brush_draw(int x, int y);
 int distance(int x1, int x2, int y1, int y2);
 void setColor(int color);
 void Bezier(int x1, int y1, int x2, int y2, int x3, int y3);
-void Bicubic(int sx, int sy);
+void Bicubic(int sx, int sy, double by);
 double First_Neighborhood(double d);
 double Second_Neighborhood(double d);
 void Bilinear(int x, int y);
 void scanLine(int lx, int rx, int y, unsigned int col);
 void fill(int x, int y, unsigned int paintCol);
+void setBrush(jchar img[]);
 
 /*
  * レイヤ周り
@@ -56,11 +59,17 @@ struct FillPoint {
 	int count;
 };
 
+struct BrushMap {
+	int width;
+	int height;
+};
+
 static struct Display disp;
 static struct Canvas c;
 static struct Laler layers;
 static struct DrawPoints dp;
 static struct FillPoint fp;
+static struct BrushMap brushmap;
 static int Color;
 static int Size;
 static int theta;
@@ -68,8 +77,8 @@ static int theta;
 //テスト用
 static int **brush;
 static char **brush_map;
-static int bx = 10;
-static int by = 10;
+static int bx;
+static int by;
 static int **img;
 static int **imgs;
 static int frequency = 30;
@@ -159,17 +168,19 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMask(
  * 描画周り
  */
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_Brush_setBrush(
-		JNIEnv* env, jobject obj, jobject brush) {
-	jclass class;
-	jintArray ba;
-	jfieldID brush_field;
+		JNIEnv* env, jobject obj, jcharArray color, jint jw, jint jh) {
+	int i, j;
 	i_printf("setBrush\n");
+	jchar* colors = (*env)->GetCharArrayElements(env, color, 0);
 
-	class = (*env)->GetObjectClass(env, brush);
-	brush_field = (*env)->GetFieldID(env, class, "bmp", "[[C");
+	//ブラシマップサイズの定義
+	brushmap.width = jw;
+	brushmap.height = jh;
 
-	//TODO ブラシのセット
+	//新規ブラシマップの適用
+	setBrush(colors);
 
+	(*env)->ReleaseCharArrayElements(env, color, colors, 0);
 	return true;
 }
 
@@ -182,10 +193,18 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setColor(
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrushSize(
 		JNIEnv* env, jobject obj, jint jsize) {
-	//jsize = 1~500^2
-	//使用時に
+	//jsize = 1~500
+	//使用時に√x / 20 0.05 ~ 25;
 	i_printf("setBrushSize\n");
+	double Magnification;
 	Size = jsize;
+	Magnification = sqrt(Size) / 4.0;
+
+	i_printf("Magnification = %1f", Magnification);
+
+	Bicubic(0, 0, Magnification);
+	bx = 10 * Magnification;
+	by = 10 * Magnification;
 	return true;
 }
 
@@ -232,7 +251,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Bucket(
 		JNIEnv* env, jobject obj, jint jx, jint jy, jint t) {
-	fill(jx, jy, t);
+	//fill(jx, jy, t);
 	return true;
 }
 
@@ -253,7 +272,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			colors[j * c.width + c.height] = img[i][j];
+			colors[j * c.width + i] = img[i][j];
 		}
 	}
 
@@ -367,32 +386,30 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	}
 
 	//brush_map配列の確保と初期化
-	brush_map = (char **) malloc(sizeof(char*) * 500);
-	for (i = 0; i < bx; i++) {
-		brush_map[i] = (char*) malloc(sizeof(char) * 500);
+	brush_map = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
+	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
+		brush_map[i] = (char*) malloc(sizeof(char) * MAX_BRUSH_HEIGHT);
 	}
-	for (i = 0; i < bx; i++) {
-		for (j = 0; j < by; j++) {
+	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
+		for (j = 0; j < MAX_BRUSH_HEIGHT; j++) {
 			brush_map[i][j] = 255;
 		}
 	}
 
-	brush = (int **) malloc(sizeof(int*) * bx);
-	for (i = 0; i < bx; i++) {
-		brush[i] = (int*) malloc(sizeof(int) * by);
+	brush = (int **) malloc(sizeof(int*) * MAX_BRUSH_WIDTH * 20);
+	for (i = 0; i < MAX_BRUSH_WIDTH * 20; i++) {
+		brush[i] = (int*) malloc(sizeof(int) * MAX_BRUSH_HEIGHT * 20);
 	}
+
+	bx = 10;
+
+	by = 10;
 
 	for (i = 0; i < bx; i++) {
 		for (j = 0; j < by; j++) {
 			brush[i][j] = brush_map[i][j];
 		}
 	}
-
-	fp.x = (int *) malloc(sizeof(int) * (c.height * c.width));
-	fp.y = (int *) malloc(sizeof(int) * (c.height * c.width));
-
-	fill(100, 100, 0);
-
 	return true;
 }
 
@@ -435,8 +452,8 @@ void setColor(int color) {
 
 	//RGB値の抽出
 	rgb = (Color & 0x00FFFFFF);
-	for (i = 0; i < bx; i++) {
-		for (j = 0; j < by; j++) {
+	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
+		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
 			brush[i][j] = (a * brush_map[i][j] / 255 << 24) | rgb;
 		}
 	}
@@ -461,8 +478,9 @@ void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
 
 /*
  * バイキュービック法による拡縮関数
+ * 始点x,y、倍率
  */
-void Bicubic(int sx, int sy) {
+void Bicubic(int sx, int sy, double by) {
 	double nscale;	//倍率
 	int x, y;
 	int ix, iy;
@@ -474,11 +492,11 @@ void Bicubic(int sx, int sy) {
 	double w;
 	double dx, dy;
 
-	nscale = 1.0 / scale;
+	nscale = 1.0 / by;
 
 	//バイキュービック法
-	for (y = sy; y < sy + disp.width; y++) {
-		for (x = sx; x < sx + disp.height; x++) {
+	for (y = sy; y < sy + brushmap.width; y++) {
+		for (x = sx; x < sx + brushmap.height; x++) {
 			//拡大縮小比率から変換先ピクセルに対応する変換元の座標を計算する
 			xx = nscale * (double) x;	//変換元の比率
 			ix = (int) xx;	//変換元座標
@@ -486,28 +504,20 @@ void Bicubic(int sx, int sy) {
 			yy = nscale * (double) y;
 			iy = (int) yy;
 
-			//printf("ix = %d, iy = %d\n",ix,iy);
 			data = 0.0;
 
 			//対象となるいちの周囲４＊４ピクセルの値を重みつけして足し合わせる
 			for (tmpy = iy - 1; tmpy <= iy + 2; tmpy++) {
 				for (tmpx = ix - 1; tmpx <= ix + 2; tmpx++) {
-
-					//printf("tmpx = %d, tmpy = %d\n",tmpx,tmpy);
 					dx = xx - (double) tmpx;
-					//printf("xx = %1f, tmpx = %1f\n",xx,(double)tmpx);
-					//printf("dx = %1f\n",dx);
 					if (dx < 0) {
 						dx *= -1;
 					}
 					dy = yy - (double) tmpy;
-					//printf("dy = %1f\n",dy);
-					//printf("yy = %1f, tmpy = %d\n",yy,tmpy);
 					if (dy < 0) {
 						dy *= -1;
 					}
 
-					//printf("dx = %1f, dy = %1f\n",dx,dy);
 					//横方向の重みを計算
 					if (dx < 1.0) {
 						wx = First_Neighborhood(dx);	//第一近傍か
@@ -520,21 +530,18 @@ void Bicubic(int sx, int sy) {
 						wy = Second_Neighborhood(dy);
 					}
 					w = wx * wy; //重み計算
-					//printf("w = %1f\n",w);
 
 					//縦横が変換元のピクセルからはみ出ないように位置を矯正
 					x0 = tmpx;
-					if ((x0 < 0) || (x0 > (c.height - 1))) {
+					if ((x0 < 0) || (x0 > (brushmap.height - 1))) {
 						x0 = ix;
 					}
 					y0 = tmpy;
-					if ((y0 < 0) || (y0 > (c.width - 1))) {
+					if ((y0 < 0) || (y0 > (brushmap.width - 1))) {
 						y0 = iy;
 					}
-					//printf("x0 = %d, y0 = %d\n",x0,y0);
 					//重みを乗じて16ピクセル分を足し合わせていく
-					data = data + (double) img[y0][x0] * w;
-					//printf("data = %1f\n",data);
+					data = data + (double) brush_map[y0][x0] * w;
 				}
 			}
 			if (data > 255.0) {
@@ -542,11 +549,10 @@ void Bicubic(int sx, int sy) {
 			} else if (data < 0.0) {
 				data = 0.0;
 			}
-			//printf("data = %1f\n",data);
-			if ((y >= 0) && (y <= c.width) && (x >= 0) && (x <= c.height)) {
-				imgs[y - sy][x - sx] = data;
+			if ((y >= 0) && (y <= brushmap.height) && (x >= 0)
+					&& (x <= brushmap.height)) {
+				brush[y - sy][x - sx] = data;
 			}
-			//printf("image_dec[y][x] = %s\n",g[y][x]);
 		}
 	}
 }
@@ -714,4 +720,17 @@ void fill(int x, int y, unsigned int paintCol) {
 			scanLine(lx, rx, ly + 1, col);
 		}
 	} while (sIdx != eIdx);
+}
+
+/*
+ * 新規ブラシマップセット関数
+ */
+void setBrush(jchar img[]) {
+	int i, j;
+	//新規ブラシマップを適用
+	for (i = 0; i < brushmap.width; i++) {
+		for (j = 0; j < brushmap.height; j++) {
+			brush_map[i][j] = img[j * brushmap.width + i];
+		}
+	}
 }
