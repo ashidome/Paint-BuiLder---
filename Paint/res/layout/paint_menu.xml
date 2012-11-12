@@ -35,6 +35,7 @@
                     android:clickable="true"
                     android:drawableBottom="@drawable/file"
                     android:gravity="center"
+                    android:onClick="onFile"
                     android:text="@string/file"
                     android:textColor="#000000" />
 

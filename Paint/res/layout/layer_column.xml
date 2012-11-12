@@ -26,19 +26,22 @@
             android:src="@drawable/record" />
 
     </LinearLayout>
-
+
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:background="@color/select" >
-
+
         <ImageView
             android:id="@+id/imageView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
             android:layout_margin="@dimen/padding_1dp"
             android:background="@color/white"
             android:src="@drawable/palette" />
+
     </FrameLayout>
 
     <TextView
