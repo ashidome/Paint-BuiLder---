@@ -3,6 +3,8 @@ package com.katout.paint.draw;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Color;
@@ -28,28 +30,29 @@ import com.katout.paint.draw.layer.LayerAdapter;
 import com.katout.paint.draw.layer.LayerData;
 
 public class MainActivity extends Activity implements PaintView.MenuLiner {
-	private NativeFunction nativefunc;
-	private Handler handler;
-	private PaintView paint;
-	private LinearLayout paint_menu_t;
-	private LinearLayout paint_menu_b;
-	private int paint_menuH;
+	private NativeFunction			nativefunc;
+	private Handler					handler;
+	private PaintView				paint;
+	private LinearLayout			paint_menu_t;
+	private LinearLayout			paint_menu_b;
+	private int						paint_menuH;
 
-	private LinearLayout paint_layer_r;
-	private LinearLayout paint_layer_l;
-	private ListView layer_r;
-	private ListView layer_l;
-	private ArrayList<LayerData> layer;
-	private LayerAdapter layerAdapter;
-	private int paint_menuW;
+	private LinearLayout			paint_layer_r;
+	private LinearLayout			paint_layer_l;
+	private ListView				layer_r;
+	private ListView				layer_l;
+	private ArrayList<LayerData>	layer;
+	private LayerAdapter			layerAdapter;
+	private int						paint_menuW;
 
-	private SharedPreferences sp;
+	private SharedPreferences		sp;
 
-	private ColorView colorV_t;
-	private ColorView colorV_b;
-	
-	private SeekBar seek_brush_t;
-	private SeekBar seek_brush_b;
+	private ColorView				colorV_t;
+	private ColorView				colorV_b;
+
+	private SeekBar					seek_brush_t;
+	private SeekBar					seek_brush_b;
+
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -158,13 +161,16 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
 		paint_layer_r = (LinearLayout) findViewById(R.id.layer_menu_r);
 
-		LinearLayout layer_l = (LinearLayout)paint_layer_l.findViewById(R.id.layer);
-		LinearLayout layer_r = (LinearLayout)paint_layer_r.findViewById(R.id.layer);
-		layerAdapter = new LayerAdapter(this, new LinearLayout[]{layer_l,layer_r});
-		
+		LinearLayout layer_l = (LinearLayout) paint_layer_l
+				.findViewById(R.id.layer);
+		LinearLayout layer_r = (LinearLayout) paint_layer_r
+				.findViewById(R.id.layer);
+		layerAdapter = new LayerAdapter(this, new LinearLayout[] { layer_l,
+				layer_r });
+
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
 		seek_brush_b = (SeekBar) paint_menu_b.findViewById(R.id.seek_brush);
-		
+
 		seek_brush_t.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
@@ -172,6 +178,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				seek_brush_b.setProgress(brush);
 				nativefunc.setBrushSize(brush);
 			}
+
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			@Override
@@ -185,6 +192,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				seek_brush_t.setProgress(brush);
 				nativefunc.setBrushSize(brush);
 			}
+
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			@Override
@@ -193,9 +201,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		
 		//初期に１枚のレイヤーを登録
 		layerAdapter.addLayer(new LayerData());
-//		layerAdapter_r = new LayerAdapter(this, layer_list);
-//		layer_l.setAdapter(layerAdapter_l);
-//		layer_r.setAdapter(layerAdapter_r);
+		// layerAdapter_r = new LayerAdapter(this, layer_list);
+		// layer_l.setAdapter(layerAdapter_l);
+		// layer_r.setAdapter(layerAdapter_r);
 		SurfaceView surface = (SurfaceView) findViewById(R.id.surfaceView1);
 		surface.setZOrderOnTop(false);
 		paint = new PaintView(this, surface, this, new EventLisner() {
@@ -289,7 +297,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						Editor ed = sp.edit();
 						ed.putInt("wid_back_color", color);
 						ed.commit();
-						//ネイティブに色情報を渡す
+						// ネイティブに色情報を渡す
 						nativefunc.setColor(color);
 						colorV_t.setColor(color);
 						colorV_b.setColor(color);
@@ -298,18 +306,57 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		mColorPickerDialog.show();
 	}
 
-	public void onAddLayer(View v){
+	public void onAddLayer(View v) {
 		layerAdapter.addLayer(new LayerData());
 	}
-	
-	public void onBrush(View v){
+
+	public void onFile(View v) {
+		final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+		// 表示項目の配列
+		final CharSequence[] colors = { "新規", "開く", "保存" , "終了" };
+		// タイトルを設定
+		alertDialogBuilder.setTitle("メニュー");
+		// 表示項目とリスナの設定
+		alertDialogBuilder.setItems(colors, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				switch (which) {
+				case 0:
+					
+					break;
+				case 1:
+					break;
+				case 2:
+					break;
+				case 3:
+					paint.tread_flag = false;
+					finish();
+					break;
+				case 4:
+					break;
+				default:
+					break;
+				}
+			}
+		});
+
+		// back keyを使用不可に設定
+		alertDialogBuilder.setCancelable(false);
+
+		// ダイアログを表示
+		alertDialogBuilder.create().show();
+	}
+
+	public void onBrush(View v) {
 		paint.setMode(PaintMode.Brush);
 	}
-	public void onBucket(View v){
+
+	public void onBucket(View v) {
 		paint.setMode(PaintMode.Bucket);
 	}
-	public void onEraser(View v){
+
+	public void onEraser(View v) {
 		paint.setMode(PaintMode.Eraser);
 	}
 }
-

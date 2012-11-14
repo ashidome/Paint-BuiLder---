@@ -12,7 +12,6 @@ import android.view.View;
 
 /**
  * ペイント画面を管理するクラス
- *
  * @author katout
  *
  */
