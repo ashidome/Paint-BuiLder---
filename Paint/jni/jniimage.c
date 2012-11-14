@@ -22,6 +22,7 @@ void Bilinear(int x, int y);
 void scanLine(int lx, int rx, int y, unsigned int col);
 void fill(int x, int y, unsigned int paintCol);
 void setBrush(jchar img[]);
+int Normal_Draw(int src, int dest);
 
 /*
  * レイヤ周り
@@ -80,10 +81,10 @@ static char **brush_map;
 static int bx;
 static int by;
 static int **img;
+static bool **img_bool;
 static int **imgs;
 static int frequency = 30;
 static double scale;
-static int scale_flag = 0;
 
 struct BufStr {
 	int sx; /* 領域右端のX座標 */
@@ -200,7 +201,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrushSiz
 	Size = jsize;
 	Magnification = sqrt(Size) / 4.0;
 
-	i_printf("Magnification = %1f", Magnification);
+	//i_printf("Magnification = %1f", Magnification);
 
 	Bicubic(0, 0, Magnification);
 	bx = 10 * Magnification;
@@ -212,6 +213,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("startDraw\n");
 	int i, j;
+
+	//img_boolの初期化
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			img_bool[i][j] = true;
+		}
+	}
 
 	//始点の保持
 	dp.x = jx;
@@ -266,7 +274,7 @@ JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getCanvasWidth(
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
-		JNIEnv* env, jobject obj, jintArray color, jint jw, jint jh) {
+		JNIEnv* env, jobject obj, jintArray color) {
 	int i, j;
 	jint* colors = (*env)->GetIntArrayElements(env, color, 0);
 
@@ -374,16 +382,27 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 	}
 
-	//拡縮後img配列の確保と初期化
-	imgs = (int **) malloc(sizeof(int*) * c.width);
+	//img_bool配列の確保と初期化
+	img_bool = (bool **) malloc(sizeof(bool*) * c.width);
 	for (i = 0; i < c.width; i++) {
-		imgs[i] = (int*) malloc(sizeof(int) * c.height);
+		img_bool[i] = (bool*) malloc(sizeof(bool) * c.height);
 	}
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			imgs[i][j] = 0xFFFFFFFF;
+			img_bool[i][j] = true;
 		}
 	}
+
+//	//拡縮後img配列の確保と初期化
+//	imgs = (int **) malloc(sizeof(int*) * c.width);
+//	for (i = 0; i < c.width; i++) {
+//		imgs[i] = (int*) malloc(sizeof(int) * c.height);
+//	}
+//	for (i = 0; i < c.width; i++) {
+//		for (j = 0; j < c.height; j++) {
+//			imgs[i][j] = 0xFFFFFFFF;
+//		}
+//	}
 
 	//brush_map配列の確保と初期化
 	brush_map = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
@@ -424,8 +443,11 @@ void brush_draw(int x, int y) {
 		for (j = 0; j < by; j++) {
 			if (((x + i) > 0) && ((x + i) < c.width) && ((y + j) > 0)
 					&& ((y + j) < c.height)) {
-				//i_printf("img[%d][%d] = %d", x+i, y+j, img[x+i][y+j]);
-				img[x + i][y + j] = brush[i][j];
+				if (img_bool[x + i][y + j] == true) {
+					img[x + i][y + j] = Normal_Draw(brush[i][j],
+							img[x + i][y + j]);
+					img_bool[x + i][y + j] = false;
+				}
 			}
 		}
 	}
@@ -619,7 +641,7 @@ void Bilinear(int x, int y) {
 				c2 = 0;
 				c3 = 0;
 			}
-			imgs[i - y][j - x] = c0 * f0 + c1 * f1 + c2 * f2 + c3 * f3;
+			//imgs[i - y][j - x] = c0 * f0 + c1 * f1 + c2 * f2 + c3 * f3;
 		}
 	}
 }
@@ -733,4 +755,42 @@ void setBrush(jchar img[]) {
 			brush_map[i][j] = img[j * brushmap.width + i];
 		}
 	}
+}
+
+int Normal_Draw(int src, int dest) {
+	int src_a, src_r, src_g, src_b;
+	int dest_a, dest_r, dest_g, dest_b;
+	int a, r, g, b;
+	int result;
+
+	src_a = (src & 0xFF000000) >> 24;
+	src_r = (src & 0x00FF0000) >> 16;
+	src_g = (src & 0x0000FF00) >> 8;
+	src_b = (src & 0x000000FF);
+
+	dest_a = (dest & 0xFF000000) >> 24;
+	dest_r = (dest & 0x00FF0000) >> 16;
+	dest_g = (dest & 0x0000FF00) >> 8;
+	dest_b = (dest & 0x000000FF);
+
+	r = (src_r * src_a + dest_r * (255 - src_a)) / 255;
+	if (r > 255) {
+		r = 255;
+	}
+	g = (src_g * src_a + dest_g * (255 - src_a)) / 255;
+	if (g > 255) {
+		g = 255;
+	}
+	b = (src_b * src_a + dest_b * (255 - src_a)) / 255;
+	if (b > 255) {
+		b = 255;
+	}
+	a = src_a + dest_a;
+	if (a > 255) {
+		a = 255;
+	}
+
+	result = (a << 24) | (r << 16) | (g << 8) | b;
+
+	return result;
 }
