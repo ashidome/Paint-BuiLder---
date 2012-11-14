@@ -1,14 +1,21 @@
 package com.katout.paint.draw;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -22,6 +29,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.Toast;
 
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.OnColorChangedListener;
@@ -328,6 +336,37 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				case 1:
 					break;
 				case 2:
+					try{
+						int h =nativefunc.getCanvasHeight();
+						int w = nativefunc.getCanvasWidth();
+						
+						int[] canvas = new int[h*w];
+						nativefunc.getRawdata(canvas);
+						Bitmap map = Bitmap.createBitmap(canvas, w, h, Bitmap.Config.ARGB_8888);
+						
+						// sdcardフォルダを指定
+						 File root = Environment.getExternalStorageDirectory();
+
+						 // 日付でファイル名を作成　
+						 Date mDate = new Date();
+						 SimpleDateFormat fileName = new SimpleDateFormat("yyyyMMdd_HHmmss");
+
+						 // 保存処理開始
+						 FileOutputStream fos = null;
+						 fos = new FileOutputStream(new File(root, fileName.format(mDate) + ".png"));
+
+						 // jpegで保存
+						 map.compress(CompressFormat.PNG, 100, fos);
+
+						 // 保存処理終了
+						 fos.close();
+						 Toast.makeText(MainActivity.this, "保存完了", Toast.LENGTH_LONG).show();
+							
+						
+					}catch (Exception e) {
+						Toast.makeText(MainActivity.this, "メモリー不足により保存準備ができません¥nレイヤーを減らしてください", Toast.LENGTH_LONG).show();
+						// TODO: handle exception
+					}
 					break;
 				case 3:
 					paint.tread_flag = false;

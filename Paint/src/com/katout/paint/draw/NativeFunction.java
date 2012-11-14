@@ -40,8 +40,15 @@ public class NativeFunction {
 	public native boolean setRadian(double rad);
 
 	public native boolean setScale(double scale);
-
-	public native boolean getBitmap(int[] canvas, int width, int height);
 	
 	public native boolean bucket(int x, int y, int t);
+	
+	public native int getCanvasHeight();
+	
+	public native int getCanvasWidth();
+	
+	public native boolean getRawdata(int[] canvas);
+	
+	public native boolean getBitmap(int[] canvas, int width, int height);
+	
 }
