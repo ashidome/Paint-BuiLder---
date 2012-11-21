@@ -173,10 +173,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMask(
  * 描画周り
  */
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrush(
-		JNIEnv* env, jobject obj, jcharArray color, jint jw, jint jh) {
+		JNIEnv* env, jobject obj, jcharArray color, jint jw, jint jh,
+		jint jfrequency) {
 	int i, j;
 	i_printf("setBrush\n");
 	jchar* colors = (*env)->GetCharArrayElements(env, color, 0);
+
+	frequency = jfrequency;
 
 	//ブラシマップサイズの定義
 	brushmap.width = jw;
