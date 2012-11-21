@@ -190,7 +190,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
 		});
-		
+
 		seek_brush_b.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
@@ -204,7 +204,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
 		});
-		
+
 		//初期に１枚のレイヤーを登録
 		layerAdapter.addLayer(new LayerData());
 		// layerAdapter_r = new LayerAdapter(this, layer_list);
@@ -334,7 +334,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			public void onClick(DialogInterface dialog, int which) {
 				switch (which) {
 				case 0:
-					
+
 					break;
 				case 1:
 					break;
@@ -342,11 +342,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					try{
 						int h =nativefunc.getCanvasHeight();
 						int w = nativefunc.getCanvasWidth();
-						
+
 						int[] canvas = new int[h*w];
 						nativefunc.getRawdata(canvas);
 						Bitmap map = Bitmap.createBitmap(canvas, w, h, Bitmap.Config.ARGB_8888);
-						
+
 						// sdcardフォルダを指定
 						 File root = Environment.getExternalStorageDirectory();
 
@@ -364,8 +364,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						 // 保存処理終了
 						 fos.close();
 						 Toast.makeText(MainActivity.this, "保存完了", Toast.LENGTH_LONG).show();
-							
-						
+
+
 					}catch (Exception e) {
 						Toast.makeText(MainActivity.this, "メモリー不足により保存準備ができません¥nレイヤーを減らしてください", Toast.LENGTH_LONG).show();
 						// TODO: handle exception

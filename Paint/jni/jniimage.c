@@ -12,6 +12,8 @@
 #define MAX_BRUSH_HEIGHT 100
 
 void brush_draw(int x, int y);
+void applyEdit();
+void initEditLayer();
 int distance(int x1, int x2, int y1, int y2);
 void setColor(int color);
 void Bezier(int x1, int y1, int x2, int y2, int x3, int y3);
@@ -82,7 +84,7 @@ static int bx;
 static int by;
 static int **img;
 static bool **img_bool;
-static int **imgs;
+static int **EditLayer;
 static int frequency = 30;
 static double scale;
 
@@ -109,7 +111,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSi
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteEditLayer(
 		JNIEnv* env, jobject obj) {
 	i_printf("deleteEditLayer\n");
-	//TODO 編集レイヤーの消去
+
+	//編集レイヤの初期化
+	initEditLayer();
 	return true;
 }
 
@@ -127,7 +131,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer
 	return true;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_EditLayer(
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_selectLayer(
 		JNIEnv* env, jobject obj, jint num) {
 	i_printf("EditLayer\n");
 	//TODO 編集するレイヤーの選択
@@ -168,7 +172,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMask(
 /*
  * 描画周り
  */
-JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_Brush_setBrush(
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrush(
 		JNIEnv* env, jobject obj, jcharArray color, jint jw, jint jh) {
 	int i, j;
 	i_printf("setBrush\n");
@@ -230,6 +234,18 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 
 	//次点フラグをオフ（次のdraw呼出ポイントを2点目とする）
 	dp.flag = 0;
+	return true;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_endDraw(
+		JNIEnv* env, jobject obj) {
+	i_printf("endDraw\n");
+
+	//EditLayerをimg配列に適用する
+	applyEdit();
+
+	//EditLayerの初期化
+	initEditLayer();
 	return true;
 }
 
@@ -316,8 +332,14 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 			//拡縮元座標の算出
 			yy = (j + disp.y) * 1000 / s;
 			y = (int) yy;
+
 			if ((xx < c.width) && (yy < c.height) && (xx > 0) && (yy > 0)) {
-				colors[j * disp.width + i] = img[x][y];
+				if (EditLayer[x][y] != 0x00000000) {
+					colors[j * disp.width + i] = Normal_Draw(EditLayer[x][y],
+							img[x][y]);
+				} else {
+					colors[j * disp.width + i] = img[x][y];
+				}
 			} else {
 				colors[j * disp.width + i] = 0xFF000000;
 				flag = 1;
@@ -382,6 +404,15 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 	}
 
+	//編集レイヤー配列の確保と初期化
+	EditLayer = (int **) malloc(sizeof(int*) * c.width);
+	for (i = 0; i < c.width; i++) {
+		EditLayer[i] = (int*) malloc(sizeof(int) * c.height);
+	}
+
+	//EditLayerの初期化
+	initEditLayer();
+
 	//img_bool配列の確保と初期化
 	img_bool = (bool **) malloc(sizeof(bool*) * c.width);
 	for (i = 0; i < c.width; i++) {
@@ -392,17 +423,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 			img_bool[i][j] = true;
 		}
 	}
-
-//	//拡縮後img配列の確保と初期化
-//	imgs = (int **) malloc(sizeof(int*) * c.width);
-//	for (i = 0; i < c.width; i++) {
-//		imgs[i] = (int*) malloc(sizeof(int) * c.height);
-//	}
-//	for (i = 0; i < c.width; i++) {
-//		for (j = 0; j < c.height; j++) {
-//			imgs[i][j] = 0xFFFFFFFF;
-//		}
-//	}
 
 	//brush_map配列の確保と初期化
 	brush_map = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
@@ -444,11 +464,38 @@ void brush_draw(int x, int y) {
 			if (((x + i) > 0) && ((x + i) < c.width) && ((y + j) > 0)
 					&& ((y + j) < c.height)) {
 				if (img_bool[x + i][y + j] == true) {
-					img[x + i][y + j] = Normal_Draw(brush[i][j],
-							img[x + i][y + j]);
+					EditLayer[x + i][y + j] = brush[i][j];
+//					img[x + i][y + j] = Normal_Draw(brush[i][j],
+//							img[x + i][y + j]);
 					img_bool[x + i][y + j] = false;
 				}
 			}
+		}
+	}
+}
+
+/*
+ * EditLayerの変更をimg配列に適用する関数
+ */
+void applyEdit() {
+	int i, j;
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			if (EditLayer[i][j] != 0x00000000) {
+				img[i][j] = Normal_Draw(EditLayer[i][j], img[i][j]);
+			}
+		}
+	}
+}
+
+/*
+ * EditLayer初期化関数
+ */
+void initEditLayer() {
+	int i, j;
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			EditLayer[i][j] = 0x00000000;
 		}
 	}
 }
@@ -757,6 +804,9 @@ void setBrush(jchar img[]) {
 	}
 }
 
+/*
+ * 通常描画関数
+ */
 int Normal_Draw(int src, int dest) {
 	int src_a, src_r, src_g, src_b;
 	int dest_a, dest_r, dest_g, dest_b;
