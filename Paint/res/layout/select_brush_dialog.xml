@@ -9,14 +9,14 @@
         android:layout_height="wrap_content" >
 
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/download"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="ダウンロード" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/make_brush"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="作成" />
@@ -30,5 +30,11 @@
         android:layout_weight="1" >
 
     </ListView>
+
+    <Button
+        android:id="@+id/cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancel" />
 
 </LinearLayout>
