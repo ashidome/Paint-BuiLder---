@@ -97,6 +97,7 @@ public class ColorPickerView extends View {
 		canvas.drawOval(OvalRect, mPaint);
 
 		drawSVRegion(canvas);
+		
 	}
 
 	private float getHue(int color) {
@@ -157,25 +158,28 @@ public class ColorPickerView extends View {
 	}
 
 	private static final float PI = 3.1415927f;
-
+	private boolean inOval;
+	private float x;
+	private float y;
 	@SuppressLint("FloatMath")
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		float x = event.getX() - CENTER_X;
-		float y = event.getY() - CENTER_Y;
+		x = event.getX() - CENTER_X;
+		y = event.getY() - CENTER_Y;
 		float r = (float) (java.lang.Math.sqrt(x * x + y * y));
-		boolean inOval = false;
-		boolean inRect = false;
 
-		if(r <= CENTER_X) {
-        	if(r > CENTER_X - CENTER_RADIUS){
-        		inOval = true;            		
-        	}else{
-        		inRect = true;
-        	}
-        }
+		
 		
 		switch (event.getAction()) {
+		case MotionEvent.ACTION_DOWN:
+			if(r <= CENTER_X) {
+	        	if(r > CENTER_X - CENTER_RADIUS){
+	        		inOval = true;            		
+	        	}else{
+	        		inOval = false;
+	        	}
+	        }
+			break;
 		case MotionEvent.ACTION_MOVE:
 			if (inOval) {
 				float angle = (float) java.lang.Math.atan2(y, x);
@@ -191,8 +195,8 @@ public class ColorPickerView extends View {
 				// Shader.TileMode.CLAMP);
 				// mPaintC.setShader(lg);
 				invalidate();
-			} else if (inRect) {
-				int selectColor2 = setHSVColor(selectHue, x / CENTER_X, y / CENTER_Y);
+			} else {
+				int selectColor2 = setHSVColor(selectHue, x / CENTER_X*2, y / CENTER_Y*2);
 				selectColor = selectColor2;
 				invalidate();
 			}

@@ -21,4 +21,6 @@ public interface EventLisner {
 
 	void bucket(int i, int j);
 
+	void endDraw();
+
 }

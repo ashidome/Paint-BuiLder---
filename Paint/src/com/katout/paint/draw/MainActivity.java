@@ -26,7 +26,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
@@ -47,8 +46,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	private LinearLayout			paint_layer_r;
 	private LinearLayout			paint_layer_l;
-	private ListView				layer_r;
-	private ListView				layer_l;
 	private ArrayList<LayerData>	layer;
 	private LayerAdapter			layerAdapter;
 	private int						paint_menuW;
@@ -242,7 +239,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean deleteEditLayer() {
-				return true;// nativefunc.deleteEditLayer();
+				return nativefunc.deleteEditLayer();
 			}
 
 			@Override
@@ -259,6 +256,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			public void bucket(int x, int y) {
 				Log.e("test", "bucket!!");
 				nativefunc.bucket(x, y, 255);
+			}
+
+			@Override
+			public void endDraw() {
+				nativefunc.endDraw();
 			}
 		});
 	}

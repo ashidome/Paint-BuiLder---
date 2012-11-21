@@ -10,7 +10,6 @@ import com.katout.paint.R;
 public class LayerAdapter{
 	private LayoutInflater mInflater;
 	public Handler handler;
-	private Context context;
 	private LinearLayout[] layouts;
 	
 	public LayerAdapter(Context context, LinearLayout[] layouts) {
