@@ -27,7 +27,7 @@ public class NativeFunction {
 
 	public native boolean setColor(int color);
 
-	static public native int setBrush(char bmp[], int width, int height);
+	static public native int setBrush(char bmp[], int width, int height,int f);
 	
 	public native boolean setBrushSize(int size);
 

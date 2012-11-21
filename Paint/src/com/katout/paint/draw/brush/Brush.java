@@ -1,13 +1,9 @@
 package com.katout.paint.draw.brush;
 
+import android.graphics.Bitmap;
+
 
 public class Brush {
-	char bmp[][]; // ブラシ画像
+	public Bitmap bitmap;
 	int frequency; // 間隔
-
-	static {
-		System.loadLibrary("jniimage");
-	}
-
-	static public native int setBrush(char bmp[], int width, int height);
 }

@@ -33,6 +33,7 @@ import android.widget.Toast;
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.OnColorChangedListener;
 import com.katout.paint.R;
+import com.katout.paint.draw.brush.SelectBrushDialog;
 import com.katout.paint.draw.layer.LayerAdapter;
 import com.katout.paint.draw.layer.LayerData;
 
@@ -390,7 +391,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	}
 
 	public void onBrush(View v) {
+		SelectBrushDialog dialog = new SelectBrushDialog(this);
+		dialog.show();
+		
 		paint.setMode(PaintMode.Brush);
+		
 	}
 
 	public void onBucket(View v) {
