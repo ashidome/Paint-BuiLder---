@@ -332,8 +332,14 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 			//拡縮元座標の算出
 			yy = (j + disp.y) * 1000 / s;
 			y = (int) yy;
+
 			if ((xx < c.width) && (yy < c.height) && (xx > 0) && (yy > 0)) {
-				colors[j * disp.width + i] = img[x][y];
+				if (EditLayer[x][y] != 0x00000000) {
+					colors[j * disp.width + i] = Normal_Draw(EditLayer[x][y],
+							img[x][y]);
+				} else {
+					colors[j * disp.width + i] = img[x][y];
+				}
 			} else {
 				colors[j * disp.width + i] = 0xFF000000;
 				flag = 1;
@@ -485,10 +491,10 @@ void applyEdit() {
 /*
  * EditLayer初期化関数
  */
-void initEditLayer(){
-	int i,j;
-	for(i=0;i<c.width;i++){
-		for(j=0;j<c.height;j++){
+void initEditLayer() {
+	int i, j;
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
 			EditLayer[i][j] = 0x00000000;
 		}
 	}
