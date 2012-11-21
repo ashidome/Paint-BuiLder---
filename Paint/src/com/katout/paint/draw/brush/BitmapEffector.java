@@ -2,6 +2,7 @@ package com.katout.paint.draw.brush;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.util.Log;
 
 public class BitmapEffector {
 	/**
@@ -39,10 +40,13 @@ public class BitmapEffector {
 							* GRAY_Y_B / 10000));
 				}
 			}
+			if(true){
+				int i=0;
+			}
 			return dstPixels;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			Log.e("test",e.toString());
 			return null;
 		}
 

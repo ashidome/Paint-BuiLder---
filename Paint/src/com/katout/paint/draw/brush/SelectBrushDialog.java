@@ -64,7 +64,8 @@ public class SelectBrushDialog extends Dialog{
                 ListView listView = (ListView) parent;
                 // クリックされたアイテムを取得します
                 Brush item = (Brush) listView.getItemAtPosition(position);
-                NativeFunction.setBrush(BitmapEffector.grayScale(item.bitmap), item.bitmap.getWidth(),
+                char[] pix = BitmapEffector.grayScale(item.bitmap);
+                NativeFunction.setBrush(pix, item.bitmap.getWidth(),
                 		item.bitmap.getHeight(), item.frequency);
                
 			}
