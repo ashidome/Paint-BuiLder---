@@ -153,6 +153,8 @@
                         android:max="500"
                         android:maxHeight="10dp"
                         android:paddingBottom="8dp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
                         android:paddingTop="8dp"
                         android:progress="10"
                         android:progressDrawable="@drawable/seekbar"

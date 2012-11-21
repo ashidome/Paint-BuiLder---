@@ -15,7 +15,7 @@ public class NativeFunction {
 
 	public native boolean deleteLayer(int num);
 
-	public native boolean EditLayer(int num);
+	public native boolean selectLayer(int num);
 
 	public native boolean setLayerMode(int num, int mode);
 
@@ -50,5 +50,7 @@ public class NativeFunction {
 	public native boolean getRawdata(int[] canvas);
 	
 	public native boolean getBitmap(int[] canvas, int width, int height);
+	
+	public native boolean endDraw();
 	
 }

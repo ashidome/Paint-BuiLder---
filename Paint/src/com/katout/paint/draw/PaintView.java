@@ -28,6 +28,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		void layerMenuPos(int w, int x, boolean animation);
 
 		void setup();
+		
 
 	}
 
@@ -267,6 +268,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			state = State.Non;
 			if (state == State.Drawing) {
 				// TODO event_lisner.stopDraw(points[0][0], points[1][0]);
+				event_lisner.endDraw();
 			}
 			if(mode == PaintMode.Bucket){
 				event_lisner.bucket((int )(-nowPosX + points[0][0]/Scale), 

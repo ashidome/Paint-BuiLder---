@@ -1,6 +1,5 @@
-package com.katout.paint.draw;
+package com.katout.paint.draw.brush;
 
-import android.graphics.Bitmap;
 
 public class Brush {
 	char bmp[][]; // ブラシ画像
