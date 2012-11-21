@@ -29,29 +29,33 @@ public final class R {
         public static final int bar=0x7f020001;
         public static final int brush=0x7f020002;
         public static final int btn_circle=0x7f020003;
-        public static final int dropper=0x7f020004;
-        public static final int eraser=0x7f020005;
-        public static final int eye_closed=0x7f020006;
-        public static final int eye_open=0x7f020007;
-        public static final int file=0x7f020008;
-        public static final int fill=0x7f020009;
-        public static final int gear=0x7f02000a;
-        public static final int gradient_linear=0x7f02000b;
-        public static final int help=0x7f02000c;
-        public static final int home=0x7f02000d;
-        public static final int ic_action_search=0x7f02000e;
-        public static final int ic_launcher=0x7f02000f;
-        public static final int osi_model2=0x7f020010;
-        public static final int palette=0x7f020011;
-        public static final int record=0x7f020012;
-        public static final int seekbar=0x7f020013;
-        public static final int seekbutton=0x7f020014;
-        public static final int selection_rectangular=0x7f020015;
-        public static final int thumb_shape=0x7f020016;
-        public static final int trash_can=0x7f020017;
+        public static final int circle=0x7f020004;
+        public static final int dropper=0x7f020005;
+        public static final int eraser=0x7f020006;
+        public static final int eye_closed=0x7f020007;
+        public static final int eye_open=0x7f020008;
+        public static final int file=0x7f020009;
+        public static final int fill=0x7f02000a;
+        public static final int full=0x7f02000b;
+        public static final int gear=0x7f02000c;
+        public static final int gradient_linear=0x7f02000d;
+        public static final int help=0x7f02000e;
+        public static final int home=0x7f02000f;
+        public static final int ic_action_search=0x7f020010;
+        public static final int ic_launcher=0x7f020011;
+        public static final int osi_model2=0x7f020012;
+        public static final int palette=0x7f020013;
+        public static final int record=0x7f020014;
+        public static final int seekbar=0x7f020015;
+        public static final int seekbutton=0x7f020016;
+        public static final int selection_rectangular=0x7f020017;
+        public static final int thumb_shape=0x7f020018;
+        public static final int trash_can=0x7f020019;
     }
     public static final class id {
         public static final int TextView04=0x7f090018;
+        public static final int button1=0x7f09001b;
+        public static final int button2=0x7f09001c;
         public static final int colorPicker=0x7f090006;
         public static final int colorview=0x7f090019;
         public static final int imageView1=0x7f090012;
@@ -60,7 +64,8 @@ public final class R {
         public static final int layer=0x7f090017;
         public static final int layer_menu_l=0x7f090002;
         public static final int layer_menu_r=0x7f090001;
-        public static final int menu_settings=0x7f09001b;
+        public static final int listView1=0x7f09001d;
+        public static final int menu_settings=0x7f09001e;
         public static final int ok_button=0x7f09000f;
         public static final int paint_menu_b=0x7f090004;
         public static final int paint_menu_t=0x7f090003;
@@ -87,6 +92,7 @@ public final class R {
         public static final int layer_menu=0x7f030003;
         public static final int paint_menu=0x7f030004;
         public static final int preview=0x7f030005;
+        public static final int select_brush_dialog=0x7f030006;
     }
     public static final class menu {
         public static final int activity_main=0x7f080000;

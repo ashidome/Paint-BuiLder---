@@ -8,6 +8,7 @@ public class SelectBrushDialog extends Dialog{
 
 	public SelectBrushDialog(Context context) {
 		super(context);
+		
 	}
 	
 	@Override
