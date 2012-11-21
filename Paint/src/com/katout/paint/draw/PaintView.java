@@ -265,7 +265,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			menu_lisner.layerMenuPos(w, nowMenuPosX * 100 / menuW, false);
 			menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			touch_count = 0;
-			state = State.Non;
 			if (state == State.Drawing) {
 				// TODO event_lisner.stopDraw(points[0][0], points[1][0]);
 				event_lisner.endDraw();
@@ -274,6 +273,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				event_lisner.bucket((int )(-nowPosX + points[0][0]/Scale), 
 						(int )(-nowPosY + points[1][0]/Scale));
 			}
+			state = State.Non;
 		} else {
 			touch_count = temp_touch_count;
 		}

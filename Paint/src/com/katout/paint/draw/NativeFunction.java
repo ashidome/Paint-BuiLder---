@@ -27,6 +27,8 @@ public class NativeFunction {
 
 	public native boolean setColor(int color);
 
+	static public native int setBrush(char bmp[], int width, int height);
+	
 	public native boolean setBrushSize(int size);
 
 	public native boolean startDraw(int x, int y);
