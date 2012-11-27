@@ -391,7 +391,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	}
 
 	public void onBrush(View v) {
-		SelectBrushDialog dialog = new SelectBrushDialog(this);
+		SelectBrushDialog dialog = new SelectBrushDialog(this,seek_brush_b.getProgress(),nativefunc);
 		dialog.show();
 		
 		paint.setMode(PaintMode.Brush);
