@@ -23,8 +23,13 @@ double Second_Neighborhood(double d);
 void Bilinear(int x, int y);
 void scanLine(int lx, int rx, int y, unsigned int col);
 void fill(int x, int y, unsigned int paintCol);
-void setBrush(jchar img[]);
+void setBrush(jchar brush_img[]);
 int Normal_Draw(int src, int dest);
+void setBrushSize(int size);
+int get_alpha(int c);
+int grayscale(int c);
+int max(int a, int b);
+int min(int a, int b);
 
 /*
  * レイヤ周り
@@ -143,7 +148,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMod
 	i_printf("setLayerMode\n");
 	//TODO レイヤーモードの選択
 	return true;
-
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Replace(
@@ -151,7 +155,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Replace(
 	i_printf("Replace\n");
 	//TODO レイヤーの順序変更
 	return true;
-
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setVisible(
@@ -166,7 +169,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMask(
 	i_printf("setMask\n");
 	//TODO マスクレイヤーの作成
 	return true;
-
 }
 
 /*
@@ -188,6 +190,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrush(
 	//新規ブラシマップの適用
 	setBrush(colors);
 
+	//サイズ変更の適用
+	setBrushSize(Size);
+
 	(*env)->ReleaseCharArrayElements(env, color, colors, 0);
 	return true;
 }
@@ -196,6 +201,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setColor(
 		JNIEnv* env, jobject obj, jint jcolor) {
 	i_printf("setColor\n");
 	setColor(jcolor);
+	setBrushSize(Size);
+	i_printf("end_setColor");
 	return true;
 }
 
@@ -204,15 +211,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrushSiz
 	//jsize = 1~500
 	//使用時に√x / 20 0.05 ~ 25;
 	i_printf("setBrushSize\n");
-	double Magnification;
-	Size = jsize;
-	Magnification = sqrt(Size) / 4.0;
-
-	//i_printf("Magnification = %1f", Magnification);
-
-	Bicubic(0, 0, Magnification);
-	bx = 10 * Magnification;
-	by = 10 * Magnification;
+	setBrushSize(jsize);
 	return true;
 }
 
@@ -442,16 +441,19 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	for (i = 0; i < MAX_BRUSH_WIDTH * 20; i++) {
 		brush[i] = (int*) malloc(sizeof(int) * MAX_BRUSH_HEIGHT * 20);
 	}
+	brushmap.width = 10;
+	bx = brushmap.width;
 
-	bx = 10;
-
-	by = 10;
+	brushmap.height = 10;
+	by = brushmap.height;
 
 	for (i = 0; i < bx; i++) {
 		for (j = 0; j < by; j++) {
 			brush[i][j] = brush_map[i][j];
 		}
 	}
+	Size = 16;
+	Color = 0xFFFFFFFF;
 	return true;
 }
 
@@ -466,7 +468,8 @@ void brush_draw(int x, int y) {
 		for (j = 0; j < by; j++) {
 			if (((x + i) > 0) && ((x + i) < c.width) && ((y + j) > 0)
 					&& ((y + j) < c.height)) {
-				if (img_bool[x + i][y + j] == true) {
+				if (get_alpha(EditLayer[x + i][y + j])
+						< get_alpha(brush[i][j])) {
 					EditLayer[x + i][y + j] = brush[i][j];
 //					img[x + i][y + j] = Normal_Draw(brush[i][j],
 //							img[x + i][y + j]);
@@ -475,6 +478,13 @@ void brush_draw(int x, int y) {
 			}
 		}
 	}
+}
+
+/*
+ * アルファ値抽出関数
+ */
+int get_alpha(int c) {
+	return ((c & 0xFF000000) >> 24);
 }
 
 /*
@@ -515,20 +525,7 @@ int distance(int x1, int x2, int y1, int y2) {
  * 与えられた色をブラシに適用する関数
  */
 void setColor(int color) {
-	int a, rgb;
-	int i, j;
 	Color = color;
-
-	//アルファ値の抽出
-	a = (Color & 0xFF000000) >> 24;
-
-	//RGB値の抽出
-	rgb = (Color & 0x00FFFFFF);
-	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
-		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
-			brush[i][j] = (a * brush_map[i][j] / 255 << 24) | rgb;
-		}
-	}
 }
 
 /*
@@ -539,7 +536,7 @@ void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
 	int x, y;
 	double t;
 
-	//frequencyが大きいほど緻密に描画する
+//frequencyが大きいほど緻密に描画する
 	for (i = 0; i <= frequency; i++) {
 		t = (double) i / frequency;
 		x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * x2 + t * t * x3;
@@ -564,11 +561,17 @@ void Bicubic(int sx, int sy, double by) {
 	double w;
 	double dx, dy;
 
+	int a, rgb;
+
+	a = get_alpha(Color);
+	rgb = (Color & 0x00FFFFFF);
+	i_printf("a = %d, rgb = %x", a, rgb);
+
 	nscale = 1.0 / by;
 
 	//バイキュービック法
-	for (y = sy; y < sy + brushmap.width; y++) {
-		for (x = sx; x < sx + brushmap.height; x++) {
+	for (y = sy; y < sy + by * brushmap.width; y++) {
+		for (x = sx; x < sx + by * brushmap.height; x++) {
 			//拡大縮小比率から変換先ピクセルに対応する変換元の座標を計算する
 			xx = nscale * (double) x;	//変換元の比率
 			ix = (int) xx;	//変換元座標
@@ -621,9 +624,10 @@ void Bicubic(int sx, int sy, double by) {
 			} else if (data < 0.0) {
 				data = 0.0;
 			}
-			if ((y >= 0) && (y <= brushmap.height) && (x >= 0)
-					&& (x <= brushmap.height)) {
-				brush[y - sy][x - sx] = data;
+			if ((y >= 0) && (y < by * brushmap.width) && (x >= 0)
+					&& (x < by * brushmap.height)) {
+				brush[y - sy][x - sx] = ((a * (int) data) / 255 << 24) | rgb;
+				i_printf("brush = %x\n", brush[y][x]);
 			}
 		}
 	}
@@ -797,14 +801,52 @@ void fill(int x, int y, unsigned int paintCol) {
 /*
  * 新規ブラシマップセット関数
  */
-void setBrush(jchar img[]) {
+void setBrush(jchar brush_img[]) {
 	int i, j;
 	//新規ブラシマップを適用
 	for (i = 0; i < brushmap.width; i++) {
 		for (j = 0; j < brushmap.height; j++) {
-			brush_map[i][j] = img[j * brushmap.width + i];
+			brush_map[i][j] = brush_img[i * brushmap.height + j];
+			//i_printf("brush_map[%d][%d] = %d\n", i, j, brush_map[i][j]);
 		}
 	}
+}
+
+/*
+ * ブラシサイズ変更関数
+ */
+void setBrushSize(int size) {
+	i_printf("setBrushSize");
+	double Magnification;
+	Size = size;
+	Magnification = sqrt(Size) / 4.0;
+
+	Bicubic(0, 0, Magnification);
+	bx = brushmap.width * Magnification;
+	by = brushmap.height * Magnification;
+}
+
+/*
+ * グレースケール値を返す関数
+ */
+int grayscale(int c) {
+	int a, r, g, b;
+	int gray;
+	int MAX, MIN;
+
+//a = (c & 0xFF000000) >> 24;
+	r = (c & 0x00FF0000) >> 16;
+	g = (c & 0x0000FF00) >> 8;
+	b = (c & 0x000000FF);
+
+	MAX = max(r, max(g, b));
+	MIN = min(r, min(g, b));
+
+	gray = (MAX + MIN) / 2;
+
+//gray = (77 * r + 150 * g + 29 * b) >> 8;
+
+	return (255 - gray);
 }
 
 /*
@@ -846,4 +888,20 @@ int Normal_Draw(int src, int dest) {
 	result = (a << 24) | (r << 16) | (g << 8) | b;
 
 	return result;
+}
+
+int max(int a, int b) {
+	if (a > b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+
+int min(int a, int b) {
+	if (a < b) {
+		return a;
+	} else {
+		return b;
+	}
 }
