@@ -101,11 +101,11 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		}
 
 		//タッチの数の変化により分岐
-		if (temp_touch_count != touch_count) {
+		if (temp_touch_count > touch_count) {
 			// タッチの数に変化があった場合
 			if (temp_touch_count > 1) {
 				// すでに描画中だった場合その変種を削除
-				if (state == State.Drawing) {
+				if (state == State.Drawing || state == State.DrawStart) {
 					event_lisner.deleteEditLayer();
 				}
 				switch (temp_touch_count) {
@@ -145,7 +145,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 			// １本指の場合
 			if (temp_touch_count == 1
-					&& event.getAction() == MotionEvent.ACTION_MOVE) {
+					&& event.getAction() == MotionEvent.ACTION_MOVE && (state == State.DrawStart ||
+					state == State.Drawing)) {
 				if (state == State.DrawStart) {
 					state = State.Drawing;
 				}
@@ -265,7 +266,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			menu_lisner.layerMenuPos(w, nowMenuPosX * 100 / menuW, false);
 			menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			touch_count = 0;
-			if (state == State.Drawing) {
+			if (state == State.Drawing || state == State.DrawStart) {
 				// TODO event_lisner.stopDraw(points[0][0], points[1][0]);
 				event_lisner.endDraw();
 			}

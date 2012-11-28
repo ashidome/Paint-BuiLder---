@@ -18,13 +18,17 @@ import com.katout.paint.draw.NativeFunction;
 public class SelectBrushDialog extends Dialog{
 	private ListView listview;
 	private ArrayList<Brush> list;
+	private int size;
+	private NativeFunction func;
 	
 	public interface SelectBrushLisner{
 		void setBrush(char bmp[], int width, int height, int f);
 	}
 
-	public SelectBrushDialog(Context context) {
+	public SelectBrushDialog(Context context, int size, NativeFunction func) {
 		super(context);
+		this.size = size;
+		this.func = func;
 	}
 	
 	@Override
@@ -67,6 +71,8 @@ public class SelectBrushDialog extends Dialog{
                 char[] pix = BitmapEffector.grayScale(item.bitmap);
                 NativeFunction.setBrush(pix, item.bitmap.getWidth(),
                 		item.bitmap.getHeight(), item.frequency);
+                dismiss();
+                func.setBrushSize(size);
                
 			}
 		});
