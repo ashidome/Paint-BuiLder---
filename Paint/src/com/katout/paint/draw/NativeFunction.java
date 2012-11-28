@@ -55,4 +55,6 @@ public class NativeFunction {
 	
 	public native boolean endDraw();
 	
+	public native boolean setMode(int num); // 0ならブラシ, 1なら消しゴム
+	
 }

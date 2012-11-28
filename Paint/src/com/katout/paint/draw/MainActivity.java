@@ -395,6 +395,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		dialog.show();
 		
 		paint.setMode(PaintMode.Brush);
+		nativefunc.setMode(0);
 		
 	}
 
@@ -404,5 +405,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	public void onEraser(View v) {
 		paint.setMode(PaintMode.Eraser);
+		nativefunc.setMode(1);
 	}
 }
