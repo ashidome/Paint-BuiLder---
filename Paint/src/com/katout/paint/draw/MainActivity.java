@@ -74,6 +74,12 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	}
 
 	@Override
+	protected void onPause() {
+		super.onPause();
+		paint.tread_flag = false;
+	}
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
@@ -395,7 +401,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		dialog.show();
 		
 		paint.setMode(PaintMode.Brush);
-		nativefunc.setMode(0);
+		//nativefunc.setMode(0);
 		
 	}
 
@@ -405,6 +411,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	public void onEraser(View v) {
 		paint.setMode(PaintMode.Eraser);
-		nativefunc.setMode(1);
+		//nativefunc.setMode(1);
 	}
 }
