@@ -25,6 +25,7 @@ void scanLine(int lx, int rx, int y, unsigned int col);
 void fill(int x, int y, unsigned int paintCol);
 void setBrush(jchar brush_img[]);
 int Normal_Draw(int src, int dest);
+int Eraser_Draw(int src, int dest);
 void setBrushSize(int size);
 int get_alpha(int c);
 int grayscale(int c);
@@ -81,6 +82,7 @@ static struct BrushMap brushmap;
 static int Color;
 static int Size;
 static int theta;
+static int Mode;
 
 //テスト用
 static int **brush;
@@ -336,11 +338,20 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 			y = (int) yy;
 
 			if ((xx < c.width) && (yy < c.height) && (xx > 0) && (yy > 0)) {
-				if (EditLayer[x][y] != 0x00000000) {
-					colors[j * disp.width + i] = Normal_Draw(EditLayer[x][y],
-							img[x][y]);
-				} else {
-					colors[j * disp.width + i] = img[x][y];
+				if (Mode == 0) {
+					if (EditLayer[x][y] != 0x00000000) {
+						colors[j * disp.width + i] = Normal_Draw(
+								EditLayer[x][y], img[x][y]);
+					} else {
+						colors[j * disp.width + i] = img[x][y];
+					}
+				} else if (Mode == 1) {
+					if (EditLayer[x][y] != 0x00000000) {
+						colors[j * disp.width + i] = Eraser_Draw(
+								EditLayer[x][y], img[x][y]);
+					} else {
+						colors[j * disp.width + i] = img[x][y];
+					}
 				}
 			} else {
 				colors[j * disp.width + i] = 0xFF000000;
@@ -457,6 +468,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	return true;
 }
 
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMode(
+		JNIEnv* env, jobject obj, jint num) {
+	i_printf("setMode\n");
+	Mode = num;
+	return true;
+}
 /*
  * ブラシによる描画関数
  */
@@ -471,9 +488,6 @@ void brush_draw(int x, int y) {
 				if (get_alpha(EditLayer[x + i][y + j])
 						< get_alpha(brush[i][j])) {
 					EditLayer[x + i][y + j] = brush[i][j];
-//					img[x + i][y + j] = Normal_Draw(brush[i][j],
-//							img[x + i][y + j]);
-					img_bool[x + i][y + j] = false;
 				}
 			}
 		}
@@ -494,8 +508,14 @@ void applyEdit() {
 	int i, j;
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			if (EditLayer[i][j] != 0x00000000) {
-				img[i][j] = Normal_Draw(EditLayer[i][j], img[i][j]);
+			if (Mode == 0) {
+				if (EditLayer[i][j] != 0x00000000) {
+					img[i][j] = Normal_Draw(EditLayer[i][j], img[i][j]);
+				}
+			} else if (Mode == 1) {
+				if (EditLayer[i][j] != 0x00000000) {
+					img[i][j] = Eraser_Draw(EditLayer[i][j], img[i][j]);
+				}
 			}
 		}
 	}
@@ -627,7 +647,6 @@ void Bicubic(int sx, int sy, double by) {
 			if ((y >= 0) && (y < by * brushmap.width) && (x >= 0)
 					&& (x < by * brushmap.height)) {
 				brush[y - sy][x - sx] = ((a * (int) data) / 255 << 24) | rgb;
-				i_printf("brush = %x\n", brush[y][x]);
 			}
 		}
 	}
@@ -890,6 +909,33 @@ int Normal_Draw(int src, int dest) {
 	return result;
 }
 
+/*
+ * 消しゴム関数
+ */
+int Eraser_Draw(int src, int dest) {
+	int src_a;
+	int dest_a, dest_r, dest_g, dest_b;
+	int a;
+	int result;
+
+	src_a = (src & 0xFF000000) >> 24;
+
+	dest_a = (dest & 0xFF000000) >> 24;
+	dest_r = (dest & 0x00FF0000) >> 16;
+	dest_g = (dest & 0x0000FF00) >> 8;
+	dest_b = (dest & 0x000000FF);
+
+	a = dest_a - src_a;
+	i_printf("a = %d, dest_a = %d, src_a = %d", a, dest_a, src_a);
+	if (a < 0) {
+		a = 0;
+	}
+
+	result = (a << 24) | (dest_r << 16) | (dest_g << 8) | dest_b;
+
+	return result;
+}
+
 int max(int a, int b) {
 	if (a > b) {
 		return a;
@@ -905,3 +951,4 @@ int min(int a, int b) {
 		return b;
 	}
 }
+
