@@ -470,7 +470,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMode(
 		JNIEnv* env, jobject obj, jint num) {
-	i_printf("setMode\n");
+	i_printf("setMode Mode = %d\n", num);
 	Mode = num;
 	return true;
 }
