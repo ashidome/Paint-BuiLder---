@@ -63,11 +63,13 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private int menuH = 200;
 	private int w;
 	private int h;
+	private boolean init_flag;
 	
 	private PaintMode mode;
 
-	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner,
-			EventLisner event_lisner) {
+	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner, EventLisner event_lisner) {
+		Log.e("test", "PaintView initial");
+		init_flag = false;
 		this.sv = sv;
 		this.menu_lisner = menu_lisner;
 		this.event_lisner = event_lisner;
@@ -133,7 +135,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				//タッチ数が１になった場合で待機中からの遷移
 				if (state == State.Non) {
 					state = State.DrawStart;
-					if(mode == PaintMode.Brush){
+					if(mode == PaintMode.Brush || mode == PaintMode.Eraser){
 						event_lisner.startDraw((int )(-nowPosX + points[0][0]/Scale), 
 								(int )(-nowPosY + points[1][0]/Scale));
 					}
@@ -150,7 +152,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				if (state == State.DrawStart) {
 					state = State.Drawing;
 				}
-				if(mode == PaintMode.Brush){
+				if(mode == PaintMode.Brush || mode == PaintMode.Eraser){
 					event_lisner.draw((int )(-nowPosX + points[0][0]/Scale), 
 							(int )(-nowPosY + points[1][0]/Scale));
 				}
@@ -284,15 +286,17 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	@Override
 	public void surfaceCreated(SurfaceHolder arg0) {
 		tread_flag = true;
-		w = sv.getWidth();
-		h = sv.getHeight();
-		bitmap = new int[w * h];
-		event_lisner.init(w, h);
+		if(!init_flag){
+			w = sv.getWidth();
+			h = sv.getHeight();
+			bitmap = new int[w * h];
+			event_lisner.init(w, h);
+			init_flag = true;
+			Log.e("test", "init");
+		}
 		thread = new Thread(this);
 		// ここでrun()が呼ばれる
 		thread.start();
-
-
 	}
 
 	@Override
