@@ -926,7 +926,6 @@ int Eraser_Draw(int src, int dest) {
 	dest_b = (dest & 0x000000FF);
 
 	a = dest_a - src_a;
-	i_printf("a = %d, dest_a = %d, src_a = %d", a, dest_a, src_a);
 	if (a < 0) {
 		a = 0;
 	}
