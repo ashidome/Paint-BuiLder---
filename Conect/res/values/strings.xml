@@ -1,0 +1,14 @@
+<resources>
+
+    <string name="app_name">Connect</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <color name="bgcolor">#FFFFFF</color>
+    <string name="main_activity">部屋選択</string>
+    <string name="make_room">部屋作成</string>
+    <string name="refresh">更新</string>
+    <string name="textview"></string>
+    <string name="send">送信</string>
+
+</resources>
