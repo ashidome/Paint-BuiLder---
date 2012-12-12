@@ -1,5 +1,5 @@
 package com.katout.paint.draw;
 
 public enum PaintMode {
-	Brush, Bucket, Eraser
+	Brush, Bucket, Eraser,Spuit
 }

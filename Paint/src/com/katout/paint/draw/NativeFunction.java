@@ -6,6 +6,7 @@ public class NativeFunction {
 	}
 	
 	public native boolean init(int x,int y);
+	public native boolean destructor();
 
 	public native boolean setCanvasSize(int x, int y);
 
