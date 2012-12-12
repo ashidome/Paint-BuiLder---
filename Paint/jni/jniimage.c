@@ -92,7 +92,6 @@ static char **brush_map;
 static int bx;
 static int by;
 static int ***img;
-static bool **img_bool;
 static int **EditLayer;
 static int frequency = 30;
 static double scale;
@@ -229,13 +228,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("startDraw\n");
 	int i, j;
-
-	//img_boolの初期化
-	for (i = 0; i < c.width; i++) {
-		for (j = 0; j < c.height; j++) {
-			img_bool[i][j] = true;
-		}
-	}
 
 	//始点の保持
 	dp.x = jx;
@@ -444,17 +436,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	//EditLayerの初期化
 	initEditLayer();
 
-	//img_bool配列の確保と初期化
-	img_bool = (bool **) malloc(sizeof(bool*) * c.width);
-	for (i = 0; i < c.width; i++) {
-		img_bool[i] = (bool*) malloc(sizeof(bool) * c.height);
-	}
-	for (i = 0; i < c.width; i++) {
-		for (j = 0; j < c.height; j++) {
-			img_bool[i][j] = true;
-		}
-	}
-
 	//brush_map配列の確保と初期化
 	brush_map = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
 	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
@@ -484,6 +465,42 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	lmode = 0;
 	Size = 16;
 	Color = 0xFFFFFFFF;
+	return true;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
+		JNIEnv* env, jobject obj) {
+	i_printf("destructor\n");
+
+	int i, j;
+
+	//img配列の開放
+	for (i = 0; i < MAX_LAYER_SIZE; i++) {
+		free(img[i]);
+		for (j = 0; j < c.width; j++) {
+			free(img[i][j]);
+		}
+	}
+	free(img);
+
+	//編集レイヤー配列の開放
+	for (i = 0; i < c.width; i++) {
+		free(EditLayer[i]);
+	}
+	free(EditLayer);
+
+	//brush_map配列の開放
+	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
+		free(brush_map[i]);
+	}
+	free(brush_map);
+
+	//brush配列の開放
+	for (i = 0; i < MAX_BRUSH_WIDTH * 20; i++) {
+		free(brush[i]);
+	}
+	free(brush);
+
 	return true;
 }
 
