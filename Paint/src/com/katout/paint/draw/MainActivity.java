@@ -413,4 +413,14 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		paint.setMode(PaintMode.Eraser);
 		nativefunc.setMode(1);
 	}
+	
+	public void onSpuit(View v){
+		paint.setMode(PaintMode.Spuit);
+	}
+	
+	@Override
+	protected void onDestroy() {
+		nativefunc.destructor();
+		super.onDestroy();
+	}
 }

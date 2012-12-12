@@ -63,6 +63,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/padding_1dp"
+                    android:layout_marginRight="@dimen/padding_1dp"
+                    android:background="@color/list_item"
+                    android:clickable="true"
+                    android:drawableBottom="@drawable/dropper"
+                    android:gravity="center"
+                    android:onClick="onSpuit"
+                    android:text="@string/Spuit"
+                    android:textColor="#000000" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:src="@drawable/bar" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="2dp"
                     android:layout_marginRight="2dp"
                     android:background="@color/list_item"
@@ -120,7 +138,6 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="8dp"
                         android:onClick="onSelectColor" />
-
                 </LinearLayout>
 
                 <ImageView
@@ -159,7 +176,6 @@
                         android:progress="10"
                         android:progressDrawable="@drawable/seekbar"
                         android:thumb="@drawable/btn_circle" />
-
                 </LinearLayout>
             </LinearLayout>
 
