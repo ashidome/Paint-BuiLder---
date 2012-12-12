@@ -49,6 +49,11 @@ public class SelectBrushDialog extends Dialog{
 		Resources r = getContext().getResources();
 		//標準ブラシの作成
 		Brush br = new Brush();
+		br.bitmap = BitmapFactory.decodeResource(r, R.drawable.s_circle);
+		br.frequency = 30;
+		list.add(br);
+		
+		br = new Brush();
 		br.bitmap = BitmapFactory.decodeResource(r, R.drawable.full);
 		br.frequency = 30;
 		list.add(br);

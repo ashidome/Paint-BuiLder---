@@ -46,11 +46,12 @@ public final class R {
         public static final int osi_model2=0x7f020012;
         public static final int palette=0x7f020013;
         public static final int record=0x7f020014;
-        public static final int seekbar=0x7f020015;
-        public static final int seekbutton=0x7f020016;
-        public static final int selection_rectangular=0x7f020017;
-        public static final int thumb_shape=0x7f020018;
-        public static final int trash_can=0x7f020019;
+        public static final int s_circle=0x7f020015;
+        public static final int seekbar=0x7f020016;
+        public static final int seekbutton=0x7f020017;
+        public static final int selection_rectangular=0x7f020018;
+        public static final int thumb_shape=0x7f020019;
+        public static final int trash_can=0x7f02001a;
     }
     public static final class id {
         public static final int TextView04=0x7f090018;

@@ -121,12 +121,14 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 							points[0][1], points[1][1]);
 					pre_rad = Math.atan2(points[1][1] - points[1][0],
 							points[0][1] - points[0][0]);
+					touch_count = 2;
 					break;
 				case 3:
 					//3本指になった瞬間、各項目の初期化
 					state = State.thirdWait;
 					pre_threeX = (points[0][0] + points[0][1] + points[0][2]) / 3;
 					pre_threeY = (points[1][0] + points[1][1] + points[1][2]) / 3;
+					touch_count = 3;
 					break;
 				default:
 					break;
@@ -138,11 +140,12 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 					if(mode == PaintMode.Brush || mode == PaintMode.Eraser){
 						event_lisner.startDraw((int )(-nowPosX + points[0][0]/Scale), 
 								(int )(-nowPosY + points[1][0]/Scale));
+						touch_count = 1;
 					}
 					
 				}
 			}
-		} else {
+		} else if(temp_touch_count == touch_count){
 			// タッチの数に変化がなかった場合
 
 			// １本指の場合
@@ -277,8 +280,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						(int )(-nowPosY + points[1][0]/Scale));
 			}
 			state = State.Non;
-		} else {
-			touch_count = temp_touch_count;
 		}
 		return true;
 	}
