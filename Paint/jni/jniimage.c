@@ -10,6 +10,7 @@
 #define MAXSIZE 40000000
 #define MAX_BRUSH_WIDTH 100
 #define MAX_BRUSH_HEIGHT 100
+#define MAX_LAYER_SIZE 5
 
 void brush_draw(int x, int y);
 void applyEdit();
@@ -50,6 +51,7 @@ struct Canvas {
 
 struct Layers {
 	int layer_num;
+
 };
 
 struct Layer {
@@ -89,7 +91,7 @@ static int **brush;
 static char **brush_map;
 static int bx;
 static int by;
-static int **img;
+static int ***img;
 static bool **img_bool;
 static int **EditLayer;
 static int frequency = 30;
@@ -101,6 +103,12 @@ struct BufStr {
 };
 struct BufStr buff[MAXSIZE]; /* シード登録用バッファ */
 struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
+
+enum layer_mode {
+	NORMAL, MUL, SCREEN, OVERLAY
+};
+
+enum layer_mode lmode;
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
@@ -300,7 +308,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			colors[j * c.width + i] = img[i][j];
+			colors[j * c.width + i] = img[lmode][i][j];
 		}
 	}
 
@@ -341,16 +349,16 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 				if (Mode == 0) {
 					if (EditLayer[x][y] != 0x00000000) {
 						colors[j * disp.width + i] = Normal_Draw(
-								EditLayer[x][y], img[x][y]);
+								EditLayer[x][y], img[lmode][x][y]);
 					} else {
-						colors[j * disp.width + i] = img[x][y];
+						colors[j * disp.width + i] = img[lmode][x][y];
 					}
 				} else if (Mode == 1) {
 					if (EditLayer[x][y] != 0x00000000) {
 						colors[j * disp.width + i] = Eraser_Draw(
-								EditLayer[x][y], img[x][y]);
+								EditLayer[x][y], img[lmode][x][y]);
 					} else {
-						colors[j * disp.width + i] = img[x][y];
+						colors[j * disp.width + i] = img[lmode][x][y];
 					}
 				}
 			} else {
@@ -399,7 +407,7 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setScale(JNIEnv* env,
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		JNIEnv* env, jobject obj, jint x, jint y) {
 	i_printf("init\n");
-	int i, j;
+	int i, j, k;
 	c.width = x;
 	c.height = y;
 	disp.x = 0;
@@ -407,13 +415,23 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	scale = 1.0;
 
 	//img配列の確保と初期化
-	img = (int **) malloc(sizeof(int*) * c.width);
-	for (i = 0; i < c.width; i++) {
-		img[i] = (int*) malloc(sizeof(int) * c.height);
+	img = (int ***) malloc(sizeof(int*) * MAX_LAYER_SIZE);
+	for (i = 0; i < MAX_LAYER_SIZE; i++) {
+		img[i] = (int **) malloc(sizeof(int*) * c.width);
+		for (j = 0; j < c.width; j++) {
+			img[i][j] = (int*) malloc(sizeof(int) * c.height);
+		}
+	}
+	for (i = 0; i < MAX_LAYER_SIZE; i++) {
+		for (j = 0; j < c.width; j++) {
+			for (k = 0; k < c.height; k++) {
+				img[i][j][k] = 0x00000000;
+			}
+		}
 	}
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			img[i][j] = 0xFFFFFFFF;
+			img[0][i][j] = 0xFFFFFFFF;
 		}
 	}
 
@@ -463,6 +481,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 			brush[i][j] = brush_map[i][j];
 		}
 	}
+	lmode = 0;
 	Size = 16;
 	Color = 0xFFFFFFFF;
 	return true;
@@ -510,11 +529,13 @@ void applyEdit() {
 		for (j = 0; j < c.height; j++) {
 			if (Mode == 0) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[i][j] = Normal_Draw(EditLayer[i][j], img[i][j]);
+					img[lmode][i][j] = Normal_Draw(EditLayer[i][j],
+							img[lmode][i][j]);
 				}
 			} else if (Mode == 1) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[i][j] = Eraser_Draw(EditLayer[i][j], img[i][j]);
+					img[lmode][i][j] = Eraser_Draw(EditLayer[i][j],
+							img[lmode][i][j]);
 				}
 			}
 		}
@@ -704,10 +725,10 @@ void Bilinear(int x, int y) {
 			}
 
 			if (((y0 + 1) < c.height) && ((x0 + 1) < c.width)) {
-				c0 = img[y0][x0];
-				c1 = img[y0][x1];
-				c2 = img[y1][x0];
-				c3 = img[y1][x1];
+				c0 = img[lmode][y0][x0];
+				c1 = img[lmode][y0][x1];
+				c2 = img[lmode][y1][x0];
+				c3 = img[lmode][y1][x1];
 			} else {
 				c0 = 0;
 				c1 = 0;
@@ -718,104 +739,104 @@ void Bilinear(int x, int y) {
 		}
 	}
 }
-
-/*
- * 線分からシードを探索してバッファに登録する関数
- *
- * int lx,rx:線分のX座標の範囲
- * int y:線分のY座標
- * unsigned int col:領域色
- */
-void scanLine(int lx, int rx, int y, unsigned int col) {
-	while (lx <= rx) {
-		//非領域色を飛ばす
-		for (; lx <= rx; lx++) {
-			if (img[lx][y] == col) {
-				break;
-			}
-		}
-		if (img[lx][y] != col) {
-			break;
-		}
-
-		//領域色を飛ばす
-		for (; lx <= rx; lx++) {
-			if (img[lx][y] != col) {
-				break;
-			}
-		}
-
-		eIdx->sx = lx - 1;
-		eIdx->sy = y;
-		if (++eIdx == &buff[MAXSIZE]) {
-			eIdx = buff;
-		}
-	}
-}
-
-/*
- * 塗りつぶし関数
- *
- * int x,y:開始座標
- * unsigned int paintCol : 描画色
- */
-void fill(int x, int y, unsigned int paintCol) {
-	int lx, rx;
-	int ly;
-	int i;
-	unsigned int col = img[x][y];
-	if (col == paintCol) {
-		return;
-	}
-	sIdx = buff;
-	sIdx = buff + 1;
-	sIdx->sx = x;
-	sIdx->sy = y;
-
-	do {
-		lx = rx = sIdx->sx;
-		ly = sIdx->sy;
-		if (++sIdx == &buff[MAXSIZE]) {
-			sIdx = buff;
-		}
-
-		//処理済みのシードなら無視
-		if (img[lx][ly] != col) {
-			continue;
-		}
-
-		//右方向の境界を走査
-		while (rx < c.width) {
-			if (img[rx + 1][ly] != col) {
-				break;
-			}
-			rx++;
-		}
-
-		//左方向の境界を走査
-		while (lx > 0) {
-			if (img[lx - 1][ly] != col) {
-				break;
-			}
-			lx--;
-		}
-
-		//lx-rxの線分を描画
-		for (i = lx; i <= rx; i++) {
-			img[i][ly] = paintCol;
-		}
-
-		//真上のスキャンラインを走査
-		if (ly - 1 >= 0) {
-			scanLine(lx, rx, ly - 1, col);
-		}
-
-		//真下のスキャンラインを走査
-		if (ly + 1 <= c.height) {
-			scanLine(lx, rx, ly + 1, col);
-		}
-	} while (sIdx != eIdx);
-}
+//
+///*
+// * 線分からシードを探索してバッファに登録する関数
+// *
+// * int lx,rx:線分のX座標の範囲
+// * int y:線分のY座標
+// * unsigned int col:領域色
+// */
+//void scanLine(int lx, int rx, int y, unsigned int col) {
+//	while (lx <= rx) {
+//		//非領域色を飛ばす
+//		for (; lx <= rx; lx++) {
+//			if (img[lx][y] == col) {
+//				break;
+//			}
+//		}
+//		if (img[lx][y] != col) {
+//			break;
+//		}
+//
+//		//領域色を飛ばす
+//		for (; lx <= rx; lx++) {
+//			if (img[lx][y] != col) {
+//				break;
+//			}
+//		}
+//
+//		eIdx->sx = lx - 1;
+//		eIdx->sy = y;
+//		if (++eIdx == &buff[MAXSIZE]) {
+//			eIdx = buff;
+//		}
+//	}
+//}
+//
+///*
+// * 塗りつぶし関数
+// *
+// * int x,y:開始座標
+// * unsigned int paintCol : 描画色
+// */
+//void fill(int x, int y, unsigned int paintCol) {
+//	int lx, rx;
+//	int ly;
+//	int i;
+//	unsigned int col = img[x][y];
+//	if (col == paintCol) {
+//		return;
+//	}
+//	sIdx = buff;
+//	sIdx = buff + 1;
+//	sIdx->sx = x;
+//	sIdx->sy = y;
+//
+//	do {
+//		lx = rx = sIdx->sx;
+//		ly = sIdx->sy;
+//		if (++sIdx == &buff[MAXSIZE]) {
+//			sIdx = buff;
+//		}
+//
+//		//処理済みのシードなら無視
+//		if (img[lx][ly] != col) {
+//			continue;
+//		}
+//
+//		//右方向の境界を走査
+//		while (rx < c.width) {
+//			if (img[rx + 1][ly] != col) {
+//				break;
+//			}
+//			rx++;
+//		}
+//
+//		//左方向の境界を走査
+//		while (lx > 0) {
+//			if (img[lx - 1][ly] != col) {
+//				break;
+//			}
+//			lx--;
+//		}
+//
+//		//lx-rxの線分を描画
+//		for (i = lx; i <= rx; i++) {
+//			img[i][ly] = paintCol;
+//		}
+//
+//		//真上のスキャンラインを走査
+//		if (ly - 1 >= 0) {
+//			scanLine(lx, rx, ly - 1, col);
+//		}
+//
+//		//真下のスキャンラインを走査
+//		if (ly + 1 <= c.height) {
+//			scanLine(lx, rx, ly + 1, col);
+//		}
+//	} while (sIdx != eIdx);
+//}
 
 /*
  * 新規ブラシマップセット関数
