@@ -22,16 +22,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ListViewActivity" >
+        <activity android:name="pbl.paint.BookShelfActivity" >
         </activity>
         <activity android:name=".TestActivity" >
         </activity>
-        <activity android:name=".SelectViewActivity" >
+        <activity android:name="pbl.paint.DrawBookActivity" >
         </activity>
         <activity
             package="pbl.paint.connect"
             android:name="pbl.paint.connect.RoomSelectActivity"
-            android:label="@string/main_activity"
+            android:label="@string/room_select"
             android:screenOrientation="portrait">
         </activity>
         <activity

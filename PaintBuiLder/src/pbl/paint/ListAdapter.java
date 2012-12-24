@@ -17,9 +17,9 @@ import android.widget.Toast;
 public class ListAdapter extends ArrayAdapter<FileData>{
 	private LayoutInflater inflater;
 	private Context context;
-	ListViewActivity lv_activity;
+	BookShelfActivity lv_activity;
 
-	public ListAdapter(Context context, ArrayList<FileData> filedata, ListViewActivity lv_activity) {
+	public ListAdapter(Context context, ArrayList<FileData> filedata, BookShelfActivity lv_activity) {
 		super(context, 0, filedata);
 		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		this.context = context;
@@ -32,7 +32,7 @@ public class ListAdapter extends ArrayAdapter<FileData>{
 		final FileData fd = this.getItem(position);
 		
 		if (convertView == null) {
-			convertView = inflater.inflate(R.layout.list_view_colum, null);
+			convertView = inflater.inflate(R.layout.book_shelf_colum, null);
 		}
 		
 		Button file_mode = (Button)convertView.findViewById(R.id.file_mode);
@@ -43,17 +43,18 @@ public class ListAdapter extends ArrayAdapter<FileData>{
 
 		Button file_button = (Button)convertView.findViewById(R.id.file_button);
 		file_button.setText(fd.getName());
-		file_button.setTag(fd.getMode());
 		file_button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				File file = new File(fd.getPath());
 				if(file.canWrite()){
+					//trueならば本棚ディレクトリ
 					lv_activity.ListViewLoader(lv_activity.listView, fd.getPath());
 					lv_activity.pathChange(fd.getPath()+"/");
 				}
 				else{
-					Intent intent=new Intent(context,SelectViewActivity.class);
+					//falseならお絵かき帳ディレクトリ
+					Intent intent=new Intent(context,DrawBookActivity.class);
 					intent.putExtra("path", fd.getPath()+"/");
 					context.startActivity(intent);
 				}

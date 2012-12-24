@@ -44,7 +44,7 @@ public class RoomSelectActivity extends Activity implements ConnectionAPI.Messag
 		server_connection = new ConnectionAPI(this);
 
 		//レイアウトの指定
-		setContentView(R.layout.room_list);
+		setContentView(R.layout.room_list_layout);
 
 		//コンポーネントの指定
 		roomList = (ListView)findViewById(R.id.room_list);

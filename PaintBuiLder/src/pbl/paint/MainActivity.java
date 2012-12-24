@@ -32,7 +32,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
 	public void onClick(View v){
 		if(v == paint_button){
-			Intent intent=new Intent(this,ListViewActivity.class);//ファイル選択画面に移動
+			Intent intent=new Intent(this,BookShelfActivity.class);//ファイル選択画面に移動
 			startActivity(intent);
 		}
 		else if(v == com_button){
