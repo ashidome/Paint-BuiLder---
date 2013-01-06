@@ -32,6 +32,8 @@ int get_alpha(int c);
 int grayscale(int c);
 int max(int a, int b);
 int min(int a, int b);
+void blendBuff(int x, int y);
+int Blend_Layer(int mode, int src, int dest);
 
 /*
  * レイヤ周り
@@ -50,12 +52,8 @@ struct Canvas {
 };
 
 struct Layers {
-	int layer_num;
-
-};
-
-struct Layer {
-
+	int layer_max;
+	int current_layer;
 };
 
 struct DrawPoints {
@@ -77,7 +75,7 @@ struct BrushMap {
 
 static struct Display disp;
 static struct Canvas c;
-static struct Laler layers;
+static struct Layers layers;
 static struct DrawPoints dp;
 static struct FillPoint fp;
 static struct BrushMap brushmap;
@@ -93,8 +91,10 @@ static int bx;
 static int by;
 static int ***img;
 static int **EditLayer;
+static int **BuffImg;
 static int frequency = 30;
 static double scale;
+static int Layer_Num;
 
 struct BufStr {
 	int sx; /* 領域右端のX座標 */
@@ -103,6 +103,9 @@ struct BufStr {
 struct BufStr buff[MAXSIZE]; /* シード登録用バッファ */
 struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
 
+/*
+ * レイヤーモード列挙
+ */
 enum layer_mode {
 	NORMAL, MUL, SCREEN, OVERLAY
 };
@@ -131,17 +134,21 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteEditL
 	return true;
 }
 
+//第3引数消去
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
-		JNIEnv* env, jobject obj, jint num) {
+		JNIEnv* env, jobject obj) {
 	i_printf("addLayer\n");
-	//TODO レイヤーの追加
+
+	layers.layer_max += 1;
+	layers.current_layer = layers.layer_max;
+
 	return true;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer(
 		JNIEnv* env, jobject obj, jint num) {
 	i_printf("deleteLayer\n");
-	//TODO レイヤーの消去
+
 	return true;
 }
 
@@ -300,7 +307,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			colors[j * c.width + i] = img[lmode][i][j];
+			colors[j * c.width + i] = img[Layer_Num][i][j];
 		}
 	}
 
@@ -338,21 +345,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 			y = (int) yy;
 
 			if ((xx < c.width) && (yy < c.height) && (xx > 0) && (yy > 0)) {
-				if (Mode == 0) {
-					if (EditLayer[x][y] != 0x00000000) {
-						colors[j * disp.width + i] = Normal_Draw(
-								EditLayer[x][y], img[lmode][x][y]);
-					} else {
-						colors[j * disp.width + i] = img[lmode][x][y];
-					}
-				} else if (Mode == 1) {
-					if (EditLayer[x][y] != 0x00000000) {
-						colors[j * disp.width + i] = Eraser_Draw(
-								EditLayer[x][y], img[lmode][x][y]);
-					} else {
-						colors[j * disp.width + i] = img[lmode][x][y];
-					}
-				}
+				colors[j * disp.width + i] = BuffImg[x][y];
 			} else {
 				colors[j * disp.width + i] = 0xFF000000;
 				flag = 1;
@@ -432,9 +425,19 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	for (i = 0; i < c.width; i++) {
 		EditLayer[i] = (int*) malloc(sizeof(int) * c.height);
 	}
-
 	//EditLayerの初期化
 	initEditLayer();
+
+	//バッファ配列の確保と初期化
+	BuffImg = (int **) malloc(sizeof(int*) * c.width);
+	for (i = 0; i < c.width; i++) {
+		BuffImg[i] = (int*) malloc(sizeof(int) * c.height);
+	}
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			BuffImg[i][j] = 0xFFFFFFFF;
+		}
+	}
 
 	//brush_map配列の確保と初期化
 	brush_map = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
@@ -462,7 +465,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 			brush[i][j] = brush_map[i][j];
 		}
 	}
-	lmode = 0;
+	layers.layer_max = 1;
+	layers.current_layer = 0;
+	Layer_Num = 0;
 	Size = 16;
 	Color = 0xFFFFFFFF;
 	return true;
@@ -476,10 +481,10 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 
 	//img配列の開放
 	for (i = 0; i < MAX_LAYER_SIZE; i++) {
-		free(img[i]);
 		for (j = 0; j < c.width; j++) {
 			free(img[i][j]);
 		}
+		free(img[i]);
 	}
 	free(img);
 
@@ -524,10 +529,39 @@ void brush_draw(int x, int y) {
 				if (get_alpha(EditLayer[x + i][y + j])
 						< get_alpha(brush[i][j])) {
 					EditLayer[x + i][y + j] = brush[i][j];
+					blendBuff(x + i, y + j);
 				}
 			}
 		}
 	}
+}
+
+/*
+ * Buff配列に合成する関数
+ */
+void blendBuff(int x, int y) {
+	int i;
+	int Pixel = 0xFFFFFFFF;
+	int flag = 0;
+	//EditLayerのため
+	for (i = 0; i < layers.layer_max + 1; i++) {
+		if (flag == 0 && i > layers.current_layer) {
+			if (Mode == 0) {
+				Pixel = Normal_Draw(EditLayer[x][y], Pixel);
+			} else if (Mode == 1) {
+				Pixel = Eraser_Draw(EditLayer[x][y], Pixel);
+			}
+			flag = 1;
+		} else {
+			/*
+			 * TODO
+			 * レイヤー合成モード実装
+			 */
+			//Pixel = Normal_Draw(img[i][x][y], Pixel);
+			Pixel = Blend_Layer(0, img[i][x][y], Pixel);
+		}
+	}
+	BuffImg[x][y] = Pixel;
 }
 
 /*
@@ -546,13 +580,13 @@ void applyEdit() {
 		for (j = 0; j < c.height; j++) {
 			if (Mode == 0) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[lmode][i][j] = Normal_Draw(EditLayer[i][j],
-							img[lmode][i][j]);
+					img[Layer_Num][i][j] = Normal_Draw(EditLayer[i][j],
+							img[Layer_Num][i][j]);
 				}
 			} else if (Mode == 1) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[lmode][i][j] = Eraser_Draw(EditLayer[i][j],
-							img[lmode][i][j]);
+					img[Layer_Num][i][j] = Eraser_Draw(EditLayer[i][j],
+							img[Layer_Num][i][j]);
 				}
 			}
 		}
@@ -594,7 +628,7 @@ void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
 	int x, y;
 	double t;
 
-//frequencyが大きいほど緻密に描画する
+	//frequencyが大きいほど緻密に描画する
 	for (i = 0; i <= frequency; i++) {
 		t = (double) i / frequency;
 		x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * x2 + t * t * x3;
@@ -742,10 +776,10 @@ void Bilinear(int x, int y) {
 			}
 
 			if (((y0 + 1) < c.height) && ((x0 + 1) < c.width)) {
-				c0 = img[lmode][y0][x0];
-				c1 = img[lmode][y0][x1];
-				c2 = img[lmode][y1][x0];
-				c3 = img[lmode][y1][x1];
+				c0 = img[Layer_Num][y0][x0];
+				c1 = img[Layer_Num][y0][x1];
+				c2 = img[Layer_Num][y1][x0];
+				c3 = img[Layer_Num][y1][x1];
 			} else {
 				c0 = 0;
 				c1 = 0;
@@ -860,7 +894,7 @@ void Bilinear(int x, int y) {
  */
 void setBrush(jchar brush_img[]) {
 	int i, j;
-	//新規ブラシマップを適用
+//新規ブラシマップを適用
 	for (i = 0; i < brushmap.width; i++) {
 		for (j = 0; j < brushmap.height; j++) {
 			brush_map[i][j] = brush_img[i * brushmap.height + j];
@@ -904,6 +938,72 @@ int grayscale(int c) {
 //gray = (77 * r + 150 * g + 29 * b) >> 8;
 
 	return (255 - gray);
+}
+
+/*
+ * レイヤー合成関数
+ */
+int Blend_Layer(int mode, int src, int dest) {
+	int src_a, src_r, src_g, src_b;
+	int dest_a, dest_r, dest_g, dest_b;
+	int a, r, g, b;
+	int result;
+
+	src_a = (src & 0xFF000000) >> 24;
+	src_r = (src & 0x00FF0000) >> 16;
+	src_g = (src & 0x0000FF00) >> 8;
+	src_b = (src & 0x000000FF);
+
+	dest_a = (dest & 0xFF000000) >> 24;
+	dest_r = (dest & 0x00FF0000) >> 16;
+	dest_g = (dest & 0x0000FF00) >> 8;
+	dest_b = (dest & 0x000000FF);
+
+	switch (mode) {
+	case 0: //通常
+		r = (src_r * src_a + dest_r * (255 - src_a)) / 255;
+		if (r > 255) {
+			r = 255;
+		}
+		g = (src_g * src_a + dest_g * (255 - src_a)) / 255;
+		if (g > 255) {
+			g = 255;
+		}
+		b = (src_b * src_a + dest_b * (255 - src_a)) / 255;
+		if (b > 255) {
+			b = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+
+		result = (a << 24) | (r << 16) | (g << 8) | b;
+		break;
+	case 1: //乗算
+		break;
+	case 2: //スクリーン
+		break;
+	case 3: //オーバレイ
+		break;
+	case 4: //ソフトライト
+		break;
+	case 5: //ハードライト
+		break;
+	case 6: //覆い焼きカラー
+		break;
+	case 7: //焼きこみカラー
+		break;
+	case 8: //比較（暗）
+		break;
+	case 9: //比較（明）
+		break;
+	case 10: //差の絶対値
+		break;
+	case 11: //除外
+		break;
+	}
+	return result;
 }
 
 /*
