@@ -34,6 +34,7 @@ int max(int a, int b);
 int min(int a, int b);
 void blendBuff(int x, int y);
 int Blend_Layer(int mode, int src, int dest);
+void recomposition();
 
 /*
  * レイヤ周り
@@ -165,6 +166,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer
 	} else {
 		layers.current_layer--;
 	}
+
+	//レイヤー再合成
+	recomposition();
 	return JNI_TRUE;
 }
 
@@ -594,6 +598,18 @@ void blendBuff(int x, int y) {
 		}
 	}
 	BuffImg[x][y] = Pixel;
+}
+
+/*
+ * 再合成関数
+ */
+void recomposition() {
+	int i, j;
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			blendBuff(i, j);
+		}
+	}
 }
 
 /*
