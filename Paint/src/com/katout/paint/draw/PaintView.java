@@ -162,21 +162,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			}
 
 			if (temp_touch_count == 2) {
-				/**************************** 移動 ******************************/
-				// スクリーン座標での移動量の計算
-				int temp_ave_x = (points[0][0] + points[0][1]) / 2;
-				int temp_ave_y = (points[1][0] + points[1][1]) / 2;
-
-				// 実際のキャンパスサイズになおして現在の位置を計算
-				nowPosX += (temp_ave_x - aveX) / Scale;
-				nowPosY += (temp_ave_y - aveY) / Scale;
-				// TODO 端処理を書け
-
-				event_lisner.setPosition(nowPosX - (int)(w/Scale), nowPosY - (int)(h/Scale));
-
-				aveX = temp_ave_x;
-				aveY = temp_ave_y;
-
 				/**************************** 拡大 ******************************/
 				double temp_Vec = VecSize(points[0][0], points[1][0],
 						points[0][1], points[1][1]);
@@ -184,8 +169,29 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						* Scale)
 						/ w;
 				event_lisner.setScale(temp_Scale);
+				int temp_move_size_x = (int)((temp_Scale - Scale) * w)/3;
+				int temp_move_size_y = (int)((temp_Scale - Scale) * h)/3;
+				
 				Scale = temp_Scale;
 				preVecterSize = temp_Vec;
+				
+				
+				/**************************** 移動 ******************************/
+				// スクリーン座標での移動量の計算
+				int temp_ave_x = (points[0][0] + points[0][1]) / 2;
+				int temp_ave_y = (points[1][0] + points[1][1]) / 2;
+
+				// 実際のキャンパスサイズになおして現在の位置を計算
+				nowPosX += (temp_ave_x - aveX) / Scale -temp_move_size_x;
+				nowPosY += (temp_ave_y - aveY) / Scale - temp_move_size_y;
+				// TODO 端処理を書け
+
+				event_lisner.setPosition(nowPosX - (int)(w/Scale) , nowPosY - (int)(h/Scale));
+
+				aveX = temp_ave_x;
+				aveY = temp_ave_y;
+
+
 
 				/**************************** 回転 ******************************/
 				double temp_rad = Math.atan2(points[1][1] - points[1][0],
