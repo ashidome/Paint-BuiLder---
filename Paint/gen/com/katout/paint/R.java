@@ -11,9 +11,10 @@ public final class R {
     public static final class attr {
     }
     public static final class color {
+        public static final int bgcolor=0x7f040005;
         public static final int blue=0x7f040002;
         public static final int green=0x7f040001;
-        public static final int list_item=0x7f040005;
+        public static final int list_item=0x7f040006;
         public static final int mu=0x7f040003;
         public static final int select=0x7f040004;
         public static final int white=0x7f040000;
@@ -54,48 +55,58 @@ public final class R {
         public static final int trash_can=0x7f02001a;
     }
     public static final class id {
-        public static final int TextView04=0x7f090018;
-        public static final int cancel=0x7f09001e;
-        public static final int colorPicker=0x7f090007;
-        public static final int colorview=0x7f090019;
-        public static final int download=0x7f09001b;
+        public static final int TextView04=0x7f09001d;
+        public static final int button1=0x7f090008;
+        public static final int button2=0x7f090015;
+        public static final int cancel=0x7f090025;
+        public static final int colorPicker=0x7f09000a;
+        public static final int colorview=0x7f09001e;
+        public static final int download=0x7f090023;
+        public static final int editText1=0x7f090007;
         public static final int imageView1=0x7f090005;
-        public static final int imageView2=0x7f090011;
-        public static final int imageView3=0x7f090012;
-        public static final int layer=0x7f090017;
+        public static final int imageView2=0x7f090016;
+        public static final int imageView3=0x7f090017;
+        public static final int layer=0x7f09001c;
         public static final int layer_menu_l=0x7f090002;
         public static final int layer_menu_r=0x7f090001;
-        public static final int listView1=0x7f09001d;
-        public static final int make_brush=0x7f09001c;
-        public static final int menu_settings=0x7f09001f;
-        public static final int ok_button=0x7f090010;
+        public static final int listView1=0x7f090014;
+        public static final int make_brush=0x7f090024;
+        public static final int menu_settings=0x7f090026;
+        public static final int name=0x7f090020;
+        public static final int num=0x7f090021;
+        public static final int ok_button=0x7f090013;
         public static final int paint_menu_b=0x7f090004;
         public static final int paint_menu_t=0x7f090003;
-        public static final int seekBar1=0x7f090013;
-        public static final int seekBar_alpha=0x7f090009;
-        public static final int seekBar_blue=0x7f09000f;
-        public static final int seekBar_green=0x7f09000d;
-        public static final int seekBar_red=0x7f09000b;
-        public static final int seek_brush=0x7f09001a;
-        public static final int spinner1=0x7f090014;
+        public static final int room_id=0x7f090022;
+        public static final int scrollView1=0x7f090009;
+        public static final int seekBar1=0x7f090018;
+        public static final int seekBar_alpha=0x7f09000c;
+        public static final int seekBar_blue=0x7f090012;
+        public static final int seekBar_green=0x7f090010;
+        public static final int seekBar_red=0x7f09000e;
+        public static final int seek_brush=0x7f09001f;
+        public static final int spinner1=0x7f090019;
         public static final int surfaceView1=0x7f090000;
-        public static final int tableRow1=0x7f090008;
-        public static final int tableRow2=0x7f09000a;
-        public static final int tableRow3=0x7f09000c;
-        public static final int tableRow4=0x7f09000e;
+        public static final int tableRow1=0x7f09000b;
+        public static final int tableRow2=0x7f09000d;
+        public static final int tableRow3=0x7f09000f;
+        public static final int tableRow4=0x7f090011;
         public static final int textView1=0x7f090006;
-        public static final int textView2=0x7f090015;
-        public static final int textView3=0x7f090016;
+        public static final int textView2=0x7f09001a;
+        public static final int textView3=0x7f09001b;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
         public static final int brush_column=0x7f030001;
-        public static final int colordialog=0x7f030002;
-        public static final int layer_column=0x7f030003;
-        public static final int layer_menu=0x7f030004;
-        public static final int paint_menu=0x7f030005;
-        public static final int preview=0x7f030006;
-        public static final int select_brush_dialog=0x7f030007;
+        public static final int chat_layout=0x7f030002;
+        public static final int colordialog=0x7f030003;
+        public static final int conect_layout=0x7f030004;
+        public static final int layer_column=0x7f030005;
+        public static final int layer_menu=0x7f030006;
+        public static final int paint_menu=0x7f030007;
+        public static final int preview=0x7f030008;
+        public static final int room_list_colum=0x7f030009;
+        public static final int select_brush_dialog=0x7f03000a;
     }
     public static final class menu {
         public static final int activity_main=0x7f080000;
@@ -113,8 +124,13 @@ public final class R {
         public static final int delete_layer=0x7f06000b;
         public static final int eraser=0x7f060005;
         public static final int file=0x7f060002;
+        public static final int main_activity=0x7f06000e;
+        public static final int make_room=0x7f06000f;
         public static final int mask=0x7f06000a;
         public static final int menu_settings=0x7f060001;
+        public static final int refresh=0x7f060010;
+        public static final int send=0x7f060012;
+        public static final int textview=0x7f060011;
     }
     public static final class style {
         public static final int AppTheme=0x7f070000;
