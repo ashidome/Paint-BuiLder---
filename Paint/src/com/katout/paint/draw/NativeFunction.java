@@ -14,7 +14,7 @@ public class NativeFunction {
 
 	public native boolean addLayer();
 
-	public native boolean deleteLayer(int num);
+	public native boolean deleteLayer();
 
 	public native boolean selectLayer(int num);
 

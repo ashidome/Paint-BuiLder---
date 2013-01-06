@@ -329,12 +329,19 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			layouts[i].setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					//レイヤーが選択された時
 					int temp = (Integer)v.getTag();
 					nativefunc.selectLayer(temp);
+					layerAdapter.selectLayer(temp);
 				}
 			});
 		}
 		nativefunc.addLayer();
+	}
+	
+	public void ondeleteLayer(View v) {
+		boolean temp = layerAdapter.deleteLayer();
+		//nativefunc.deleteLayer();
 	}
 
 	public void onFile(View v) {

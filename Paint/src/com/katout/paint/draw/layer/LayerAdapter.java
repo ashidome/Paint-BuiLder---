@@ -16,7 +16,6 @@ public class LayerAdapter{
 	private ArrayList<LinearLayout>[] layers;//左右にあるレイヤーのレイアウト
 	private int layernum;
 	private int currentlayer;
-	private int selectlayer;
 	
 	public LayerAdapter(Context context, LinearLayout[] layouts) {
 		this.layouts = layouts;
@@ -27,7 +26,6 @@ public class LayerAdapter{
 		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		layernum = 0;
 		currentlayer = 0;
-		selectlayer = 0;
 	}
 	
 	public LinearLayout[] addLayer(LayerData data){
@@ -35,7 +33,7 @@ public class LayerAdapter{
 		for(int i = 0; i < layouts.length; i++){
 			layouts[i].removeAllViews();
 		}
-		LinearLayout[] temp = new LinearLayout[2];
+		LinearLayout[] temp = new LinearLayout[layouts.length];
 		for(int i = 0; i < layouts.length; i++){
 			LinearLayout layout = (LinearLayout) mInflater.inflate(R.layout.layer_column, null);
 			layers[i].add(currentlayer, layout);
@@ -47,8 +45,49 @@ public class LayerAdapter{
 				layers[i].get(j).setTag(j);
 			}
 		}
+		if(layernum!=0){
+			currentlayer++;
+		}
 		layernum++;
+		selectLayer(currentlayer);
 		return temp;
 	}
-
+	/** 
+	 * 選択中のレイヤーに色付け
+	 */
+	public void selectLayer(int num){
+		currentlayer = num;
+		for(int i = 0; i < layers.length; i++){
+			for(int j = 0; j < layers[i].size();j++){
+				if(j != currentlayer){
+					layers[i].get(j).setBackgroundColor(0xffffffff);
+				}else{
+					layers[i].get(j).setBackgroundColor(0xffdddddd);
+				}
+			}
+		}
+	}
+	
+	public boolean deleteLayer(){
+		if(layernum <= 1){
+			return false;
+		}
+		layernum--;
+		for(int i = 0; i < layouts.length; i++){
+			layers[i].remove(currentlayer);
+		}
+		currentlayer--;
+		if(currentlayer <0){
+			currentlayer = 0;
+		}
+		for(int i = 0; i < layouts.length; i++){
+			layouts[i].removeAllViews();
+			for(int j = layers[i].size() - 1; j > -1 ; j--){
+				layouts[i].addView(layers[i].get(j));
+				layers[i].get(j).setTag(j);
+			}
+		}
+		selectLayer(currentlayer);
+		return true;
+	}
 }
