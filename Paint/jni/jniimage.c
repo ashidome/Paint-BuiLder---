@@ -134,28 +134,45 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteEditL
 	return true;
 }
 
-//第3引数消去
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
 		JNIEnv* env, jobject obj) {
 	i_printf("addLayer\n");
+	int i;
 
-	layers.layer_max += 1;
-	layers.current_layer = layers.layer_max;
+	if (layers.layer_max + 1 > MAX_LAYER_SIZE) {
+		return false;
+	} else {
+		layers.layer_max++;
+		layers.current_layer++;
 
-	return true;
+		for (i = layers.layer_max - 1; i >= layers.current_layer; i--) {
+			img[i + 1] = img[i];
+		}
+		return true;
+	}
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer(
 		JNIEnv* env, jobject obj, jint num) {
 	i_printf("deleteLayer\n");
+	int i;
 
+	for (i = layers.current_layer; i < layers.layer_max; i++) {
+		img[i] = img[i + 1];
+	}
+	layers.layer_max--;
+	if (layers.current_layer == 0) {
+		layers.current_layer = 0;
+	} else {
+		layers.current_layer--;
+	}
 	return true;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_selectLayer(
 		JNIEnv* env, jobject obj, jint num) {
 	i_printf("EditLayer\n");
-	//TODO 編集するレイヤーの選択
+	layers.current_layer = num;
 	return true;
 }
 
@@ -426,8 +443,11 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		EditLayer[i] = (int*) malloc(sizeof(int) * c.height);
 	}
 	//EditLayerの初期化
-	initEditLayer();
-
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			EditLayer[i][j] = 0x00000000;
+		}
+	}
 	//バッファ配列の確保と初期化
 	BuffImg = (int **) malloc(sizeof(int*) * c.width);
 	for (i = 0; i < c.width; i++) {
@@ -600,7 +620,10 @@ void initEditLayer() {
 	int i, j;
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			EditLayer[i][j] = 0x00000000;
+			if (EditLayer[i][j] != 0x00000000) {
+				EditLayer[i][j] = 0x00000000;
+				blendBuff(i, j);
+			}
 		}
 	}
 }
@@ -1001,6 +1024,8 @@ int Blend_Layer(int mode, int src, int dest) {
 	case 10: //差の絶対値
 		break;
 	case 11: //除外
+		break;
+	case 12: //インビジブル
 		break;
 	}
 	return result;
