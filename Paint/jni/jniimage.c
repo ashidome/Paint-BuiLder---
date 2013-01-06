@@ -94,7 +94,6 @@ static int **EditLayer;
 static int **BuffImg;
 static int frequency = 30;
 static double scale;
-static int Layer_Num;
 
 struct BufStr {
 	int sx; /* 領域右端のX座標 */
@@ -324,7 +323,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			colors[j * c.width + i] = img[Layer_Num][i][j];
+			colors[j * c.width + i] = img[layers.current_layer][i][j];
 		}
 	}
 
@@ -487,7 +486,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	}
 	layers.layer_max = 1;
 	layers.current_layer = 0;
-	Layer_Num = 0;
 	Size = 16;
 	Color = 0xFFFFFFFF;
 	return true;
@@ -600,13 +598,13 @@ void applyEdit() {
 		for (j = 0; j < c.height; j++) {
 			if (Mode == 0) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[Layer_Num][i][j] = Normal_Draw(EditLayer[i][j],
-							img[Layer_Num][i][j]);
+					img[layers.current_layer][i][j] = Normal_Draw(EditLayer[i][j],
+							img[layers.current_layer][i][j]);
 				}
 			} else if (Mode == 1) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[Layer_Num][i][j] = Eraser_Draw(EditLayer[i][j],
-							img[Layer_Num][i][j]);
+					img[layers.current_layer][i][j] = Eraser_Draw(EditLayer[i][j],
+							img[layers.current_layer][i][j]);
 				}
 			}
 		}
@@ -799,10 +797,10 @@ void Bilinear(int x, int y) {
 			}
 
 			if (((y0 + 1) < c.height) && ((x0 + 1) < c.width)) {
-				c0 = img[Layer_Num][y0][x0];
-				c1 = img[Layer_Num][y0][x1];
-				c2 = img[Layer_Num][y1][x0];
-				c3 = img[Layer_Num][y1][x1];
+				c0 = img[layers.current_layer][y0][x0];
+				c1 = img[layers.current_layer][y0][x1];
+				c2 = img[layers.current_layer][y1][x0];
+				c3 = img[layers.current_layer][y1][x1];
 			} else {
 				c0 = 0;
 				c1 = 0;
