@@ -118,9 +118,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSi
 		c.flag = false;
 		c.height = jx;
 		c.width = jy;
-		return true;
+		return JNI_TRUE;
 	} else {
-		return false;
+		return JNI_FALSE;
 	}
 }
 
@@ -130,7 +130,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteEditL
 
 	//編集レイヤの初期化
 	initEditLayer();
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
@@ -139,7 +139,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
 	int i;
 
 	if (layers.layer_max + 1 > MAX_LAYER_SIZE) {
-		return false;
+		return JNI_FALSE;
 	} else {
 		layers.layer_max++;
 		layers.current_layer++;
@@ -147,12 +147,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
 		for (i = layers.layer_max - 1; i >= layers.current_layer; i--) {
 			img[i + 1] = img[i];
 		}
-		return true;
+		return JNI_TRUE;
 	}
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer(
-		JNIEnv* env, jobject obj, jint num) {
+		JNIEnv* env, jobject obj) {
 	i_printf("deleteLayer\n");
 	int i;
 
@@ -165,42 +165,42 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer
 	} else {
 		layers.current_layer--;
 	}
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_selectLayer(
 		JNIEnv* env, jobject obj, jint num) {
 	i_printf("EditLayer\n");
 	layers.current_layer = num;
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMode(
 		JNIEnv* env, jobject obj, jint num, jint mode) {
 	i_printf("setLayerMode\n");
 	//TODO レイヤーモードの選択
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Replace(
 		JNIEnv* env, jobject obj, jint num, jint move) {
 	i_printf("Replace\n");
 	//TODO レイヤーの順序変更
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setVisible(
 		JNIEnv* env, jobject obj, jint num, jboolean truth) {
 	i_printf("setVisible\n");
 	//TODO 可視不可視の変更
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMask(
 		JNIEnv* env, jobject obj, jint num, jboolean truth) {
 	i_printf("setMask\n");
 	//TODO マスクレイヤーの作成
-	return true;
+	return JNI_TRUE;
 }
 
 /*
@@ -226,7 +226,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrush(
 	setBrushSize(Size);
 
 	(*env)->ReleaseCharArrayElements(env, color, colors, 0);
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setColor(
@@ -235,7 +235,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setColor(
 	setColor(jcolor);
 	setBrushSize(Size);
 	i_printf("end_setColor");
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrushSize(
@@ -244,7 +244,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrushSiz
 	//使用時に√x / 20 0.05 ~ 25;
 	i_printf("setBrushSize\n");
 	setBrushSize(jsize);
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
@@ -261,19 +261,26 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 
 	//次点フラグをオフ（次のdraw呼出ポイントを2点目とする）
 	dp.flag = 0;
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_endDraw(
 		JNIEnv* env, jobject obj) {
 	i_printf("endDraw\n");
+	int i, j;
 
 	//EditLayerをimg配列に適用する
 	applyEdit();
 
 	//EditLayerの初期化
-	initEditLayer();
-	return true;
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			EditLayer[i][j] = 0x00000000;
+		}
+	}
+
+	//initEditLayer();
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
@@ -297,13 +304,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 		dp.y2 = jy;
 	}
 	dp.flag = 1;
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Bucket(
 		JNIEnv* env, jobject obj, jint jx, jint jy, jint t) {
 	//fill(jx, jy, t);
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getCanvasHeight(
@@ -328,7 +335,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 	}
 
 	(*env)->ReleaseIntArrayElements(env, color, colors, 0);
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
@@ -370,9 +377,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	}
 	(*env)->ReleaseIntArrayElements(env, color, colors, 0);
 	if (flag == 0) {
-		return true;
+		return JNI_TRUE;
 	} else {
-		return true;
+		return JNI_TRUE;
 	}
 }
 
@@ -387,14 +394,14 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setPosition(JNIEnv* env,
 	disp.y = -(scale * jy + disp.height);
 	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setRadian(JNIEnv* env,
 		jobject obj, jdouble rad) {
 	i_printf("setRadian\n");
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean
@@ -402,7 +409,7 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setScale(JNIEnv* env,
 		jobject obj, jdouble jscale) {
 	i_printf("setScale\n");
 	scale = jscale;
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
@@ -488,7 +495,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	layers.current_layer = 0;
 	Size = 16;
 	Color = 0xFFFFFFFF;
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
@@ -512,6 +519,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	}
 	free(EditLayer);
 
+	//バッファ配列の開放
+	for (i = 0; i < c.width; i++) {
+		free(BuffImg[i]);
+	}
+	free(BuffImg);
+
 	//brush_map配列の開放
 	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
 		free(brush_map[i]);
@@ -524,14 +537,14 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	}
 	free(brush);
 
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMode(
 		JNIEnv* env, jobject obj, jint num) {
 	i_printf("setMode Mode = %d\n", num);
 	Mode = num;
-	return true;
+	return JNI_TRUE;
 }
 /*
  * ブラシによる描画関数
@@ -559,23 +572,24 @@ void brush_draw(int x, int y) {
  */
 void blendBuff(int x, int y) {
 	int i;
-	int Pixel = 0xFFFFFFFF;
+	int Pixel = 0xFFDDDDDD;
+	int Edit;
 	int flag = 0;
-	//EditLayerのため
-	for (i = 0; i < layers.layer_max + 1; i++) {
-		if (flag == 0 && i > layers.current_layer) {
-			if (Mode == 0) {
-				Pixel = Normal_Draw(EditLayer[x][y], Pixel);
-			} else if (Mode == 1) {
-				Pixel = Eraser_Draw(EditLayer[x][y], Pixel);
-			}
-			flag = 1;
+
+	if ((x / 30 + y / 30) % 2 == 0) {
+		Pixel = 0xFFFFFFFF;
+	}
+
+	if (Mode == 1) {
+		Edit = Eraser_Draw(EditLayer[x][y], img[layers.current_layer][x][y]);
+	} else if (Mode == 0) {
+		Edit = Normal_Draw(EditLayer[x][y], img[layers.current_layer][x][y]);
+	}
+	for (i = 0; i < layers.layer_max; i++) {
+		//Pixel = Normal_Draw(img[i][x][y], Pixel);
+		if (i == layers.current_layer) {
+			Pixel = Blend_Layer(0, Edit, Pixel);
 		} else {
-			/*
-			 * TODO
-			 * レイヤー合成モード実装
-			 */
-			//Pixel = Normal_Draw(img[i][x][y], Pixel);
 			Pixel = Blend_Layer(0, img[i][x][y], Pixel);
 		}
 	}
@@ -598,13 +612,13 @@ void applyEdit() {
 		for (j = 0; j < c.height; j++) {
 			if (Mode == 0) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[layers.current_layer][i][j] = Normal_Draw(EditLayer[i][j],
-							img[layers.current_layer][i][j]);
+					img[layers.current_layer][i][j] = Normal_Draw(
+							EditLayer[i][j], img[layers.current_layer][i][j]);
 				}
 			} else if (Mode == 1) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[layers.current_layer][i][j] = Eraser_Draw(EditLayer[i][j],
-							img[layers.current_layer][i][j]);
+					img[layers.current_layer][i][j] = Eraser_Draw(
+							EditLayer[i][j], img[layers.current_layer][i][j]);
 				}
 			}
 		}
