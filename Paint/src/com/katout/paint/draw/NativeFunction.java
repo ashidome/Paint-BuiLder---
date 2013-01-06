@@ -12,7 +12,7 @@ public class NativeFunction {
 
 	public native boolean deleteEditLayer();
 
-	public native boolean addLayer(int num);
+	public native boolean addLayer();
 
 	public native boolean deleteLayer(int num);
 

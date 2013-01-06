@@ -62,6 +62,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		nativefunc = new NativeFunction();
 		super.onCreate(savedInstanceState);
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		handler = new Handler();
@@ -69,7 +70,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 
-		nativefunc = new NativeFunction();
 
 	}
 
@@ -212,7 +212,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		});
 
 		//初期に１枚のレイヤーを登録
-		layerAdapter.addLayer(new LayerData());
+		onAddLayer(null);
 		// layerAdapter_r = new LayerAdapter(this, layer_list);
 		// layer_l.setAdapter(layerAdapter_l);
 		// layer_r.setAdapter(layerAdapter_r);
@@ -324,7 +324,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	}
 
 	public void onAddLayer(View v) {
-		layerAdapter.addLayer(new LayerData());
+		LinearLayout[] layouts = layerAdapter.addLayer(new LayerData());
+		for(int i = 0; i < layouts.length; i++){
+			layouts[i].setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					int temp = (Integer)v.getTag();
+					nativefunc.selectLayer(temp);
+				}
+			});
+		}
+		nativefunc.addLayer();
 	}
 
 	public void onFile(View v) {
