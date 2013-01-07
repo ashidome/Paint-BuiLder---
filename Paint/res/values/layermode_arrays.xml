@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<string-array name="SpinnerItems">
+<item>通常</item>
+<item>乗算</item>
+<item>スクリーン</item>
+<item>オーバレイ</item>
+<item>ソフトライト</item>
+<item>ハードライト</item>
+<item>覆い焼きカラー</item>
+<item>焼きこみカラー</item>
+<item>比較（暗）</item>
+<item>比較（明）</item>
+<item>差の絶対値</item>
+<item>除外</item>
+</string-array>
+
+</resources>

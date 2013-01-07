@@ -25,9 +25,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.katout.paint.ColorPickerDialog;
@@ -58,6 +60,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	private SeekBar					seek_brush_t;
 	private SeekBar					seek_brush_b;
+	
+	private Spinner					spinner_r;
+	private Spinner					spinner_l;
 
 
 	@Override
@@ -172,6 +177,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		colorV_b = (ColorView) paint_menu_b.findViewById(R.id.colorview);
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
 		paint_layer_r = (LinearLayout) findViewById(R.id.layer_menu_r);
+		
 
 		LinearLayout layer_l = (LinearLayout) paint_layer_l
 				.findViewById(R.id.layer);
@@ -182,7 +188,32 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
 		seek_brush_b = (SeekBar) paint_menu_b.findViewById(R.id.seek_brush);
+		
+		spinner_r = (Spinner)paint_layer_r.findViewById(R.id.spinner1);
+		spinner_l = (Spinner)paint_layer_l.findViewById(R.id.spinner1);
+		spinner_l.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> parent,
+												View view, int position, long id) {
+						nativefunc.setLayerMode(position);
+						spinner_r.setSelection(position);
+					}
+					@Override
+					public void onNothingSelected(AdapterView<?> arg0) {}
+				});
+		spinner_r.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> parent,
+										View view, int position, long id) {
+				nativefunc.setLayerMode(position);
+				spinner_l.setSelection(position);
+			}
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {}
+		});
 
+		
+		
 		seek_brush_t.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
@@ -336,12 +367,18 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				}
 			});
 		}
-		nativefunc.addLayer();
+		//ようは初期レイヤーの追加ではネイティブ呼ばない
+		if(v != null){
+			nativefunc.addLayer();
+		}
+		
 	}
 	
 	public void ondeleteLayer(View v) {
 		boolean temp = layerAdapter.deleteLayer();
-		//nativefunc.deleteLayer();
+		if(temp){
+			nativefunc.deleteLayer();
+		}
 	}
 
 	public void onFile(View v) {

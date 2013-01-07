@@ -6,6 +6,7 @@ public class NativeFunction {
 	}
 	
 	public native boolean init(int x,int y);
+	
 	public native boolean destructor();
 
 	public native boolean setCanvasSize(int x, int y);
@@ -18,7 +19,7 @@ public class NativeFunction {
 
 	public native boolean selectLayer(int num);
 
-	public native boolean setLayerMode(int num, int mode);
+	public native boolean setLayerMode(int mode);
 
 	public native boolean Replace(int num, int move);
 
