@@ -205,14 +205,12 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			if (temp_touch_count == 3) {
 				int t_three_startX = (points[0][0] + points[0][1] + points[0][2]) / 3;
 				int t_three_startY = (points[1][0] + points[1][1] + points[1][2]) / 3;
-				if (nowMenuPosX != 0) {
+				if (nowMenuPosX > 0) {
 					nowMenuPosX += t_three_startX - pre_threeX;
 					if (nowMenuPosX > menuW) {
 						nowMenuPosX = menuW;
 					}
-					if (nowMenuPosX < -menuW) {
-						nowMenuPosX = -menuW;
-					}
+
 					pre_threeX = t_three_startX;
 					pre_threeY = t_three_startY;
 
@@ -236,11 +234,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						pre_threeX = t_three_startX;
 						// TODO visibleMenu();
 					}
-					if (t_three_startX - pre_threeX < -30) {
-						nowMenuPosX = t_three_startX - pre_threeX + 30;
-						pre_threeX = t_three_startX;
-						// TODO visibleMenu();
-					}
 					if (t_three_startY - pre_threeY > 30) {
 						nowMenuPosY = t_three_startY - pre_threeY - 30;
 						pre_threeY = t_three_startY;
@@ -261,8 +254,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		if (event.getAction() == MotionEvent.ACTION_UP) {
 			if (nowMenuPosX > menuW * 0.8) {
 				nowMenuPosX = menuW;
-			} else if (nowMenuPosX < menuW * -0.8) {
-				nowMenuPosX = -menuW;
 			} else {
 				nowMenuPosX = 0;
 			}

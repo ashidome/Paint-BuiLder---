@@ -3,7 +3,6 @@ package com.katout.paint.draw;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 import android.app.Activity;
@@ -47,7 +46,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private LinearLayout			paint_menu_b;
 	private int						paint_menuH;
 
-	private LinearLayout			paint_layer_r;
 	private LinearLayout			paint_layer_l;
 	private LayerAdapter			layerAdapter;
 	private int						paint_menuW;
@@ -60,7 +58,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private SeekBar					seek_brush_t;
 	private SeekBar					seek_brush_b;
 	
-	private Spinner					spinner_r;
 	private Spinner					spinner_l;
 
 
@@ -138,32 +135,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	@Override
 	public void layerMenuPos(int w, int x, boolean animation) {
 		if (x > 20) {
-			if (paint_layer_l.getVisibility() == View.GONE
-					|| paint_layer_r.getVisibility() == View.INVISIBLE) {
-				paint_layer_r.setVisibility(View.INVISIBLE);
+			if (paint_layer_l.getVisibility() == View.GONE ||
+					paint_layer_l.getVisibility() ==View.INVISIBLE) {
 				paint_layer_l.setVisibility(View.VISIBLE);
 			}
 			paint_layer_l.layout((x * paint_menuW / 100) - paint_menuW,
 					paint_layer_l.getTop(), (x * paint_menuW / 100),
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
-		} else if (x < -20) {
-			if (paint_layer_r.getVisibility() == View.GONE
-					|| paint_layer_l.getVisibility() == View.INVISIBLE) {
-				paint_layer_l.setVisibility(View.INVISIBLE);
-				paint_layer_r.setVisibility(View.VISIBLE);
-			}
-			paint_layer_r.layout(w + (x * paint_menuW / 100),
-					paint_layer_r.getTop(), w + (x * paint_menuW / 100)
-							+ paint_menuW, paint_layer_r.getTop()
-							+ paint_layer_r.getHeight());
 		} else {
 			paint_layer_l.layout(-paint_menuW, paint_layer_l.getTop(), 0,
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
-
-			paint_layer_r.layout(w + paint_menuW, paint_layer_r.getTop(), w,
-					paint_layer_r.getTop() + paint_layer_r.getHeight());
 			paint_layer_l.setVisibility(View.INVISIBLE);
-			paint_layer_r.setVisibility(View.INVISIBLE);
 		}
 	}
 
@@ -175,43 +157,26 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		colorV_t = (ColorView) paint_menu_t.findViewById(R.id.colorview);
 		colorV_b = (ColorView) paint_menu_b.findViewById(R.id.colorview);
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
-		paint_layer_r = (LinearLayout) findViewById(R.id.layer_menu_r);
 		
 
 		LinearLayout layer_l = (LinearLayout) paint_layer_l
 				.findViewById(R.id.layer);
-		LinearLayout layer_r = (LinearLayout) paint_layer_r
-				.findViewById(R.id.layer);
-		layerAdapter = new LayerAdapter(this, new LinearLayout[] { layer_l,
-				layer_r });
+		layerAdapter = new LayerAdapter(this, layer_l);
 
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
 		seek_brush_b = (SeekBar) paint_menu_b.findViewById(R.id.seek_brush);
 		
-		spinner_r = (Spinner)paint_layer_r.findViewById(R.id.spinner1);
 		spinner_l = (Spinner)paint_layer_l.findViewById(R.id.spinner1);
 		spinner_l.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 					@Override
 					public void onItemSelected(AdapterView<?> parent,
 												View view, int position, long id) {
-						nativefunc.setLayerMode(position);
-						spinner_r.setSelection(position);
 						layerAdapter.setLayermode(position);
+						new RepaintAsyncTask(MainActivity.this, nativefunc, position).execute();
 					}
 					@Override
 					public void onNothingSelected(AdapterView<?> arg0) {}
 				});
-		spinner_r.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> parent,
-										View view, int position, long id) {
-				nativefunc.setLayerMode(position);
-				spinner_l.setSelection(position);
-				layerAdapter.setLayermode(position);
-			}
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {}
-		});
 
 		
 		
@@ -317,7 +282,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				paint_menu_t.setVisibility(View.INVISIBLE);
 				paint_menu_b.setVisibility(View.INVISIBLE);
 				paint_layer_l.setVisibility(View.INVISIBLE);
-				paint_layer_r.setVisibility(View.INVISIBLE);
 			}
 		});
 
@@ -356,20 +320,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	}
 
 	public void onAddLayer(View v) {
-		LinearLayout[] layouts = layerAdapter.addLayer(new LayerData());
-		for(int i = 0; i < layouts.length; i++){
-			layouts[i].setOnClickListener(new View.OnClickListener() {
+		LinearLayout layouts = layerAdapter.addLayer(new LayerData());
+			layouts.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					//レイヤーが選択された時
 					int temp = (Integer)v.getTag();
 					nativefunc.selectLayer(temp);
 					layerAdapter.selectLayer(temp);
-					spinner_r.setSelection(layerAdapter.getLayermode());
 					spinner_l.setSelection(layerAdapter.getLayermode());
 				}
 			});
-		}
 		//ようは初期レイヤーの追加ではネイティブ呼ばない
 		if(v != null){
 			nativefunc.addLayer();

@@ -15,39 +15,6 @@
         android:layout_height="match_parent" >
 
         <LinearLayout
-            android:id="@+id/layer_menu_r"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:background="@color/white"
-            android:orientation="horizontal" >
-
-            <FrameLayout
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:background="#000000" >
-            </FrameLayout>
-
-            <include
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="2"
-                layout="@layout/preview" />
-            <FrameLayout
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="#AAAAAA" >
-            </FrameLayout>
-
-            <include
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                layout="@layout/layer_menu" />
-
-        </LinearLayout>
-
-        <LinearLayout
             android:id="@+id/layer_menu_l"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -99,7 +66,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 layout="@layout/paint_menu" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -117,9 +83,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 layout="@layout/paint_menu" />
-
         </LinearLayout>
-
     </RelativeLayout>
 
 </FrameLayout>
