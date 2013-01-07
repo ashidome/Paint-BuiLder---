@@ -75,12 +75,19 @@ struct BrushMap {
 	int height;
 };
 
+struct LayerData {
+	int **img;
+	int alpha;
+	int mode;
+};
+
 static struct Display disp;
 static struct Canvas c;
 static struct Layers layers;
 static struct DrawPoints dp;
 static struct FillPoint fp;
 static struct BrushMap brushmap;
+static struct LayerData *layerdata;
 static int Color;
 static int Size;
 static int theta;
@@ -91,12 +98,10 @@ static int **brush;
 static char **brush_map;
 static int bx;
 static int by;
-static int ***img;
 static int **EditLayer;
 static int **BuffImg;
 static int frequency = 30;
 static double scale;
-static int *Layer_mode;
 
 struct BufStr {
 	int sx; /* 領域右端のX座標 */
@@ -131,16 +136,21 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
 		JNIEnv* env, jobject obj) {
 	i_printf("addLayer\n");
 	int i;
+	struct LayerData temp_layerdata;
 
 	if (layers.layer_max + 1 > MAX_LAYER_SIZE) {
 		return JNI_FALSE;
 	} else {
+		//退避
+		temp_layerdata = layerdata[layers.layer_max];
+		for (i = layers.layer_max - 1; i > layers.current_layer; i--) {
+			layerdata[i + 1] = layerdata[i];
+		}
+		layerdata[layers.current_layer + 1] = temp_layerdata;
+
 		layers.layer_max++;
 		layers.current_layer++;
 
-		for (i = layers.layer_max - 1; i >= layers.current_layer; i--) {
-			img[i + 1] = img[i];
-		}
 		i_printf("Current Layer is %d", layers.current_layer);
 		return JNI_TRUE;
 	}
@@ -148,23 +158,27 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer(
 		JNIEnv* env, jobject obj) {
-	i_printf("deleteLayer\n");
 	int i;
-
-	i_printf("Current Layer is %d", layers.current_layer);
+	struct LayerData temp_layerdata;
+	i_printf("deleteLayer\n");
 
 	initLayer(layers.current_layer);
 
+	//退避
+	temp_layerdata = layerdata[layers.current_layer];
 	for (i = layers.current_layer; i < layers.layer_max; i++) {
-		img[i] = img[i + 1];
-		Layer_mode[i] = Layer_mode[i + 1];
+		layerdata[i] = layerdata[i + 1];
 	}
+	layerdata[layers.layer_max - 1] = temp_layerdata;
+
 	layers.layer_max--;
 	if (layers.current_layer == 0) {
 		layers.current_layer = 0;
 	} else {
 		layers.current_layer--;
 	}
+
+	i_printf("Current Layer is %d", layers.current_layer);
 
 	//レイヤー再合成
 	recomposition();
@@ -183,8 +197,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMod
 		JNIEnv* env, jobject obj, jint mode) {
 	i_printf("setLayerMode\n");
 	//可視不可視もここで設定
-	Layer_mode[layers.current_layer] = mode;
-	i_printf("mode is %d", Layer_mode[layers.current_layer]);
+	layerdata[layers.current_layer].mode = mode;
+	i_printf("mode is %d", layerdata[layers.current_layer].mode);
 	recomposition();
 	return JNI_TRUE;
 }
@@ -330,7 +344,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			colors[j * c.width + i] = img[layers.current_layer][i][j];
+			colors[j * c.width + i] = layerdata[layers.current_layer].img[i][j];
 		}
 	}
 
@@ -422,24 +436,26 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	disp.y = 0;
 	scale = 1.0;
 
+	layerdata = (struct LayerData*) malloc(
+			sizeof(struct LayerData) * MAX_LAYER_SIZE);
+
 	//img配列の確保と初期化
-	img = (int ***) malloc(sizeof(int*) * MAX_LAYER_SIZE);
 	for (i = 0; i < MAX_LAYER_SIZE; i++) {
-		img[i] = (int **) malloc(sizeof(int*) * c.width);
+		layerdata[i].img = (int **) malloc(sizeof(int*) * c.width);
 		for (j = 0; j < c.width; j++) {
-			img[i][j] = (int*) malloc(sizeof(int) * c.height);
+			layerdata[i].img[j] = (int*) malloc(sizeof(int) * c.height);
 		}
 	}
 	for (i = 0; i < MAX_LAYER_SIZE; i++) {
 		for (j = 0; j < c.width; j++) {
 			for (k = 0; k < c.height; k++) {
-				img[i][j][k] = 0x00000000;
+				layerdata[i].img[j][k] = 0x00000000;
 			}
 		}
 	}
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			img[0][i][j] = 0xFFFFFFFF;
+			layerdata[0].img[i][j] = 0xFFFFFFFF;
 		}
 	}
 
@@ -482,9 +498,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	}
 
 	//レイヤーモード配列確保と初期化
-	Layer_mode = (int*) malloc(sizeof(int) * MAX_LAYER_SIZE);
 	for (i = 0; i < MAX_LAYER_SIZE; i++) {
-		Layer_mode[i] = 0;
+		layerdata[i].mode = 0;
+		layerdata[i].alpha = 100;
 	}
 
 	brushmap.width = 10;
@@ -514,11 +530,11 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	//img配列の開放
 	for (i = 0; i < MAX_LAYER_SIZE; i++) {
 		for (j = 0; j < c.width; j++) {
-			free(img[i][j]);
+			free(layerdata[i].img[j]);
 		}
-		free(img[i]);
+		free(layerdata[i].img);
 	}
-	free(img);
+	free(layerdata);
 
 	i_printf("free(img)\n");
 
@@ -553,11 +569,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	free(brush);
 
 	i_printf("free(brush)\n");
-
-	//Layer_mode配列の開放
-	free(Layer_mode);
-
-	i_printf("free(Layer_mode)\n");
 
 	return JNI_TRUE;
 }
@@ -603,15 +614,19 @@ void blendBuff(int x, int y) {
 	}
 
 	if (Mode == 1) {
-		Edit = Eraser_Draw(EditLayer[x][y], img[layers.current_layer][x][y]);
+		Edit = Eraser_Draw(EditLayer[x][y],
+				layerdata[layers.current_layer].img[x][y]);
 	} else if (Mode == 0) {
-		Edit = Normal_Draw(EditLayer[x][y], img[layers.current_layer][x][y]);
+		Edit = Normal_Draw(EditLayer[x][y],
+				layerdata[layers.current_layer].img[x][y]);
 	}
 	for (i = 0; i < layers.layer_max; i++) {
 		if (i == layers.current_layer) {
-			Pixel = Blend_Layer(Layer_mode[i], Edit, Pixel);
+			Pixel = Blend_Layer(layerdata[layers.current_layer].mode, Edit,
+					Pixel);
 		} else {
-			Pixel = Blend_Layer(Layer_mode[i], img[i][x][y], Pixel);
+			Pixel = Blend_Layer(layerdata[i].mode, layerdata[i].img[x][y],
+					Pixel);
 		}
 	}
 	BuffImg[x][y] = Pixel;
@@ -645,13 +660,15 @@ void applyEdit() {
 		for (j = 0; j < c.height; j++) {
 			if (Mode == 0) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[layers.current_layer][i][j] = Normal_Draw(
-							EditLayer[i][j], img[layers.current_layer][i][j]);
+					layerdata[layers.current_layer].img[i][j] = Normal_Draw(
+							EditLayer[i][j],
+							layerdata[layers.current_layer].img[i][j]);
 				}
 			} else if (Mode == 1) {
 				if (EditLayer[i][j] != 0x00000000) {
-					img[layers.current_layer][i][j] = Eraser_Draw(
-							EditLayer[i][j], img[layers.current_layer][i][j]);
+					layerdata[layers.current_layer].img[i][j] = Eraser_Draw(
+							EditLayer[i][j],
+							layerdata[layers.current_layer].img[i][j]);
 				}
 			}
 		}
@@ -844,10 +861,10 @@ void Bilinear(int x, int y) {
 			}
 
 			if (((y0 + 1) < c.height) && ((x0 + 1) < c.width)) {
-				c0 = img[layers.current_layer][y0][x0];
-				c1 = img[layers.current_layer][y0][x1];
-				c2 = img[layers.current_layer][y1][x0];
-				c3 = img[layers.current_layer][y1][x1];
+				c0 = layerdata[layers.current_layer].img[y0][x0];
+				c1 = layerdata[layers.current_layer].img[y0][x1];
+				c2 = layerdata[layers.current_layer].img[y1][x0];
+				c3 = layerdata[layers.current_layer].img[y1][x1];
 			} else {
 				c0 = 0;
 				c1 = 0;
@@ -1012,7 +1029,7 @@ void initLayer(int current) {
 	int i, j;
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			img[current][i][j] = 0x00000000;
+			layerdata[current].img[i][j] = 0x00000000;
 		}
 	}
 }
