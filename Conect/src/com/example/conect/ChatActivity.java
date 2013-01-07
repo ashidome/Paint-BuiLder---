@@ -36,7 +36,7 @@ OnClickListener {
 	private final Handler handler = new Handler();
 	private String[] ip_list;
 	private String localIP;
-	private int port = 50002;
+	private int port = 20;
 	private int length;
 
 	@Override

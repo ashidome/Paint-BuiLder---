@@ -20,40 +20,39 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 public class SVPagerAdapter extends PagerAdapter{
-	private LayoutInflater mInflater;
-	private File dir;
-	private File[] files;
+	static int NUM_VIEW;
+	LayoutInflater minf;
+	File dir;
+	File[] files;
 	private Context context;
+	private String s;
 	
 	public SVPagerAdapter(Context context,String keypath){
-		dir = new File(keypath);
-		files = dir.listFiles();
-		this.context = context;
-		mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		dir=new File(keypath);
+		files=dir.listFiles();
+		this.context=context;
+		minf=(LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	}
-	
 	@Override
 	public void destroyItem(View collection,int position,Object view){
 		((ViewPager)collection).removeView((View)view);
 	}
-	
 	@Override
 	public void finishUpdate(View collection){
 		
 	}
-	
     //作る数
 	@Override
 	public int getCount() {
+		
 		return files.length;
 	}
-	
 	@Override
 	public Object instantiateItem(View collection,int position){
 		ViewPager pager=(ViewPager)collection;
 		View[] views=new View[files.length];
-		for(int i = 0; i < files.length; i++){
-			views[i] = mInflater.inflate(R.layout.selectview, pager, false);
+		for(int i=0;i<files.length;i++){
+			views[i]=minf.inflate(R.layout.selectview, pager, false);
 			views[i].setTag(files[i].getPath());
 			
 			ImageView img=(ImageView)views[i].findViewById(R.id.imageView1);
@@ -81,7 +80,6 @@ public class SVPagerAdapter extends PagerAdapter{
 				public void onClick(View v) {
 					Intent intent=new Intent(context,TestActivity.class);
 		    		intent.putExtra("path",v.getTag().toString()+"/");
-		    		intent.putExtra("newflag", false);//パスは新規じゃない画像ファイルのパス
 					context.startActivity(intent);
 		    		//showToast(v.getTag().toString());
 		    		
@@ -95,6 +93,7 @@ public class SVPagerAdapter extends PagerAdapter{
 
 	@Override
 	public boolean isViewFromObject(View arg0, Object arg1) {
+		// TODO 自動生成されたメソッド・スタブ
 		return arg0==(View)arg1;
 	}
 	@Override

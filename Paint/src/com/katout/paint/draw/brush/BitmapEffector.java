@@ -40,9 +40,6 @@ public class BitmapEffector {
 							* GRAY_Y_B / 10000));
 				}
 			}
-			if(true){
-				int i=0;
-			}
 			return dstPixels;
 
 		} catch (Exception e) {

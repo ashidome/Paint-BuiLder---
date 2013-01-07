@@ -22,162 +22,162 @@
             android:background="#3c3c3c" >
         </FrameLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal" >
+                android:background="@color/list_item"
+                android:clickable="true"
+                android:drawableBottom="@drawable/file"
+                android:gravity="center"
+                android:onClick="onFile"
+                android:text="@string/file"
+                android:textColor="#000000" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:src="@drawable/bar" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/list_item"
+                android:clickable="true"
+                android:drawableBottom="@drawable/brush"
+                android:gravity="center"
+                android:onClick="onBrush"
+                android:text="@string/brush"
+                android:textColor="#000000" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:src="@drawable/bar" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dp"
+                android:layout_marginRight="2dp"
+                android:background="@color/list_item"
+                android:clickable="true"
+                android:drawableBottom="@drawable/fill"
+                android:gravity="center"
+                android:onClick="onBucket"
+                android:text="@string/bucket"
+                android:textColor="#000000" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:src="@drawable/bar" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dp"
+                android:layout_marginRight="2dp"
+                android:background="@color/list_item"
+                android:clickable="true"
+                android:drawableBottom="@drawable/eraser"
+                android:gravity="center"
+                android:onClick="onEraser"
+                android:text="@string/eraser"
+                android:textColor="#000000" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:src="@drawable/bar" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="7dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:orientation="vertical" >
 
                 <TextView
+                    android:id="@+id/TextView04"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/list_item"
-                    android:clickable="true"
-                    android:drawableBottom="@drawable/file"
-                    android:gravity="center"
-                    android:onClick="onFile"
-                    android:text="@string/file"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:text="@string/color"
                     android:textColor="#000000" />
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:src="@drawable/bar" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@color/list_item"
-                    android:clickable="true"
-                    android:drawableBottom="@drawable/brush"
-                    android:gravity="center"
-                    android:onClick="onBrush"
-                    android:text="@string/brush"
-                    android:textColor="#000000" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:src="@drawable/bar" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/padding_1dp"
-                    android:layout_marginRight="@dimen/padding_1dp"
-                    android:background="@color/list_item"
-                    android:clickable="true"
-                    android:drawableBottom="@drawable/dropper"
-                    android:gravity="center"
-                    android:onClick="onSpuit"
-                    android:text="@string/Spuit"
-                    android:textColor="#000000" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:src="@drawable/bar" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="2dp"
-                    android:layout_marginRight="2dp"
-                    android:background="@color/list_item"
-                    android:clickable="true"
-                    android:drawableBottom="@drawable/fill"
-                    android:gravity="center"
-                    android:onClick="onBucket"
-                    android:text="@string/bucket"
-                    android:textColor="#000000" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:src="@drawable/bar" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="2dp"
-                    android:layout_marginRight="2dp"
-                    android:background="@color/list_item"
-                    android:clickable="true"
-                    android:drawableBottom="@drawable/eraser"
-                    android:gravity="center"
-                    android:onClick="onEraser"
-                    android:text="@string/eraser"
-                    android:textColor="#000000" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:src="@drawable/bar" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="7dp"
-                    android:layout_marginLeft="3dp"
-                    android:layout_marginRight="3dp"
-                    android:orientation="vertical" >
-
-                    <TextView
-                        android:id="@+id/TextView04"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
-                        android:text="@string/color"
-                        android:textColor="#000000" />
-
-                    <com.katout.paint.draw.ColorView
-                        android:id="@+id/colorview"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="8dp"
-                        android:onClick="onSelectColor" />
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:src="@drawable/bar" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="vertical" >
-
-                    <TextView
-                        android:id="@+id/textView1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:text="@string/brush_size"
-                        android:textColor="#000000" />
-
-                    <SeekBar
-                        android:id="@+id/seek_brush"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:background="@color/white"
-                        android:max="500"
-                        android:maxHeight="10dp"
-                        android:paddingBottom="8dp"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp"
-                        android:paddingTop="8dp"
-                        android:progress="10"
-                        android:progressDrawable="@drawable/seekbar"
-                        android:thumb="@drawable/btn_circle" />
-                </LinearLayout>
+                <com.katout.paint.draw.ColorView
+                    android:id="@+id/colorview"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:onClick="onSelectColor" />
             </LinearLayout>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:src="@drawable/bar" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/textView1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="@string/brush_size"
+                    android:textColor="#000000" />
+
+                <SeekBar
+                    android:id="@+id/seek_brush"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:background="@color/white"
+                    android:max="500"
+                    android:maxHeight="10dp"
+                    android:paddingBottom="8dp"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingTop="8dp"
+                    android:progress="10"
+                    android:progressDrawable="@drawable/seekbar"
+                    android:thumb="@drawable/btn_circle" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:src="@drawable/bar" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/padding_1dp"
+                android:layout_marginRight="@dimen/padding_1dp"
+                android:background="@color/list_item"
+                android:clickable="true"
+                android:drawableBottom="@drawable/ic_btn_square"
+                android:gravity="center"
+                android:onClick="onShere"
+                android:text="@string/shere"
+                android:textColor="#000000" />
+        </LinearLayout>
 
         <FrameLayout
             android:layout_width="1dp"
@@ -185,6 +185,7 @@
             android:background="#3c3c3c" >
         </FrameLayout>
     </LinearLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="1dp"

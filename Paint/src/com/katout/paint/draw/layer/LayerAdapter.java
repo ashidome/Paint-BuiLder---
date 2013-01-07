@@ -89,4 +89,8 @@ public class LayerAdapter{
 	public int getLayermode(){
 		return layers.get(currentlayer).layermode;
 	}
+	
+	public int getCurrentlayer() {
+		return currentlayer;
+	}
 }

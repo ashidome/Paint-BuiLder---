@@ -1,5 +1,7 @@
 package com.katout.paint.draw;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -66,6 +68,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private boolean init_flag;
 	
 	private PaintMode mode;
+	
+	//共有用
+	private ArrayList<Integer> paint_points;
 
 	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner, EventLisner event_lisner) {
 		Log.e("test", "PaintView initial");
@@ -89,6 +94,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		Scale = 1.0;
 		rad = 1.0;
 		mode = PaintMode.Brush;
+		paint_points = new ArrayList<Integer>();
 	}
 
 	@Override
@@ -100,6 +106,10 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		for (int i = 0; i < temp_touch_count; i++) {
 			points[0][i] = (int) event.getX(i);
 			points[1][i] = (int) event.getY(i);
+		}
+		
+		if(event.getAction() == MotionEvent.ACTION_DOWN){
+			paint_points.clear();
 		}
 
 		//タッチの数の変化により分岐
@@ -158,6 +168,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				if(mode == PaintMode.Brush || mode == PaintMode.Eraser){
 					event_lisner.draw((int )(-nowPosX + points[0][0]/Scale), 
 							(int )(-nowPosY + points[1][0]/Scale));
+					paint_points.add((int )(-nowPosX + points[0][0]/Scale));
+					paint_points.add((int )(-nowPosY + points[1][0]/Scale));
 				}
 			}
 
@@ -249,6 +261,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				menu_lisner.paintMenuPos(h, nowMenuPosY, false);
 			}
 		}
+		
 
 		// 最後にタッチの数を保存
 		if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -269,7 +282,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			touch_count = 0;
 			if (state == State.Drawing || state == State.DrawStart) {
 				// TODO event_lisner.stopDraw(points[0][0], points[1][0]);
-				event_lisner.endDraw();
+				event_lisner.endDraw(paint_points);
+				
 			}
 			if(mode == PaintMode.Bucket){
 				event_lisner.bucket((int )(-nowPosX + points[0][0]/Scale), 

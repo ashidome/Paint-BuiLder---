@@ -3,7 +3,9 @@ package com.katout.paint.draw;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -34,12 +36,15 @@ import android.widget.Toast;
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.OnColorChangedListener;
 import com.katout.paint.R;
+import com.katout.paint.conect.ConnectCore;
+import com.katout.paint.conect.RoomDialog;
 import com.katout.paint.draw.brush.SelectBrushDialog;
 import com.katout.paint.draw.layer.LayerAdapter;
 import com.katout.paint.draw.layer.LayerData;
 
 public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private NativeFunction			nativefunc;
+	private ConnectCore				connectCore;
 	private Handler					handler;
 	private PaintView				paint;
 	private LinearLayout			paint_menu_t;
@@ -70,6 +75,14 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
+		connectCore = new ConnectCore(this, handler, new ConnectCore.ShareMessageInterface() {
+			@Override
+			public void getMassage(ShareMessage message) {
+				nativefunc.joint(message.layernum, message.bmp, message.width, 
+						message.height, message.f, message.size, message.color, 
+						message.points, message.points_size);
+			}
+		});
 
 
 	}
@@ -263,8 +276,31 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			}
 
 			@Override
-			public void endDraw() {
+			public void endDraw(ArrayList<Integer> list) {
 				nativefunc.endDraw();
+				
+				if(connectCore.getInRoom()){
+					ShareMessage j_message = new ShareMessage();
+					//ブラシサイズ取得
+					int[] size = new int[3];
+					nativefunc.getBrushRawSize(size);
+					j_message.bmp = new char[size[0] * size[1]];
+					//ブラシマップ取得
+					nativefunc.getBrushRawMap(j_message.bmp);
+					
+					j_message.color = colorV_t.getColor();
+					j_message.f = size[2];
+					j_message.height = size[1];
+					j_message.layernum =  layerAdapter.getCurrentlayer();
+					j_message.points = new int[list.size()]; 
+					int i = 0;
+					for(Iterator<Integer> iter = list.iterator();iter.hasNext();){ 
+						j_message.points[i] = ((Integer)iter.next()).intValue(); 
+						i++;
+					}
+					connectCore.shareMessage(j_message.getMessage());
+					
+				}
 			}
 		});
 	}
@@ -432,12 +468,40 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		nativefunc.setMode(1);
 	}
 	
-	public void onSpuit(View v){
-		paint.setMode(PaintMode.Spuit);
+	public void onShere(View v){
+		if(connectCore.getInRoom()){
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+	        // アラートダイアログのタイトルを設定します
+	        alertDialogBuilder.setTitle("入室中");
+	        // アラートダイアログのメッセージを設定します
+	        alertDialogBuilder.setMessage("退出しますか？");
+	        // アラートダイアログの肯定ボタンがクリックされた時に呼び出されるコールバックリスナーを登録します
+	        alertDialogBuilder.setPositiveButton("YES",
+	                new DialogInterface.OnClickListener() {
+	                    @Override
+	                    public void onClick(DialogInterface dialog, int which) {
+	                    	connectCore.exit_room();
+	                    }
+	                });
+	        // アラートダイアログの否定ボタンがクリックされた時に呼び出されるコールバックリスナーを登録します
+	        alertDialogBuilder.setNegativeButton("NO",null);
+	        // アラートダイアログのキャンセルが可能かどうかを設定します
+	        alertDialogBuilder.setCancelable(true);
+	        AlertDialog alertDialog = alertDialogBuilder.create();
+	        // アラートダイアログを表示します
+	        alertDialog.show();
+		}else{
+		    RoomDialog dialog = new RoomDialog(this,connectCore);
+		    dialog.show();
+		}
+
 	}
 	
 	@Override
 	protected void onDestroy() {
+		if(connectCore.getInRoom()){
+			connectCore.exit_room();
+		}
 		nativefunc.destructor();
 		super.onDestroy();
 	}

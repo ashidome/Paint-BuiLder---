@@ -1,5 +1,7 @@
 package com.katout.paint.draw;
 
+import java.util.ArrayList;
+
 public interface EventLisner {
 	boolean init(int x, int y);
 
@@ -21,6 +23,6 @@ public interface EventLisner {
 
 	void bucket(int i, int j);
 
-	void endDraw();
+	void endDraw(ArrayList<Integer> paint_points);
 
 }

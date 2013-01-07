@@ -1,21 +1,15 @@
 package pbl.paint;
 
-public class FileData {	
-	
-	private String path;//ディレクトのパス
-	private String name;//ディレクト名
-	//ディレクトの種類(本棚 or お絵かき帳)はディレクトリが書き込み可能かどうかで判断(trueならば本棚、falseならばお絵かき帳)
-	
-	public FileData(String path, String name) {
+public class FileData {
+	public FileData(String path,String i) {
+		
 		this.path = path;
-		this.name = name;
+		this.mode=i;
+		
 	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public String getName() {
-		return name;
-	}
+    
+	public String path;
+	//public String backpath;
+	public String mode;
+	
 }

@@ -46,56 +46,58 @@ public final class R {
         public static final int help=0x7f02000e;
         public static final int home=0x7f02000f;
         public static final int ic_action_search=0x7f020010;
-        public static final int ic_launcher=0x7f020011;
-        public static final int osi_model2=0x7f020012;
-        public static final int palette=0x7f020013;
-        public static final int record=0x7f020014;
-        public static final int s_circle=0x7f020015;
-        public static final int seekbar=0x7f020016;
-        public static final int seekbutton=0x7f020017;
-        public static final int selection_rectangular=0x7f020018;
-        public static final int thumb_shape=0x7f020019;
-        public static final int trash_can=0x7f02001a;
+        public static final int ic_btn_square=0x7f020011;
+        public static final int ic_launcher=0x7f020012;
+        public static final int osi_model2=0x7f020013;
+        public static final int palette=0x7f020014;
+        public static final int record=0x7f020015;
+        public static final int s_circle=0x7f020016;
+        public static final int seekbar=0x7f020017;
+        public static final int seekbutton=0x7f020018;
+        public static final int selection_rectangular=0x7f020019;
+        public static final int thumb_shape=0x7f02001a;
+        public static final int trash_can=0x7f02001b;
     }
     public static final class id {
-        public static final int TextView04=0x7f0a001c;
+        public static final int TextView04=0x7f0a001d;
         public static final int button1=0x7f0a0007;
-        public static final int button2=0x7f0a0014;
-        public static final int cancel=0x7f0a0024;
+        public static final int button2=0x7f0a0015;
+        public static final int cancel=0x7f0a0025;
         public static final int colorPicker=0x7f0a0009;
-        public static final int colorview=0x7f0a001d;
-        public static final int download=0x7f0a0022;
+        public static final int colorview=0x7f0a001e;
+        public static final int download=0x7f0a0023;
         public static final int editText1=0x7f0a0006;
+        public static final int imageButton1=0x7f0a0012;
         public static final int imageView1=0x7f0a0004;
-        public static final int imageView2=0x7f0a0015;
-        public static final int imageView3=0x7f0a0016;
-        public static final int layer=0x7f0a001b;
+        public static final int imageView2=0x7f0a0016;
+        public static final int imageView3=0x7f0a0017;
+        public static final int layer=0x7f0a001c;
         public static final int layer_menu_l=0x7f0a0001;
-        public static final int listView1=0x7f0a0013;
-        public static final int make_brush=0x7f0a0023;
-        public static final int menu_settings=0x7f0a0025;
-        public static final int name=0x7f0a001f;
-        public static final int num=0x7f0a0020;
-        public static final int ok_button=0x7f0a0012;
+        public static final int listView1=0x7f0a0014;
+        public static final int make_brush=0x7f0a0024;
+        public static final int menu_settings=0x7f0a0026;
+        public static final int name=0x7f0a0020;
+        public static final int num=0x7f0a0021;
+        public static final int ok_button=0x7f0a0013;
         public static final int paint_menu_b=0x7f0a0003;
         public static final int paint_menu_t=0x7f0a0002;
-        public static final int room_id=0x7f0a0021;
+        public static final int room_id=0x7f0a0022;
         public static final int scrollView1=0x7f0a0008;
-        public static final int seekBar1=0x7f0a0017;
+        public static final int seekBar1=0x7f0a0018;
         public static final int seekBar_alpha=0x7f0a000b;
         public static final int seekBar_blue=0x7f0a0011;
         public static final int seekBar_green=0x7f0a000f;
         public static final int seekBar_red=0x7f0a000d;
-        public static final int seek_brush=0x7f0a001e;
-        public static final int spinner1=0x7f0a0018;
+        public static final int seek_brush=0x7f0a001f;
+        public static final int spinner1=0x7f0a0019;
         public static final int surfaceView1=0x7f0a0000;
         public static final int tableRow1=0x7f0a000a;
         public static final int tableRow2=0x7f0a000c;
         public static final int tableRow3=0x7f0a000e;
         public static final int tableRow4=0x7f0a0010;
         public static final int textView1=0x7f0a0005;
-        public static final int textView2=0x7f0a0019;
-        public static final int textView3=0x7f0a001a;
+        public static final int textView2=0x7f0a001a;
+        public static final int textView3=0x7f0a001b;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -114,7 +116,6 @@ public final class R {
         public static final int activity_main=0x7f090000;
     }
     public static final class string {
-        public static final int Spuit=0x7f07000d;
         public static final int add_layer=0x7f070009;
         public static final int alpha_layer=0x7f070007;
         public static final int app_name=0x7f070000;
@@ -132,6 +133,7 @@ public final class R {
         public static final int menu_settings=0x7f070001;
         public static final int refresh=0x7f070010;
         public static final int send=0x7f070012;
+        public static final int shere=0x7f07000d;
         public static final int textview=0x7f070011;
     }
     public static final class style {

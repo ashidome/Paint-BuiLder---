@@ -1,7 +1,10 @@
 package pbl.paint;
 
 import java.io.File;
+import pbl.paint.ListViewActivity;
 import java.util.ArrayList;
+import java.util.List;
+
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -11,85 +14,119 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
+import android.content.Intent;
+import android.graphics.Color;
 
-public class ListAdapter extends ArrayAdapter<FileData>{
+public class ListAdapter extends ArrayAdapter<FileData> /*implements View.OnClickListener*/{
 	private LayoutInflater inflater;
 	private Context context;
-	BookShelfActivity lv_activity;
+	private ListView lv;
+	private String keypath,path;
+	ListViewActivity A;
+	private String a;
 
-	public ListAdapter(Context context, ArrayList<FileData> filedata, BookShelfActivity lv_activity) {
-		super(context, 0, filedata);
-		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+	public ListAdapter(Context context, List<FileData> objects,ListViewActivity lv,String keypath) {
+		super(context, 0, objects);
+		inflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		this.context = context;
-		this.lv_activity = lv_activity;
+		this.A=lv;
+		this.keypath=keypath;
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-
-		final FileData fd = this.getItem(position);
-		
+		final FileData data = this.getItem(position);
 		if (convertView == null) {
-			convertView = inflater.inflate(R.layout.book_shelf_colum, null);
+			convertView = inflater.inflate(R.layout.listview, null);
 		}
-		
-		Button file_mode = (Button)convertView.findViewById(R.id.file_mode);
-		File file = new File(fd.getPath());
-		if(!(file.canWrite())){
-			file_mode.setBackgroundResource(R.drawable.book);
-		}
-
-		Button file_button = (Button)convertView.findViewById(R.id.file_button);
-		file_button.setText(fd.getName());
-		file_button.setOnClickListener(new View.OnClickListener() {
+		Button button=(Button)convertView.findViewById(R.id.button1);
+		File f=new File(data.path);
+		button.setText(f.getName());
+    	button.setTag(data.mode);
+    	
+    	button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				File file = new File(fd.getPath());
-				if(file.canWrite()){
-					//trueならば本棚ディレクトリ
-					lv_activity.ListViewLoader(lv_activity.listView, fd.getPath());
-					lv_activity.pathChange(fd.getPath()+"/");
-				}
-				else{
-					//falseならお絵かき帳ディレクトリ
-					Intent intent=new Intent(context,DrawBookActivity.class);
-					intent.putExtra("path", fd.getPath()+"/");
+				
+				Sfile s=new Sfile(data.path);
+				
+				if(!s.canWrite()/*data.mode.equals("0")*/){
+					//s.setWritable(true);
+					//Toast.makeText(context,data.mode,Toast.LENGTH_SHORT).show();
+				A.ListViewLoader(A.listView, data.path);
+				A.pathchange(data.path+"/");
+				    //s.setWritable(false);
+				}else if(s.canWrite()/*data.mode.equals("1")*/){
+					//SelectViewActivity sa=new SelectViewActivity();
+					
+					Intent intent=new Intent(context,SelectViewActivity.class);
+		    		intent.putExtra("path", data.path+"/");
 					context.startActivity(intent);
+		    	
+				}else{
+					
 				}
 			}
 		});
-
-		Button delete = (Button)convertView.findViewById(R.id.delete_button);
-		delete.setOnClickListener(new View.OnClickListener() {
+    	Button button2=(Button)convertView.findViewById(R.id.button2);
+    	button2.setTag(data.path);
+    	button2.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				new AlertDialog.Builder(context)
-				.setMessage("本当に削除しますか？")
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						new File(lv_activity.current_path).setWritable(true);
-						File file = new File(fd.getPath());
-						file.setWritable(true);
-						if(!(file.delete())){
-							Toast.makeText(context, "削除できませんでした", Toast.LENGTH_SHORT).show();
-						}
-						lv_activity.ListViewLoader(lv_activity.listView, lv_activity.current_path);
-					}
-				})
-				.setNegativeButton("キャンセル", new DialogInterface.OnClickListener(){
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						//何もしない
-					}
-				})
-				.show();
-				//Toast.makeText(context,"中にディレクトリが存在するので削除できません",Toast.LENGTH_SHORT).show();
+				a=(String)v.getTag();
+				File fi=new File(a);
+				File[] sa=fi.listFiles();
+				if(sa.length==0){
+				showYesNoDialog(context,"本当に削除しますか？",v,new DialogInterface.OnClickListener(){
+    			public void onClick(DialogInterface dia,int which){
+    				if(which==DialogInterface.BUTTON_NEGATIVE){
+    					
+    				}else{
+    					Sfile f2=new Sfile(A.subpath);
+    					f2.setWritable(true);
+    					
+    					Sfile f=new Sfile(a);
+    		    		f.delete();
+    		    		f2.setWritable(false);
+    		    	    //layout.removeView(lv);
+    					A.ListViewLoader(A.listView, A.subpath);
+    					//layout.addView(lv);
+    					
+    		    	}
+    				}
+    			});
+					
+				}else{
+					showToast("中にフォルダが存在するので削除できません");
+				}
 			}
-		});	
-		
+				
+    	});	
+    	Button button3=(Button)convertView.findViewById(R.id.button3);
+    	if(f.canWrite()){
+    		button3.setBackgroundResource(R.drawable.book);
+    	}
+		//TextView text = (TextView) convertView.findViewById(R.id.text);
+		//text.setText(data.path);
 		return convertView;
+		
 	}
+	public void showYesNoDialog(Context context,String title,View v/*,String text*/,DialogInterface.OnClickListener listener){
+		AlertDialog.Builder ad=new AlertDialog.Builder(context);
+		ad.setTitle(title);
+		//ad.setMessage(text);
+		ad.setPositiveButton("Yes", listener);
+		ad.setNegativeButton("No", listener);
+		ad.show();
+	}
+	public void showToast(String debag){
+		Toast.makeText(context,debag,Toast.LENGTH_SHORT).show();
+	}
+
 }

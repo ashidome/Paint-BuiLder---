@@ -59,4 +59,9 @@ public class NativeFunction {
 	
 	public native boolean setMode(int num); // 0ならブラシ, 1なら消しゴム
 	
+	public native boolean joint(int layernum,char bmp[], int width, int height,int f,int size,int color,
+			int[] points,int points_size);
+	public native boolean getBrushRawSize(int[] size);
+	
+	public native boolean getBrushRawMap(char[] map);
 }

@@ -22,7 +22,8 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements ConnectionAPI.MessageLisner, View.OnClickListener{
 
-	public static final String IP = "10.110.129.15";//サーバのIPアドレス
+	public static final String IP 	= "157.7.129.168";//サーバのIPアドレス
+	private static final int PORT	= 20;
 	private ListView roomList;
 	private Button addRoom;
 	private Button refresh;
@@ -127,7 +128,7 @@ public class MainActivity extends Activity implements ConnectionAPI.MessageLisne
 	@Override
 	public void onStart() {
 		super.onStart();
-		server_connection.connect(IP, 50001);
+		server_connection.connect(IP, PORT);
 	}
 
 	@Override

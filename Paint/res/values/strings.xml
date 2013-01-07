@@ -13,7 +13,7 @@
     <string name="mask">Mask</string>
     <string name="delete_layer">Delete</string>
     <string name="bucket">bucket</string>
-    <string name="Spuit">Spuit</string>
+    <string name="shere">Shere</string>
         <color name="bgcolor">#FFFFFF</color>
     <string name="main_activity">部屋選択</string>
     <string name="make_room">部屋作成</string>
