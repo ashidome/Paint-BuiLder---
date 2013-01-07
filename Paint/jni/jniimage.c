@@ -10,7 +10,7 @@
 #define MAXSIZE 40000000
 #define MAX_BRUSH_WIDTH 100
 #define MAX_BRUSH_HEIGHT 100
-#define MAX_LAYER_SIZE 5
+#define MAX_LAYER_SIZE 10
 #define MAX_BRUSH_NUM 2
 
 void brush_draw(int x, int y, int flag);
@@ -656,12 +656,20 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
 	//サイズ変更の適用
 	setBrushSize(jsize, 1);
 
+	i_printf("end setBrushSize\n");
+
+	i_printf("points[0] = %d, points[1] = %d\n", points[0], points[1]);
+
 	//始点描画
 	startDraw(points[0], points[1], 1);
+
+	i_printf("end startDraw\n");
 
 	for (i = 2; i < jpoint_size; i += 2) {
 		draw(points[i], points[i + 1], 1);
 	}
+
+	i_printf("joint_draw_end\n");
 
 	(*env)->ReleaseCharArrayElements(env, jcolor, colors, 0);
 	(*env)->ReleaseIntArrayElements(env, jpoint, points, 0);
