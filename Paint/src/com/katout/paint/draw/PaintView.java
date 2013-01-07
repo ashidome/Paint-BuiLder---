@@ -151,6 +151,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						event_lisner.startDraw((int )(-nowPosX + points[0][0]/Scale), 
 								(int )(-nowPosY + points[1][0]/Scale));
 						touch_count = 1;
+						paint_points.add((int )(-nowPosX + points[0][0]/Scale));
+						paint_points.add((int )(-nowPosY + points[1][0]/Scale));
 					}
 					
 				}

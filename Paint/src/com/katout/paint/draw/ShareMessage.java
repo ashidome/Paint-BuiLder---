@@ -61,13 +61,13 @@ public class ShareMessage {
 			for (int i = 0; i < bmp.length; i++) {
 				j_bmp.put((int) bmp[i]);
 			}
-			j_root.put("bmp", j_bmp.toString());
+			j_root.put("bmp", j_bmp);
 
 			JSONArray j_points = new JSONArray();
 			for (int i = 0; i < points.length; i++) {
 				j_points.put(points[i]);
 			}
-			j_root.put("points", j_points.toString());
+			j_root.put("points", j_points);
 
 			return j_root.toString();
 		} catch (JSONException e) {

@@ -290,7 +290,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					
 					j_message.color = colorV_t.getColor();
 					j_message.f = size[2];
+					j_message.width = size[0];
 					j_message.height = size[1];
+					j_message.size = seek_brush_b.getProgress();
 					j_message.layernum =  layerAdapter.getCurrentlayer();
 					j_message.points = new int[list.size()]; 
 					int i = 0;
@@ -298,7 +300,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						j_message.points[i] = ((Integer)iter.next()).intValue(); 
 						i++;
 					}
-					connectCore.shareMessage(j_message.getMessage());
+					j_message.points_size = j_message.points.length;
+					String mes = j_message.getMessage();
+					connectCore.shareMessage(mes);
 					
 				}
 			}
@@ -356,22 +360,27 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	}
 
 	public void onAddLayer(View v) {
-		LinearLayout layouts = layerAdapter.addLayer(new LayerData());
-			layouts.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					//レイヤーが選択された時
-					int temp = (Integer)v.getTag();
-					nativefunc.selectLayer(temp);
-					layerAdapter.selectLayer(temp);
-					spinner_l.setSelection(layerAdapter.getLayermode());
-				}
-			});
 		//ようは初期レイヤーの追加ではネイティブ呼ばない
 		if(v != null){
-			nativefunc.addLayer();
+			if(nativefunc.addLayer()){
+				add();
+			}
+		}else{
+			add();
 		}
-		
+	}
+	private void add(){
+		LinearLayout layouts = layerAdapter.addLayer(new LayerData());
+		layouts.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				//レイヤーが選択された時
+				int temp = (Integer)v.getTag();
+				nativefunc.selectLayer(temp);
+				layerAdapter.selectLayer(temp);
+				spinner_l.setSelection(layerAdapter.getLayermode());
+			}
+		});
 	}
 	
 	public void ondeleteLayer(View v) {
