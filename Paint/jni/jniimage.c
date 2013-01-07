@@ -35,6 +35,7 @@ int min(int a, int b);
 void blendBuff(int x, int y);
 int Blend_Layer(int mode, int src, int dest);
 void recomposition();
+void initLayer(int current);
 
 /*
  * レイヤ周り
@@ -95,6 +96,7 @@ static int **EditLayer;
 static int **BuffImg;
 static int frequency = 30;
 static double scale;
+static int *Layer_mode;
 
 struct BufStr {
 	int sx; /* 領域右端のX座標 */
@@ -102,15 +104,6 @@ struct BufStr {
 };
 struct BufStr buff[MAXSIZE]; /* シード登録用バッファ */
 struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
-
-/*
- * レイヤーモード列挙
- */
-enum layer_mode {
-	NORMAL, MUL, SCREEN, OVERLAY
-};
-
-enum layer_mode lmode;
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
@@ -148,6 +141,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_addLayer(
 		for (i = layers.layer_max - 1; i >= layers.current_layer; i--) {
 			img[i + 1] = img[i];
 		}
+		i_printf("Current Layer is %d", layers.current_layer);
 		return JNI_TRUE;
 	}
 }
@@ -157,8 +151,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer
 	i_printf("deleteLayer\n");
 	int i;
 
+	i_printf("Current Layer is %d", layers.current_layer);
+
+	initLayer(layers.current_layer);
+
 	for (i = layers.current_layer; i < layers.layer_max; i++) {
 		img[i] = img[i + 1];
+		Layer_mode[i] = Layer_mode[i + 1];
 	}
 	layers.layer_max--;
 	if (layers.current_layer == 0) {
@@ -174,15 +173,19 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_selectLayer(
 		JNIEnv* env, jobject obj, jint num) {
-	i_printf("EditLayer\n");
+	i_printf("selectLayer\n");
 	layers.current_layer = num;
+	i_printf("Current Layer is %d", layers.current_layer);
 	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMode(
-		JNIEnv* env, jobject obj, jint num, jint mode) {
+		JNIEnv* env, jobject obj, jint mode) {
 	i_printf("setLayerMode\n");
-	//TODO レイヤーモードの選択
+	//可視不可視もここで設定
+	Layer_mode[layers.current_layer] = mode;
+	i_printf("mode is %d", Layer_mode[layers.current_layer]);
+	recomposition();
 	return JNI_TRUE;
 }
 
@@ -190,13 +193,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Replace(
 		JNIEnv* env, jobject obj, jint num, jint move) {
 	i_printf("Replace\n");
 	//TODO レイヤーの順序変更
-	return JNI_TRUE;
-}
-
-JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setVisible(
-		JNIEnv* env, jobject obj, jint num, jboolean truth) {
-	i_printf("setVisible\n");
-	//TODO 可視不可視の変更
 	return JNI_TRUE;
 }
 
@@ -484,6 +480,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	for (i = 0; i < MAX_BRUSH_WIDTH * 20; i++) {
 		brush[i] = (int*) malloc(sizeof(int) * MAX_BRUSH_HEIGHT * 20);
 	}
+
+	//レイヤーモード配列確保と初期化
+	Layer_mode = (int*) malloc(sizeof(int) * MAX_LAYER_SIZE);
+	for (i = 0; i < MAX_LAYER_SIZE; i++) {
+		Layer_mode[i] = 0;
+	}
+
 	brushmap.width = 10;
 	bx = brushmap.width;
 
@@ -517,11 +520,15 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	}
 	free(img);
 
+	i_printf("free(img)\n");
+
 	//編集レイヤー配列の開放
 	for (i = 0; i < c.width; i++) {
 		free(EditLayer[i]);
 	}
 	free(EditLayer);
+
+	i_printf("free(EditLayer)\n");
 
 	//バッファ配列の開放
 	for (i = 0; i < c.width; i++) {
@@ -529,17 +536,28 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	}
 	free(BuffImg);
 
+	i_printf("free(BuffImg)\n");
+
 	//brush_map配列の開放
 	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
 		free(brush_map[i]);
 	}
 	free(brush_map);
 
+	i_printf("free(brush_map)\n");
+
 	//brush配列の開放
 	for (i = 0; i < MAX_BRUSH_WIDTH * 20; i++) {
 		free(brush[i]);
 	}
 	free(brush);
+
+	i_printf("free(brush)\n");
+
+	//Layer_mode配列の開放
+	free(Layer_mode);
+
+	i_printf("free(Layer_mode)\n");
 
 	return JNI_TRUE;
 }
@@ -590,11 +608,10 @@ void blendBuff(int x, int y) {
 		Edit = Normal_Draw(EditLayer[x][y], img[layers.current_layer][x][y]);
 	}
 	for (i = 0; i < layers.layer_max; i++) {
-		//Pixel = Normal_Draw(img[i][x][y], Pixel);
 		if (i == layers.current_layer) {
-			Pixel = Blend_Layer(0, Edit, Pixel);
+			Pixel = Blend_Layer(Layer_mode[i], Edit, Pixel);
 		} else {
-			Pixel = Blend_Layer(0, img[i][x][y], Pixel);
+			Pixel = Blend_Layer(Layer_mode[i], img[i][x][y], Pixel);
 		}
 	}
 	BuffImg[x][y] = Pixel;
@@ -991,6 +1008,15 @@ int grayscale(int c) {
 	return (255 - gray);
 }
 
+void initLayer(int current) {
+	int i, j;
+	for (i = 0; i < c.width; i++) {
+		for (j = 0; j < c.height; j++) {
+			img[current][i][j] = 0x00000000;
+		}
+	}
+}
+
 /*
  * レイヤー合成関数
  */
@@ -1054,6 +1080,7 @@ int Blend_Layer(int mode, int src, int dest) {
 	case 11: //除外
 		break;
 	case 12: //インビジブル
+		result = dest;
 		break;
 	}
 	return result;
