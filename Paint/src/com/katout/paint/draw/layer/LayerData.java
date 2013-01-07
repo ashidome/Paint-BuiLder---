@@ -1,5 +1,9 @@
 package com.katout.paint.draw.layer;
 
-public class LayerData {
+import android.widget.LinearLayout;
 
+public class LayerData {
+	public int alpha;
+	public int layermode;
+	public LinearLayout layout;
 }

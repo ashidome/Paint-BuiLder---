@@ -49,7 +49,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 	private LinearLayout			paint_layer_r;
 	private LinearLayout			paint_layer_l;
-	private ArrayList<LayerData>	layer;
 	private LayerAdapter			layerAdapter;
 	private int						paint_menuW;
 
@@ -197,6 +196,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 												View view, int position, long id) {
 						nativefunc.setLayerMode(position);
 						spinner_r.setSelection(position);
+						layerAdapter.setLayermode(position);
 					}
 					@Override
 					public void onNothingSelected(AdapterView<?> arg0) {}
@@ -207,6 +207,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 										View view, int position, long id) {
 				nativefunc.setLayerMode(position);
 				spinner_l.setSelection(position);
+				layerAdapter.setLayermode(position);
 			}
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {}
@@ -364,6 +365,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					int temp = (Integer)v.getTag();
 					nativefunc.selectLayer(temp);
 					layerAdapter.selectLayer(temp);
+					spinner_r.setSelection(layerAdapter.getLayermode());
+					spinner_l.setSelection(layerAdapter.getLayermode());
 				}
 			});
 		}
