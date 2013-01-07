@@ -11,23 +11,24 @@
 #define MAX_BRUSH_WIDTH 100
 #define MAX_BRUSH_HEIGHT 100
 #define MAX_LAYER_SIZE 5
+#define MAX_BRUSH_NUM 2
 
-void brush_draw(int x, int y);
+void brush_draw(int x, int y, int flag);
 void applyEdit();
 void initEditLayer();
 int distance(int x1, int x2, int y1, int y2);
-void setColor(int color);
-void Bezier(int x1, int y1, int x2, int y2, int x3, int y3);
-void Bicubic(int sx, int sy, double by);
+void setColor(int color, int flag);
+void Bezier(int x1, int y1, int x2, int y2, int x3, int y3, int flag);
+void Bicubic(int sx, int sy, double by, int flag);
 double First_Neighborhood(double d);
 double Second_Neighborhood(double d);
 void Bilinear(int x, int y);
 void scanLine(int lx, int rx, int y, unsigned int col);
 void fill(int x, int y, unsigned int paintCol);
-void setBrush(jchar brush_img[]);
+void setBrush(jchar brush_img[], int flag);
 int Normal_Draw(int src, int dest);
 int Eraser_Draw(int src, int dest);
-void setBrushSize(int size);
+void setBrushSize(int size, int flag);
 int get_alpha(int c);
 int grayscale(int c);
 int max(int a, int b);
@@ -36,6 +37,8 @@ void blendBuff(int x, int y);
 int Blend_Layer(int mode, int src, int dest);
 void recomposition();
 void initLayer(int current);
+void startDraw(int x, int y, int flag);
+void draw(int x, int y, int flag);
 
 /*
  * レイヤ周り
@@ -71,8 +74,17 @@ struct FillPoint {
 };
 
 struct BrushMap {
+	char **map_img;
 	int width;
 	int height;
+	int frequency;
+};
+
+struct Brush {
+	int **brush_img;
+	int width;
+	int height;
+	int color;
 };
 
 struct LayerData {
@@ -84,23 +96,17 @@ struct LayerData {
 static struct Display disp;
 static struct Canvas c;
 static struct Layers layers;
-static struct DrawPoints dp;
+static struct DrawPoints *dp;
 static struct FillPoint fp;
-static struct BrushMap brushmap;
+static struct BrushMap *brushmap;
+static struct Brush *brush;
 static struct LayerData *layerdata;
-static int Color;
 static int Size;
 static int theta;
 static int Mode;
 
-//テスト用
-static int **brush;
-static char **brush_map;
-static int bx;
-static int by;
 static int **EditLayer;
 static int **BuffImg;
-static int frequency = 30;
 static double scale;
 
 struct BufStr {
@@ -227,27 +233,56 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrush(
 	i_printf("setBrush\n");
 	jchar* colors = (*env)->GetCharArrayElements(env, color, 0);
 
-	frequency = jfrequency;
+	brushmap[0].frequency = jfrequency;
 
 	//ブラシマップサイズの定義
-	brushmap.width = jw;
-	brushmap.height = jh;
+	brushmap[0].width = jw;
+	brushmap[0].height = jh;
 
 	//新規ブラシマップの適用
-	setBrush(colors);
+	setBrush(colors, 0);
 
 	//サイズ変更の適用
-	setBrushSize(Size);
+	setBrushSize(Size, 0);
 
 	(*env)->ReleaseCharArrayElements(env, color, colors, 0);
+	return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBrushRawSize(
+		JNIEnv* env, jobject obj, jintArray wh) {
+	i_printf("getBrushRawSize");
+	jint* array = (*env)->GetIntArrayElements(env, wh, 0);
+
+	array[0] = brushmap[0].width;
+	array[1] = brushmap[0].height;
+	array[2] = brushmap[0].frequency;
+
+	(*env)->ReleaseIntArrayElements(env, wh, array, 0);
+	return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBrushRawMap(
+		JNIEnv* env, jobject obj, jcharArray map) {
+	i_printf("getBrushRawMap");
+	jchar* Map = (*env)->GetCharArrayElements(env, map, 0);
+	int i, j;
+
+	for (i = 0; i < brushmap[0].width; i++) {
+		for (j = 0; j < brushmap[0].height; j++) {
+			Map[i * brushmap[0].width + j] = brushmap[0].map_img[i][j];
+		}
+	}
+
+	(*env)->ReleaseCharArrayElements(env, map, Map, 0);
 	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setColor(
 		JNIEnv* env, jobject obj, jint jcolor) {
 	i_printf("setColor\n");
-	setColor(jcolor);
-	setBrushSize(Size);
+	setColor(jcolor, 0);
+	setBrushSize(Size, 0);
 	i_printf("end_setColor");
 	return JNI_TRUE;
 }
@@ -257,24 +292,16 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrushSiz
 	//jsize = 1~500
 	//使用時に√x / 20 0.05 ~ 25;
 	i_printf("setBrushSize\n");
-	setBrushSize(jsize);
+	setBrushSize(jsize, 0);
 	return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_startDraw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("startDraw\n");
-	int i, j;
 
-	//始点の保持
-	dp.x = jx;
-	dp.y = jy;
+	startDraw(jx, jy, 0);
 
-	//始点の描画
-	brush_draw(dp.x, dp.y);
-
-	//次点フラグをオフ（次のdraw呼出ポイントを2点目とする）
-	dp.flag = 0;
 	return JNI_TRUE;
 }
 
@@ -301,23 +328,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("draw\n");
 
-	//3点目である場合
-	if (dp.flag == 1) {
-		//3点Bezier曲線描画
-		Bezier(dp.x, dp.y, dp.x2, dp.y2, jx, jy);
+	draw(jx, jy, 0);
 
-		//2点目を次回の1点目にする
-		dp.x = dp.x2;
-		dp.y = dp.y2;
-		//3点目を次回の2点目にする
-		dp.x2 = jx;
-		dp.y2 = jy;
-	} else {
-		//2点目である場合
-		dp.x2 = jx;
-		dp.y2 = jy;
-	}
-	dp.flag = 1;
 	return JNI_TRUE;
 }
 
@@ -436,10 +448,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	disp.y = 0;
 	scale = 1.0;
 
+	//layerdataの確保と初期化
 	layerdata = (struct LayerData*) malloc(
 			sizeof(struct LayerData) * MAX_LAYER_SIZE);
-
-	//img配列の確保と初期化
 	for (i = 0; i < MAX_LAYER_SIZE; i++) {
 		layerdata[i].img = (int **) malloc(sizeof(int*) * c.width);
 		for (j = 0; j < c.width; j++) {
@@ -449,7 +460,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	for (i = 0; i < MAX_LAYER_SIZE; i++) {
 		for (j = 0; j < c.width; j++) {
 			for (k = 0; k < c.height; k++) {
-				layerdata[i].img[j][k] = 0x00000000;
+				layerdata[i].img[j][k] = 0x00FFFFFF;
 			}
 		}
 	}
@@ -457,6 +468,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		for (j = 0; j < c.height; j++) {
 			layerdata[0].img[i][j] = 0xFFFFFFFF;
 		}
+	}
+
+	//レイヤーモード配列確保と初期化
+	for (i = 0; i < MAX_LAYER_SIZE; i++) {
+		layerdata[i].mode = 0;
+		layerdata[i].alpha = 100;
 	}
 
 	//編集レイヤー配列の確保と初期化
@@ -481,43 +498,66 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 	}
 
-	//brush_map配列の確保と初期化
-	brush_map = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
-	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
-		brush_map[i] = (char*) malloc(sizeof(char) * MAX_BRUSH_HEIGHT);
+	//brushmapの確保と初期化
+	brushmap = (struct BrushMap*) malloc(
+			sizeof(struct BrushMap) * MAX_BRUSH_NUM);
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		brushmap[i].map_img = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
+		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
+			brushmap[i].map_img[j] = (char*) malloc(
+					sizeof(char) * MAX_BRUSH_HEIGHT);
+		}
 	}
-	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
-		for (j = 0; j < MAX_BRUSH_HEIGHT; j++) {
-			brush_map[i][j] = 255;
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
+			for (k = 0; k < MAX_BRUSH_HEIGHT; k++) {
+				brushmap[i].map_img[j][k] = 255;
+			}
+		}
+	}
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		brushmap[i].width = 10;
+		brushmap[i].height = 10;
+		brushmap[i].frequency = 30;
+	}
+
+	//brushの確保と初期化
+	brush = (struct Brush*) malloc(sizeof(struct Brush) * 2);
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		brush[i].brush_img = (int **) malloc(
+				sizeof(int*) * MAX_BRUSH_WIDTH * 20);
+		for (j = 0; j < MAX_BRUSH_WIDTH * 20; j++) {
+			brush[i].brush_img[j] = (int*) malloc(
+					sizeof(int) * MAX_BRUSH_HEIGHT * 20);
+		}
+	}
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		brush[i].width = 10;
+		brush[i].height = 10;
+		brush[i].color = 0xFFFFFFFF;
+	}
+
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		for (j = 0; j < brush[i].width; j++) {
+			for (k = 0; k < brush[i].height; k++) {
+				brush[i].brush_img[j][k] = brushmap[i].map_img[j][k];
+			}
 		}
 	}
 
-	brush = (int **) malloc(sizeof(int*) * MAX_BRUSH_WIDTH * 20);
-	for (i = 0; i < MAX_BRUSH_WIDTH * 20; i++) {
-		brush[i] = (int*) malloc(sizeof(int) * MAX_BRUSH_HEIGHT * 20);
+	//DrawPoints配列の確保と初期化
+	dp = (struct DrawPoints*) malloc(sizeof(struct DrawPoints) * MAX_BRUSH_NUM);
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		dp[i].flag = 0;
+		dp[i].x = 0;
+		dp[i].x2 = 0;
+		dp[i].y = 0;
+		dp[i].y2 = 0;
 	}
 
-	//レイヤーモード配列確保と初期化
-	for (i = 0; i < MAX_LAYER_SIZE; i++) {
-		layerdata[i].mode = 0;
-		layerdata[i].alpha = 100;
-	}
-
-	brushmap.width = 10;
-	bx = brushmap.width;
-
-	brushmap.height = 10;
-	by = brushmap.height;
-
-	for (i = 0; i < bx; i++) {
-		for (j = 0; j < by; j++) {
-			brush[i][j] = brush_map[i][j];
-		}
-	}
 	layers.layer_max = 1;
 	layers.current_layer = 0;
 	Size = 16;
-	Color = 0xFFFFFFFF;
 	return JNI_TRUE;
 }
 
@@ -554,17 +594,23 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 
 	i_printf("free(BuffImg)\n");
 
-	//brush_map配列の開放
-	for (i = 0; i < MAX_BRUSH_WIDTH; i++) {
-		free(brush_map[i]);
+	//brushmap配列の開放
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
+			free(brushmap[i].map_img[j]);
+		}
+		free(brushmap[i].map_img);
 	}
-	free(brush_map);
+	free(brushmap);
 
 	i_printf("free(brush_map)\n");
 
 	//brush配列の開放
-	for (i = 0; i < MAX_BRUSH_WIDTH * 20; i++) {
-		free(brush[i]);
+	for (i = 0; i < MAX_BRUSH_NUM; i++) {
+		for (j = 0; j < MAX_BRUSH_WIDTH * 20; j++) {
+			free(brush[i].brush_img[j]);
+		}
+		free(brush[i].brush_img);
 	}
 	free(brush);
 
@@ -579,20 +625,64 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMode(
 	Mode = num;
 	return JNI_TRUE;
 }
+
+/*
+ * 通信共同描画用関数
+ * joint(レイヤ番号,ブラシマップ,ブラシマップ幅,ブラシマップ高,ブラシ頻度,ブラシサイズ,色,座標(x,y交互),座標配列サイズ)
+ */
+JNIEXPORT jboolean
+JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
+		jobject obj, jint jlayer_num, jcharArray jcolor, jint jw, jint jh,
+		jint jfrequency, jint jsize, jint color, jintArray jpoint,
+		jint jpoint_size) {
+	i_printf("joint\n");
+	int i, j;
+
+	jchar* colors = (*env)->GetCharArrayElements(env, jcolor, 0);
+	jint* points = (*env)->GetIntArrayElements(env, jpoint, 0);
+
+	brushmap[1].frequency = jfrequency;
+
+	//ブラシマップサイズの定義
+	brushmap[1].width = jw;
+	brushmap[1].height = jh;
+
+	//新規ブラシマップの適用
+	setBrush(colors, 1);
+
+	//色指定
+	setColor(color, 1);
+
+	//サイズ変更の適用
+	setBrushSize(jsize, 1);
+
+	//始点描画
+	startDraw(points[0], points[1], 1);
+
+	for (i = 2; i < jpoint_size; i += 2) {
+		draw(points[i], points[i + 1], 1);
+	}
+
+	(*env)->ReleaseCharArrayElements(env, jcolor, colors, 0);
+	(*env)->ReleaseIntArrayElements(env, jpoint, points, 0);
+
+	return JNI_TRUE;
+}
+
 /*
  * ブラシによる描画関数
  */
-void brush_draw(int x, int y) {
+void brush_draw(int x, int y, int flag) {
 	int i, j;
-	//描画
-	//i_printf( "width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
-	for (i = 0; i < bx; i++) {
-		for (j = 0; j < by; j++) {
+//描画
+//i_printf( "width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
+	for (i = 0; i < brush[flag].width; i++) {
+		for (j = 0; j < brush[flag].height; j++) {
 			if (((x + i) > 0) && ((x + i) < c.width) && ((y + j) > 0)
 					&& ((y + j) < c.height)) {
 				if (get_alpha(EditLayer[x + i][y + j])
-						< get_alpha(brush[i][j])) {
-					EditLayer[x + i][y + j] = brush[i][j];
+						< get_alpha(brush[flag].brush_img[i][j])) {
+					EditLayer[x + i][y + j] = brush[flag].brush_img[i][j];
 					blendBuff(x + i, y + j);
 				}
 			}
@@ -701,24 +791,24 @@ int distance(int x1, int x2, int y1, int y2) {
 /*
  * 与えられた色をブラシに適用する関数
  */
-void setColor(int color) {
-	Color = color;
+void setColor(int color, int flag) {
+	brush[flag].color = color;
 }
 
 /*
  * 3点Bezier曲線を描画する関数
  */
-void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
+void Bezier(int x1, int y1, int x2, int y2, int x3, int y3, int flag) {
 	int i;
 	int x, y;
 	double t;
 
 	//frequencyが大きいほど緻密に描画する
-	for (i = 0; i <= frequency; i++) {
-		t = (double) i / frequency;
+	for (i = 0; i <= brushmap[flag].frequency; i++) {
+		t = (double) i / brushmap[flag].frequency;
 		x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * x2 + t * t * x3;
 		y = (1 - t) * (1 - t) * y1 + 2 * t * (1 - t) * y2 + t * t * y3;
-		brush_draw(x, y);
+		brush_draw(x, y, flag);
 	}
 }
 
@@ -726,7 +816,7 @@ void Bezier(int x1, int y1, int x2, int y2, int x3, int y3) {
  * バイキュービック法による拡縮関数
  * 始点x,y、倍率
  */
-void Bicubic(int sx, int sy, double by) {
+void Bicubic(int sx, int sy, double by, int flag) {
 	double nscale;	//倍率
 	int x, y;
 	int ix, iy;
@@ -740,15 +830,14 @@ void Bicubic(int sx, int sy, double by) {
 
 	int a, rgb;
 
-	a = get_alpha(Color);
-	rgb = (Color & 0x00FFFFFF);
-	i_printf("a = %d, rgb = %x", a, rgb);
+	a = get_alpha(brush[flag].color);
+	rgb = (brush[flag].color & 0x00FFFFFF);
 
 	nscale = 1.0 / by;
 
 	//バイキュービック法
-	for (y = sy; y < sy + by * brushmap.width; y++) {
-		for (x = sx; x < sx + by * brushmap.height; x++) {
+	for (y = sy; y < sy + by * brushmap[flag].width; y++) {
+		for (x = sx; x < sx + by * brushmap[flag].height; x++) {
 			//拡大縮小比率から変換先ピクセルに対応する変換元の座標を計算する
 			xx = nscale * (double) x;	//変換元の比率
 			ix = (int) xx;	//変換元座標
@@ -785,15 +874,15 @@ void Bicubic(int sx, int sy, double by) {
 
 					//縦横が変換元のピクセルからはみ出ないように位置を矯正
 					x0 = tmpx;
-					if ((x0 < 0) || (x0 > (brushmap.height - 1))) {
+					if ((x0 < 0) || (x0 > (brushmap[flag].height - 1))) {
 						x0 = ix;
 					}
 					y0 = tmpy;
-					if ((y0 < 0) || (y0 > (brushmap.width - 1))) {
+					if ((y0 < 0) || (y0 > (brushmap[flag].width - 1))) {
 						y0 = iy;
 					}
 					//重みを乗じて16ピクセル分を足し合わせていく
-					data = data + (double) brush_map[y0][x0] * w;
+					data = data + (double) brushmap[flag].map_img[y0][x0] * w;
 				}
 			}
 			if (data > 255.0) {
@@ -801,9 +890,10 @@ void Bicubic(int sx, int sy, double by) {
 			} else if (data < 0.0) {
 				data = 0.0;
 			}
-			if ((y >= 0) && (y < by * brushmap.width) && (x >= 0)
-					&& (x < by * brushmap.height)) {
-				brush[y - sy][x - sx] = ((a * (int) data) / 255 << 24) | rgb;
+			if ((y >= 0) && (y < by * brushmap[flag].width) && (x >= 0)
+					&& (x < by * brushmap[flag].height)) {
+				brush[flag].brush_img[y - sy][x - sx] = ((a * (int) data) / 255
+						<< 24) | rgb;
 			}
 		}
 	}
@@ -977,12 +1067,13 @@ void Bilinear(int x, int y) {
 /*
  * 新規ブラシマップセット関数
  */
-void setBrush(jchar brush_img[]) {
+void setBrush(jchar brush_img[], int flag) {
 	int i, j;
 //新規ブラシマップを適用
-	for (i = 0; i < brushmap.width; i++) {
-		for (j = 0; j < brushmap.height; j++) {
-			brush_map[i][j] = brush_img[i * brushmap.height + j];
+	for (i = 0; i < brushmap[flag].width; i++) {
+		for (j = 0; j < brushmap[flag].height; j++) {
+			brushmap[flag].map_img[i][j] = brush_img[i * brushmap[flag].height
+					+ j];
 			//i_printf("brush_map[%d][%d] = %d\n", i, j, brush_map[i][j]);
 		}
 	}
@@ -991,15 +1082,55 @@ void setBrush(jchar brush_img[]) {
 /*
  * ブラシサイズ変更関数
  */
-void setBrushSize(int size) {
+void setBrushSize(int size, int flag) {
 	i_printf("setBrushSize");
 	double Magnification;
 	Size = size;
 	Magnification = sqrt(Size) / 4.0;
 
-	Bicubic(0, 0, Magnification);
-	bx = brushmap.width * Magnification;
-	by = brushmap.height * Magnification;
+	Bicubic(0, 0, Magnification, flag);
+	brush[flag].width = brushmap[flag].width * Magnification;
+	brush[flag].height = brushmap[flag].height * Magnification;
+}
+
+/*
+ * 始点描画用関数
+ * flag = 1 は共同描画用
+ */
+void startDraw(int x, int y, int flag) {
+	//始点の保持
+	dp[flag].x = x;
+	dp[flag].y = y;
+
+	//始点の描画
+	brush_draw(dp[flag].x, dp[flag].y, flag);
+
+	//次点フラグをオフ（次のdraw呼出ポイントを2点目とする）
+	dp[flag].flag = 0;
+}
+
+/*
+ * 次点以降描画用関数
+ * flag = 1 は共同描画用
+ */
+void draw(int x, int y, int flag) {
+	//3点目である場合
+	if (dp[flag].flag == 1) {
+		//3点Bezier曲線描画
+		Bezier(dp[flag].x, dp[flag].y, dp[flag].x2, dp[flag].y2, x, y, flag);
+
+		//2点目を次回の1点目にする
+		dp[flag].x = dp[flag].x2;
+		dp[flag].y = dp[flag].y2;
+		//3点目を次回の2点目にする
+		dp[flag].x2 = x;
+		dp[flag].y2 = y;
+	} else {
+		//2点目である場合
+		dp[flag].x2 = x;
+		dp[flag].y2 = y;
+	}
+	dp[flag].flag = 1;
 }
 
 /*
@@ -1075,10 +1206,87 @@ int Blend_Layer(int mode, int src, int dest) {
 		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 1: //乗算
+		r = (src_r * dest_r) / 255;
+		if (r > 255) {
+			r = 255;
+		}
+		g = (src_g * dest_g) / 255;
+		if (g > 255) {
+			g = 255;
+		}
+		b = (src_b * dest_b) / 255;
+		if (b > 255) {
+			b = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 2: //スクリーン
+		if ((src_a != 0) && (dest_a != 0)) {
+			r = 255 - ((255 - src_r) * (255 - dest_r) / 255);
+			if (r > 255) {
+				r = 255;
+			}
+			g = 255 - ((255 - src_g) * (255 - dest_g) / 255);
+			if (g > 255) {
+				g = 255;
+			}
+			b = 255 - ((255 - src_b) * (255 - dest_b) / 255);
+			if (b > 255) {
+				b = 255;
+			}
+		} else if (src_a == 0) {
+			r = dest_r;
+			g = dest_g;
+			b = dest_b;
+		} else if (dest_a == 0) {
+			r = src_r;
+			g = src_g;
+			b = src_b;
+		} else {
+			r = dest_r;
+			g = dest_g;
+			b = dest_b;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 3: //オーバレイ
+		if (src_r < 128) {
+			r = src_r * dest_r * 2 / 255;
+		} else {
+			r = 2 * (src_r + dest_r - src_r * dest_r / 255) - 255;
+		}
+		if (r > 255) {
+			r = 255;
+		}
+		if (src_g < 128) {
+			g = src_g * dest_g * 2 / 255;
+		} else {
+			g = 2 * (src_g + dest_g - src_g * dest_g / 255) - 255;
+		}
+		if (g > 255) {
+			g = 255;
+		}
+		if (src_b < 128) {
+			b = src_b * dest_b * 2 / 255;
+		} else {
+			b = 2 * (src_b + dest_b - src_b * dest_b / 255) - 255;
+		}
+		if (b > 255) {
+			b = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 4: //ソフトライト
 		break;
