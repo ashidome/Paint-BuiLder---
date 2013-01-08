@@ -462,7 +462,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 
 //imgの二次元配列を一次元配列に変換し代入
 	for (i = 0; i < disp.width; i++) {
-		//拡縮元座標の算出
+//拡縮元座標の算出
 		xx = (i + disp.x) * 1000 / s;
 		x = (int) xx;
 		for (j = 0; j < disp.height; j++) {
@@ -1211,17 +1211,17 @@ void startDraw(int x, int y, int flag) {
 void draw(int x, int y, int flag) {
 //3点目である場合
 	if (dp[flag].flag == 1) {
-		//3点Bezier曲線描画
+//3点Bezier曲線描画
 		Bezier(dp[flag].x, dp[flag].y, dp[flag].x2, dp[flag].y2, x, y, flag);
 
-		//2点目を次回の1点目にする
+//2点目を次回の1点目にする
 		dp[flag].x = dp[flag].x2;
 		dp[flag].y = dp[flag].y2;
-		//3点目を次回の2点目にする
+//3点目を次回の2点目にする
 		dp[flag].x2 = x;
 		dp[flag].y2 = y;
 	} else {
-		//2点目である場合
+//2点目である場合
 		dp[flag].x2 = x;
 		dp[flag].y2 = y;
 	}
