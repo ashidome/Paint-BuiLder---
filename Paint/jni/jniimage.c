@@ -1142,9 +1142,12 @@ void setBrush(jchar brush_img[], int flag) {
  */
 void setBrushSize(int size, int flag) {
 	i_printf("setBrushSize");
+	int magni_size;
 	double Magnification;
 	Size = size;
-	Magnification = sqrt(Size) / 4.0;
+	magni_size = sqrt(Size) * 3.0;
+
+	Magnification = (double) magni_size / (double) brushmap[flag].width;
 
 	Bicubic(0, 0, Magnification, flag);
 	brush[flag].width = brushmap[flag].width * Magnification;
