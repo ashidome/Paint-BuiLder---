@@ -209,6 +209,43 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMod
 	return JNI_TRUE;
 }
 
+/*
+ * getPreview(int レイヤー番号,int[] Preview格納用配列,int Preview幅,int Preview高さ)
+ * レイヤー番号 == 100 で全体Preview
+ */
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
+		JNIEnv* env, jobject obj, jint layer_num, jintArray array, jint jwidth,
+		jint jheight) {
+	i_printf("getPreview");
+	jint* Array = (*env)->GetIntArrayElements(env, array, 0);
+	int i, j;
+	int xx, yy;
+	int x, y;
+	int s;
+
+	//浮動小数点演算対策
+	s = jwidth / c.width * 1000;
+
+	//imgの二次元配列を一次元配列に変換し代入
+	for (i = 0; i < jwidth; i++) {
+		//拡縮元座標の算出
+		xx = i * 1000 / s;
+		x = (int) xx;
+		for (j = 0; j < jheight; j++) {
+			//拡縮元座標の算出
+			yy = j * 1000 / s;
+			y = (int) yy;
+			if (layer_num == 100) {
+				Array[j * jwidth + i] = BuffImg[x][y];
+			}
+			Array[j * jwidth + i] = layerdata[layer_num].img[x][y];
+		}
+	}
+
+	(*env)->ReleaseIntArrayElements(env, array, Array, 0);
+	return JNI_TRUE;
+}
+
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Replace(
 		JNIEnv* env, jobject obj, jint num, jint move) {
 	i_printf("Replace\n");
@@ -351,12 +388,18 @@ JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getCanvasWidth(
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 		JNIEnv* env, jobject obj, jintArray color) {
-	int i, j;
+	i_printf("getRawdata\n");
+	int i, j, k, l;
+	int pixel = 0x00FFFFFF;
 	jint* colors = (*env)->GetIntArrayElements(env, color, 0);
 
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			colors[j * c.width + i] = layerdata[layers.current_layer].img[i][j];
+			for (k = 0; k < layers.layer_max; k++) {
+				pixel = Blend_Layer(layerdata[k].mode, layerdata[k].img[i][j],
+						pixel);
+			}
+			colors[j * c.width + i] = pixel;
 		}
 	}
 
@@ -682,15 +725,22 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
  */
 void brush_draw(int x, int y, int flag) {
 	int i, j;
-//描画
-//i_printf( "width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
-	for (i = 0; i < brush[flag].width; i++) {
-		for (j = 0; j < brush[flag].height; j++) {
+	int bwidth, bheight;
+
+	bwidth = brush[flag].width / 2;
+	bheight = brush[flag].height / 2;
+
+	//描画
+	//i_printf( "width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
+	for (i = -bwidth; i < bwidth; i++) {
+		for (j = -bheight; j < bheight; j++) {
 			if (((x + i) > 0) && ((x + i) < c.width) && ((y + j) > 0)
 					&& ((y + j) < c.height)) {
 				if (get_alpha(EditLayer[x + i][y + j])
-						< get_alpha(brush[flag].brush_img[i][j])) {
-					EditLayer[x + i][y + j] = brush[flag].brush_img[i][j];
+						< get_alpha(
+								brush[flag].brush_img[i + bwidth][j + bheight])) {
+					EditLayer[x + i][y + j] =
+							brush[flag].brush_img[i + bwidth][j + bheight];
 					blendBuff(x + i, y + j);
 				}
 			}
