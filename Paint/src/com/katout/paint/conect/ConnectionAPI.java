@@ -30,7 +30,7 @@ public class ConnectionAPI {
 				userIP = new String(ip);
 				int size;
 				String str;
-				byte[] w = new byte[1024];
+				byte[] w = new byte[10240];
 				try {
 					// ソケット接続
 					Log.d("test", "接続中:" +ip+","+port);

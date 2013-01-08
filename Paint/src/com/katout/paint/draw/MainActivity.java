@@ -64,17 +64,21 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private SeekBar					seek_brush_b;
 	
 	private Spinner					spinner_l;
+	private boolean					spinerflag;
+	
+	private SeekBar					alpher_seek;
 
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		nativefunc = new NativeFunction();
 		super.onCreate(savedInstanceState);
+		nativefunc = new NativeFunction();
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		handler = new Handler();
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
+		spinerflag = false;
 		connectCore = new ConnectCore(this, handler, new ConnectCore.ShareMessageInterface() {
 			@Override
 			public void getMassage(ShareMessage message) {
@@ -175,6 +179,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		LinearLayout layer_l = (LinearLayout) paint_layer_l
 				.findViewById(R.id.layer);
 		layerAdapter = new LayerAdapter(this, layer_l);
+		alpher_seek = (SeekBar)findViewById(R.id.seek_alphr);
 
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
 		seek_brush_b = (SeekBar) paint_menu_b.findViewById(R.id.seek_brush);
@@ -184,19 +189,33 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					@Override
 					public void onItemSelected(AdapterView<?> parent,
 												View view, int position, long id) {
-						layerAdapter.setLayermode(position);
-						new RepaintAsyncTask(MainActivity.this, nativefunc, position).execute();
+						if(!spinerflag){
+							layerAdapter.setLayermode(position);
+							new RepaintAsyncTask(MainActivity.this, nativefunc, position).execute();
+						}
+						spinerflag = false;
 					}
 					@Override
 					public void onNothingSelected(AdapterView<?> arg0) {}
 				});
+		alpher_seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
+		});
 
 		
 		
 		seek_brush_t.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				int brush = seekBar.getProgress();
+				int brush = seekBar.getProgress()+1;
 				seek_brush_b.setProgress(brush);
 				nativefunc.setBrushSize(brush);
 			}
@@ -210,7 +229,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		seek_brush_b.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				int brush = seekBar.getProgress();
+				int brush = seekBar.getProgress()+1;
 				seek_brush_t.setProgress(brush);
 				nativefunc.setBrushSize(brush);
 			}
@@ -303,8 +322,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					j_message.points_size = j_message.points.length;
 					String mes = j_message.getMessage();
 					connectCore.shareMessage(mes);
-					
 				}
+				layerAdapter.setPreview(nativefunc);
 			}
 		});
 	}
@@ -372,12 +391,14 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private void add(){
 		LinearLayout layouts = layerAdapter.addLayer(new LayerData());
 		layouts.setOnClickListener(new View.OnClickListener() {
+
 			@Override
 			public void onClick(View v) {
 				//レイヤーが選択された時
 				int temp = (Integer)v.getTag();
 				nativefunc.selectLayer(temp);
 				layerAdapter.selectLayer(temp);
+				spinerflag = true;
 				spinner_l.setSelection(layerAdapter.getLayermode());
 			}
 		});
