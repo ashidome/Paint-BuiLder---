@@ -82,11 +82,12 @@ public class LayerAdapter{
 		Bitmap bitmap = layers.get(currentlayer).preview ;
 		if(bitmap == null){
 			bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
+			layers.get(currentlayer).preview = bitmap;
 		}
 		
-		func.getPreview(currentlayer, img_map, previewwidth, previewheight);
-		layers.get(currentlayer).preview.setPixels(img_map, 0, previewwidth, 0, 0, previewwidth, previewheight);
-		img.setImageBitmap(layers.get(currentlayer).preview);
+//		func.getPreview(currentlayer, img_map, previewwidth, previewheight);
+		bitmap.setPixels(img_map, 0, previewwidth, 0, 0, previewwidth, previewheight);
+		img.setImageBitmap(bitmap);
 		
 	}
 	
