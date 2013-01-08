@@ -232,9 +232,10 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 	}
 
 	if (c.height / jheight < c.width / jwidth) {
+		i_printf("Preview width apply\n");
 		//浮動小数点演算対策
-		s = jwidth / c.width * 1000;
-		black_padding = (jwidth / c.width * c.height) / 2;
+		s = jwidth * 1000 / c.width;
+		black_padding = (jheight - jwidth * c.height / c.width) / 2;
 
 		//imgの二次元配列を一次元配列に変換し代入
 		for (i = 0; i < jwidth; i++) {
@@ -243,7 +244,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 			x = (int) xx;
 			for (j = black_padding; j < jheight - black_padding; j++) {
 				//拡縮元座標の算出
-				yy = j * 1000 / s;
+				yy = (j - black_padding) * 1000 / s;
 				y = (int) yy;
 				if (layer_num == -1) {
 					Array[j * jwidth + i] = BuffImg[x][y];
@@ -253,13 +254,14 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 			}
 		}
 	} else {
+		i_printf("Preview height apply\n");
 		//浮動小数点演算対策
-		s = jheight / c.height * 1000;
-		black_padding = (jheight / c.height * c.width) / 2;
+		s = jheight * 1000 / c.height;
+		black_padding = (jwidth - jheight * c.width / c.height) / 2;
 		//imgの二次元配列を一次元配列に変換し代入
 		for (i = black_padding; i < jwidth - black_padding; i++) {
 			//拡縮元座標の算出
-			xx = i * 1000 / s;
+			xx = (i - black_padding) * 1000 / s;
 			x = (int) xx;
 			for (j = 0; j < jheight; j++) {
 				//拡縮元座標の算出
