@@ -30,7 +30,7 @@ public class ConnectionAPI {
 				userIP = new String(ip);
 				int size;
 				String str;
-				byte[] w = new byte[10240];
+				byte[] w = new byte[40960];
 				try {
 					// ソケット接続
 					Log.d("test", "接続中:" +ip+","+port);
@@ -82,6 +82,9 @@ public class ConnectionAPI {
 						out.write(w);
 						out.flush();
 						Log.d("test", "send to " + userIP +", message:" + message);
+						w = "#end".getBytes("UTF8");
+						out.write(w);
+						out.flush();
 					}
 				} catch (Exception e) {
 					lisner.showIsConnect(false);

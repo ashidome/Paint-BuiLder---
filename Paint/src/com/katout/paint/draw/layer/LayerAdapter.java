@@ -85,7 +85,7 @@ public class LayerAdapter{
 			layers.get(currentlayer).preview = bitmap;
 		}
 		
-//		func.getPreview(currentlayer, img_map, previewwidth, previewheight);
+		func.getPreview(currentlayer, img_map, previewwidth, previewheight);
 		bitmap.setPixels(img_map, 0, previewwidth, 0, 0, previewwidth, previewheight);
 		img.setImageBitmap(bitmap);
 		
