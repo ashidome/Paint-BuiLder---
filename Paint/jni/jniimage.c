@@ -725,6 +725,8 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
 	brushmap[1].width = jw;
 	brushmap[1].height = jh;
 
+	brush[1].Mode = jmode;
+
 	//新規ブラシマップの適用
 	setBrush(colors, 1);
 
