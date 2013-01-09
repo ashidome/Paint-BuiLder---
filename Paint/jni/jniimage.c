@@ -1303,31 +1303,24 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	src_r = (src & 0x00FF0000) >> 16;
 	src_g = (src & 0x0000FF00) >> 8;
 	src_b = (src & 0x000000FF);
+	src_a = src_a * layerdata[layer_num].alpha / 255;
 
 	dest_a = (dest & 0xFF000000) >> 24;
 	dest_r = (dest & 0x00FF0000) >> 16;
 	dest_g = (dest & 0x0000FF00) >> 8;
 	dest_b = (dest & 0x000000FF);
 
-	src_r = src_r * src_a * layerdata[layer_num].alpha / 255;
-	src_g = src_g * src_a * layerdata[layer_num].alpha / 255;
-	src_b = src_b * src_a * layerdata[layer_num].alpha / 255;
-
-	dest_r = dest_r * (255 - src_a) * (255 - layerdata[layer_num].alpha) / 255;
-	dest_g = dest_g * (255 - src_g) * (255 - layerdata[layer_num].alpha) / 255;
-	dest_b = dest_b * (255 - src_b) * (255 - layerdata[layer_num].alpha) / 255;
-
 	switch (mode) {
 	case 0: //通常
-		r = src_r + dest_r;
+		r = (src_r * src_a + dest_r * (255 - src_a)) / 255;
 		if (r > 255) {
 			r = 255;
 		}
-		g = src_g + dest_g;
+		g = (src_g * src_a + dest_g * (255 - src_a)) / 255;
 		if (g > 255) {
 			g = 255;
 		}
-		b = src_b + dest_b;
+		b = (src_b * src_a + dest_b * (255 - src_a)) / 255;
 		if (b > 255) {
 			b = 255;
 		}
