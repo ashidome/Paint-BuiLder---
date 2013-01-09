@@ -6,13 +6,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.katout.paint.draw.ShareMessage;
-
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.katout.paint.draw.ShareMessage;
 
 public class ConnectCore implements ConnectionAPI.MessageLisner{
 	public static final String IP 	= "157.7.129.168";//サーバのIPアドレス
@@ -57,6 +56,7 @@ public class ConnectCore implements ConnectionAPI.MessageLisner{
 	public void disconnectServer(){
 		if(connect_flag){
 			server_connection.disconnect();
+			connect_flag = false;
 		}
 	}
 	
@@ -115,6 +115,8 @@ public class ConnectCore implements ConnectionAPI.MessageLisner{
 		if(inroom_flag){
 			server_connection.sendMessage("2");
 			disconnectServer();
+			inroom_flag = false;
+			
 		}
 	}
 	

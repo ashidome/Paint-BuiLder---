@@ -201,7 +201,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		alpher_seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			
 			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {}
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				layerAdapter.setAlpher(seekBar.getProgress());
+				//nativefunc.setLayerAlpher(seekBar.getProgress());
+			}
 			
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {}

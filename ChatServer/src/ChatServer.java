@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class ChatServer {
 	public static ArrayList<User> users = new ArrayList<User>();//ユーザ
 	public static ArrayList<Room> rooms = new ArrayList<Room>();//ルーム
+	private static final int PORT = 20;
 	
 	//開始
 	public void start(int port){
@@ -40,6 +41,13 @@ public class ChatServer {
 	//メイン
 	public static void main(String[] args) {
 		ChatServer server=new ChatServer();
-		server.start(50001);
+		server.start(PORT);
+	}
+	
+	public static void removeMember(Room user_room, User u){
+		if(user_room.DelMember(u) == 0){
+			rooms.remove(user_room);
+		}
+		
 	}
 }

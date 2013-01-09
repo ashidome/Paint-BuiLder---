@@ -121,4 +121,8 @@ public class LayerAdapter{
 	public int getCurrentlayer() {
 		return currentlayer;
 	}
+
+	public void setAlpher(int progress) {
+		layers.get(currentlayer).alpha = progress;
+	}
 }

@@ -86,9 +86,9 @@ public class RoomDialog extends Dialog implements View.OnClickListener{
 				// Positiveボタンとリスナを設定
 				alertDialogBuilder.setPositiveButton("はい",
 						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
+							public void onClick(DialogInterface dialog, int which) {
 								if(core.enter_room(Item)){
+									RoomDialog.this.dismiss();
 								}else{
 									Toast.makeText(context,
 											"部屋「" + Item.name + "」に入れません",

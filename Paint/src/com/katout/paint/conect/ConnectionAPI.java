@@ -11,12 +11,12 @@ import android.util.Log;
 
 public class ConnectionAPI {
 
-	private Socket socket; // ソケット
-	private InputStream in; // 入力ストリーム
-	private OutputStream out; // 出力ストリーム
-	private MessageLisner lisner;
-	private String userIP;
-	private String localIP;
+	private Socket			socket;	// ソケット
+	private InputStream		in;		// 入力ストリーム
+	private OutputStream	out;		// 出力ストリーム
+	private MessageLisner	lisner;
+	private String			userIP;
+	private String			localIP;
 
 	public ConnectionAPI(MessageLisner lisner) {
 		this.lisner = lisner;
@@ -26,34 +26,46 @@ public class ConnectionAPI {
 	public void connect(final String ip, final int port) {
 		Thread thread = new Thread(new Runnable() {
 			public void run() {
-				
+
 				userIP = new String(ip);
 				int size;
 				String str;
-				byte[] w = new byte[40960];
+				byte[] w = new byte[10240];
 				try {
 					// ソケット接続
-					Log.d("test", "接続中:" +ip+","+port);
+					Log.d("test", "接続中:" + ip + "," + port);
 					socket = new Socket(ip, port);
 					localIP = InetAddress.getLocalHost().getHostAddress();
 					in = socket.getInputStream();
 					out = socket.getOutputStream();
-					Log.d("test", "接続完了："+ip+","+port);
+					Log.d("test", "接続完了：" + ip + "," + port);
 					sendMessage("2");
-					
+
 					// 受信ループ
 					while (socket != null && socket.isConnected()) {
-						// データ受信
-						size = in.read(w);
-						if (size <= 0)
-							continue;
-						str = new String(w, 0, size, "UTF-8");
-						Log.d("test", "message:" + str);
-						
-						lisner.getMessage(str);
+						String data = "";
+						do {
+							size = in.read(w);
+
+							// 受信しなければ切断
+							if (size <= 0) {
+								throw new Exception();
+							}
+
+							// 読み込み
+							String temp = new String(w, 0, size, "UTF8");
+							if (temp.endsWith("#end")) {
+								data += temp.substring(0, temp.length() - 4);
+								break;
+							} else {
+								data += temp;
+							}
+						} while (true);
+
+						lisner.getMessage(data);
 					}
 				} catch (Exception e) {
-					Log.e("error", "通信失敗しました"+ip+","+port);
+					Log.e("error", "通信失敗しました" + ip + "," + port);
 					lisner.showIsConnect(false);
 				}
 			}
@@ -70,21 +82,19 @@ public class ConnectionAPI {
 		}
 	}
 
-	//ボタンクリックイベントの処理
+	// ボタンクリックイベントの処理
 	public void sendMessage(final String message) {
-		//スレッドの作成
+		// スレッドの作成
 		Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
-					//データ送信
+					// データ送信
 					if (socket != null && socket.isConnected()) {
-						byte[] w = message.getBytes("UTF8");
+						byte[] w = (message + "#end").getBytes("UTF8");
 						out.write(w);
 						out.flush();
-						Log.d("test", "send to " + userIP +", message:" + message);
-						w = "#end".getBytes("UTF8");
-						out.write(w);
-						out.flush();
+						Log.d("test", "send to " + userIP + ", message:"
+								+ message);
 					}
 				} catch (Exception e) {
 					lisner.showIsConnect(false);
@@ -96,15 +106,15 @@ public class ConnectionAPI {
 
 	public interface MessageLisner {
 		void getMessage(String message);
+
 		void showIsConnect(boolean state);
 	}
 
-	
-	public String getUserIP(){
+	public String getUserIP() {
 		return userIP;
 	}
-	
-	public String getLocalIP(){
+
+	public String getLocalIP() {
 		return localIP;
 	}
 }

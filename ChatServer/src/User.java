@@ -32,15 +32,27 @@ public class User extends Thread{
 			in = socket.getInputStream();
 			while(true){
 				try{
+					data = "";
+					do {
+						size = in.read(w);
+
+						//受信しなければ切断
+						if(size <= 0){
+							throw new IOException();
+						}
+
+						//読み込み
+						String temp = new String (w, 0, size, "UTF8");
+						if(temp.endsWith("#end")){
+							data+=temp.substring(0, temp.length()-4);
+							break;
+						}else{
+							data+=temp;
+						}
+					} while (true);
 					//受信待ち
-					size = in.read(w);
-
-					//受信しなければ切断
-					if(size <= 0)
-						throw new IOException();
-
-					//読み込み
-					data = new String (w, 0, size, "UTF8");
+					
+					System.out.println("get message = " + data);
 					int command = Integer.valueOf(data.substring(0,1));
 					String message = data.substring(1);
 					String s_message = "";
@@ -52,7 +64,7 @@ public class User extends Thread{
 						user_room = new Room(message);
 						ChatServer.rooms.add(user_room);
 						System.out.println("部屋作成 :id = " + user_room.getID());
-						sendMessageAll(makeRoomInfo());
+						sendMessageAll(makeRoomInfo(),true);
 						break;
 
 					case 1:
@@ -81,7 +93,7 @@ public class User extends Thread{
 							System.err.println(e);
 							sendMessage(s_message+"NONE");
 						}
-						sendMessageAll(makeRoomInfo());
+						sendMessageAll(makeRoomInfo(),true);
 						break;
 					case 2:
 						//メンバー退室
@@ -98,7 +110,7 @@ public class User extends Thread{
 							}
 							if(state) break;
 						}
-						sendMessageAll(makeRoomInfo());
+						sendMessageAll(makeRoomInfo(),true);
 						break;
 					case 3:
 						//部屋削除(メンバー0人の場合)
@@ -108,8 +120,8 @@ public class User extends Thread{
 								if(room.getIplistSize()==0){
 									System.out.println("部屋削除 :id =" + room.getID());
 									ChatServer.rooms.remove(room);
-									sendMessageAll("50");
-									sendMessageAll(makeRoomInfo());
+									sendMessageAll("50",true);
+									sendMessageAll(makeRoomInfo(),true);
 								}
 								else{
 									System.out.println("部屋は使用中のため削除不可");
@@ -121,7 +133,11 @@ public class User extends Thread{
 						break;
 					case 4:
 						System.out.println("部屋情報送信");
-						sendMessageAll(makeRoomInfo());
+						sendMessageAll(makeRoomInfo(),true);
+						break;
+					case 5:
+						System.out.println("メッセージ");
+						sendMessageAll(message,false);
 					default:
 					}
 				}
@@ -129,6 +145,10 @@ public class User extends Thread{
 					System.out.println("Disconnected:" + user_ip);
 					socket.close();
 					ChatServer.users.remove(this);
+					if(user_room != null){
+						ChatServer.removeMember(user_room, this);
+					}
+					
 					return;
 				}
 			}
@@ -141,18 +161,26 @@ public class User extends Thread{
 	public void sendMessage(String message){
 		try{
 			OutputStream out = socket.getOutputStream();
-			byte[] w = message.getBytes("UTF8");
+			byte[] w = (message+"#end").getBytes("UTF8");
 			out.write(w);
 			out.flush();
 		}catch (IOException e){}
 	}
 
 	//接続しているメンバー全員に一斉配信
-	public void sendMessageAll(String message){
+	public void sendMessageAll(String message, boolean inc_my){
 		for(User user:ChatServer.users){
-			user.sendMessage(message);
+			if(!user.equals(this)){
+				user.sendMessage(message);
+			}else if(inc_my){
+				user.sendMessage(message);
+			}
+
 		}
 	}
+	
+	
+	
 
 	public String makeRoomInfo(){
 		String message ="4{\"room\": [";

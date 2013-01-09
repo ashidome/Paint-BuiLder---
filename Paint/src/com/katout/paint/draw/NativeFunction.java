@@ -65,4 +65,6 @@ public class NativeFunction {
 	
 	public native boolean getBrushRawMap(char[] map);
 	public native boolean getPreview(int num,int[] map,int Previeww,int Previewh);
+
+	public native void setLayerAlpher(int progress) ;
 }
