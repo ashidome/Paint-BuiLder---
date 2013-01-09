@@ -14,8 +14,8 @@
 #define MAX_BRUSH_NUM 2
 
 void brush_draw(int x, int y, int flag);
-void applyEdit();
-void initEditLayer();
+void applyEdit(int flag);
+void initEditLayer(int flag);
 int distance(int x1, int x2, int y1, int y2);
 void setColor(int color, int flag);
 void Bezier(int x1, int y1, int x2, int y2, int x3, int y3, int flag);
@@ -33,9 +33,9 @@ int get_alpha(int c);
 int grayscale(int c);
 int max(int a, int b);
 int min(int a, int b);
-void blendBuff(int x, int y);
+void blendBuff(int x, int y, int flag);
 int Blend_Layer(int mode, int src, int dest);
-void recomposition();
+void recomposition(int flag);
 void initLayer(int current);
 void startDraw(int x, int y, int flag);
 void draw(int x, int y, int flag);
@@ -85,6 +85,7 @@ struct Brush {
 	int width;
 	int height;
 	int color;
+	int Mode;
 };
 
 struct LayerData {
@@ -134,7 +135,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteEditL
 	i_printf("deleteEditLayer\n");
 
 	//編集レイヤの初期化
-	initEditLayer();
+	initEditLayer(0);
 	return JNI_TRUE;
 }
 
@@ -187,7 +188,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_deleteLayer
 	i_printf("Current Layer is %d", layers.current_layer);
 
 	//レイヤー再合成
-	recomposition();
+	recomposition(0);
 	return JNI_TRUE;
 }
 
@@ -205,7 +206,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMod
 	//可視不可視もここで設定
 	layerdata[layers.current_layer].mode = mode;
 	i_printf("mode is %d", layerdata[layers.current_layer].mode);
-	recomposition();
+	recomposition(0);
 	return JNI_TRUE;
 }
 
@@ -382,7 +383,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_endDraw(
 	int i, j;
 
 //EditLayerをimg配列に適用する
-	applyEdit();
+	applyEdit(0);
 
 //EditLayerの初期化
 	for (i = 0; i < c.width; i++) {
@@ -699,19 +700,19 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setMode(
 		JNIEnv* env, jobject obj, jint num) {
 	i_printf("setMode Mode = %d\n", num);
-	Mode = num;
+	brush[0].Mode = num;
 	return JNI_TRUE;
 }
 
 /*
  * 通信共同描画用関数
- * joint(レイヤ番号,ブラシマップ,ブラシマップ幅,ブラシマップ高,ブラシ頻度,ブラシサイズ,色,座標(x,y交互),座標配列サイズ)
+ * joint(レイヤ番号,ブラシマップ,ブラシマップ幅,ブラシマップ高,ブラシ頻度,ブラシサイズ,色,座標(x,y交互),座標配列サイズ,描画モード)
  */
 JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
 		jobject obj, jint jlayer_num, jcharArray jcolor, jint jw, jint jh,
 		jint jfrequency, jint jsize, jint color, jintArray jpoint,
-		jint jpoint_size) {
+		jint jpoint_size, int jmode) {
 	i_printf("joint\n");
 	int i, j;
 
@@ -720,24 +721,24 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
 
 	brushmap[1].frequency = jfrequency;
 
-//ブラシマップサイズの定義
+	//ブラシマップサイズの定義
 	brushmap[1].width = jw;
 	brushmap[1].height = jh;
 
-//新規ブラシマップの適用
+	//新規ブラシマップの適用
 	setBrush(colors, 1);
 
-//色指定
+	//色指定
 	setColor(color, 1);
 
-//サイズ変更の適用
+	//サイズ変更の適用
 	setBrushSize(jsize, 1);
 
 	i_printf("end setBrushSize\n");
 
 	i_printf("points[0] = %d, points[1] = %d\n", points[0], points[1]);
 
-//始点描画
+	//始点描画
 	startDraw(points[0], points[1], 1);
 
 	i_printf("end startDraw\n");
@@ -775,7 +776,7 @@ void brush_draw(int x, int y, int flag) {
 								brush[flag].brush_img[i + bwidth][j + bheight])) {
 					EditLayer[x + i][y + j] =
 							brush[flag].brush_img[i + bwidth][j + bheight];
-					blendBuff(x + i, y + j);
+					blendBuff(x + i, y + j, flag);
 				}
 			}
 		}
@@ -785,20 +786,19 @@ void brush_draw(int x, int y, int flag) {
 /*
  * Buff配列に合成する関数
  */
-void blendBuff(int x, int y) {
+void blendBuff(int x, int y, int flag) {
 	int i;
 	int Pixel = 0xFFDDDDDD;
 	int Edit;
-	int flag = 0;
 
 	if ((x / 30 + y / 30) % 2 == 0) {
 		Pixel = 0xFFFFFFFF;
 	}
 
-	if (Mode == 1) {
+	if (brush[flag].Mode == 1) {
 		Edit = Eraser_Draw(EditLayer[x][y],
 				layerdata[layers.current_layer].img[x][y]);
-	} else if (Mode == 0) {
+	} else if (brush[flag].Mode == 0) {
 		Edit = Normal_Draw(EditLayer[x][y],
 				layerdata[layers.current_layer].img[x][y]);
 	}
@@ -817,11 +817,11 @@ void blendBuff(int x, int y) {
 /*
  * 再合成関数
  */
-void recomposition() {
+void recomposition(int flag) {
 	int i, j;
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			blendBuff(i, j);
+			blendBuff(i, j, flag);
 		}
 	}
 }
@@ -836,17 +836,17 @@ int get_alpha(int c) {
 /*
  * EditLayerの変更をimg配列に適用する関数
  */
-void applyEdit() {
+void applyEdit(int flag) {
 	int i, j;
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
-			if (Mode == 0) {
+			if (brush[flag].Mode == 0) {
 				if (EditLayer[i][j] != 0x00000000) {
 					layerdata[layers.current_layer].img[i][j] = Normal_Draw(
 							EditLayer[i][j],
 							layerdata[layers.current_layer].img[i][j]);
 				}
-			} else if (Mode == 1) {
+			} else if (brush[flag].Mode == 1) {
 				if (EditLayer[i][j] != 0x00000000) {
 					layerdata[layers.current_layer].img[i][j] = Eraser_Draw(
 							EditLayer[i][j],
@@ -860,13 +860,13 @@ void applyEdit() {
 /*
  * EditLayer初期化関数
  */
-void initEditLayer() {
+void initEditLayer(int flag) {
 	int i, j;
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
 			if (EditLayer[i][j] != 0x00000000) {
 				EditLayer[i][j] = 0x00000000;
-				blendBuff(i, j);
+				blendBuff(i, j, flag);
 			}
 		}
 	}
