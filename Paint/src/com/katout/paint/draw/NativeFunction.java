@@ -60,11 +60,12 @@ public class NativeFunction {
 	public native boolean setMode(int num); // 0ならブラシ, 1なら消しゴム
 	
 	public native boolean joint(int layernum,char bmp[], int width, int height,int f,int size,int color,
-			int[] points,int points_size);
+			int[] points,int points_size, int mode);
 	public native boolean getBrushRawSize(int[] size);
 	
 	public native boolean getBrushRawMap(char[] map);
 	public native boolean getPreview(int num,int[] map,int Previeww,int Previewh);
 
-	public native void setLayerAlpher(int progress) ;
+	public native void setLayerAlpha(int progress) ;
+	public native boolean Recomposition();
 }

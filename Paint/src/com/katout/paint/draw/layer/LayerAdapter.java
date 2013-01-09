@@ -6,14 +6,15 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.katout.paint.R;
 import com.katout.paint.draw.NativeFunction;
 
 public class LayerAdapter{
+	private Context context;
 	private LayoutInflater mInflater;
 	public Handler handler;
 	private LinearLayout layouts;
@@ -23,13 +24,16 @@ public class LayerAdapter{
 	private int[] img_map;
 	private int previewheight;
 	private int previewwidth;
+	private NativeFunction func;
 	
-	public LayerAdapter(Context context, LinearLayout layouts) {
+	public LayerAdapter(Context context, LinearLayout layouts, NativeFunction func) {
 		this.layouts = layouts;
 		layers = new ArrayList<LayerData>();
 		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		layernum = 0;
 		currentlayer = 0;
+		this.context = context;
+		this.func = func;
 	}
 	
 	public LinearLayout addLayer(LayerData data){
@@ -38,24 +42,29 @@ public class LayerAdapter{
 		
 		LinearLayout temp;
 		LayerData layerdata = new LayerData();
+		if(layers.size() <= currentlayer+1){
+			layers.add(layerdata);
+		}else{
+			layers.add(currentlayer+1, layerdata);
+		}
+		
+		
 		layerdata.layout = (LinearLayout) mInflater.inflate(
 				R.layout.layer_column, null);
-				
-		layerdata.alpha = 100;
-		layerdata.layermode = 0;
-		layers.add(currentlayer, layerdata);
+		setAlpher(255);
+		setLayermode(0);
 		temp = layerdata.layout;
 			
-		for(int j = layers.size() - 1; j > -1 ; j--){
+		for(int j = layers.size()-1; j >= 0   ; j--){
 			layouts.addView(layers.get(j).layout);
-			layers.get(j).layout.setTag(j);
-		}
-		if(layernum!=0){
-			currentlayer++;
+			layers.get(j).layout.setTag(j );
 		}
 		layernum++;
+		if(layernum>1){
+			currentlayer++;
+		}
+		
 		selectLayer(currentlayer);
-
 		return temp;
 	}
 	/** 
@@ -72,7 +81,7 @@ public class LayerAdapter{
 		}
 	}
 	
-	public void setPreview(NativeFunction func){
+	public void setPreview(){
 		ImageView img = (ImageView) layers.get(currentlayer).layout.findViewById(R.id.preview_image);
 		if(img_map == null){
 			previewwidth = img.getWidth();
@@ -111,7 +120,10 @@ public class LayerAdapter{
 	}
 	
 	public void setLayermode(int num){
-		layers.get(currentlayer).layermode = num;
+		LayerData data = layers.get(currentlayer);
+		data.layermode = num;
+		TextView text = (TextView)data.layout.findViewById(R.id.layer_mode);
+		text.setText(context.getResources().getStringArray(R.array.SpinnerItems)[data.layermode]);
 	}
 	
 	public int getLayermode(){
@@ -123,6 +135,13 @@ public class LayerAdapter{
 	}
 
 	public void setAlpher(int progress) {
-		layers.get(currentlayer).alpha = progress;
+		LayerData data = layers.get(currentlayer);
+		data.alpha = progress;
+		TextView text = (TextView)data.layout.findViewById(R.id.layer_alpha);
+		text.setText("不透明度："+progress);
+	}
+
+	public int getLayerAlpha() {
+		return layers.get(currentlayer).alpha;
 	}
 }

@@ -8,19 +8,17 @@ import android.content.DialogInterface.OnCancelListener;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class RepaintAsyncTask extends AsyncTask<String, Integer, Long>
+public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 		implements OnCancelListener {
 
 	final String	TAG	= "MyAsyncTask";
 	ProgressDialog	dialog;
 	Context			context;
 	NativeFunction nativefunc;
-	int position;
 
-	public RepaintAsyncTask(Context context, NativeFunction nativefunc,int position) {
+	public RecompositionAsyncTask(Context context, NativeFunction nativefunc) {
 		this.context = context;
 		this.nativefunc = nativefunc;
-		this.position = position;
 	}
 
 	@Override
@@ -37,7 +35,7 @@ public class RepaintAsyncTask extends AsyncTask<String, Integer, Long>
 	@Override
 	protected Long doInBackground(String... params) {
 
-		nativefunc.setLayerMode(position);
+		nativefunc.Recomposition();
 		return 123L;
 	}
 

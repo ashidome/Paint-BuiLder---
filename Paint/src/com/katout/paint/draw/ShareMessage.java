@@ -14,6 +14,7 @@ public class ShareMessage {
 	int[]	points;
 	int		points_size;
 	int		color;
+	int		mode;
 
 	public void setMessage(String root) {
 		try {
@@ -25,6 +26,7 @@ public class ShareMessage {
 			size = j_root.getInt("size");
 			points_size = j_root.getInt("points_size");
 			color = j_root.getInt("color");
+			mode = j_root.getInt("mode");
 
 			JSONArray j_points = j_root.getJSONArray("points");
 			int t = j_points.length();
@@ -56,6 +58,7 @@ public class ShareMessage {
 			j_root.put("size", size);
 			j_root.put("points_size", points_size);
 			j_root.put("color", color);
+			j_root.put("mode", mode);
 
 			JSONArray j_bmp = new JSONArray();
 			for (int i = 0; i < bmp.length; i++) {

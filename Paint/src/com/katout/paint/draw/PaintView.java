@@ -386,5 +386,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	public void setMode(PaintMode mode) {
 		this.mode = mode;
 	}
+	
+	public PaintMode getMode(){
+		return mode;
+	}
 
 }

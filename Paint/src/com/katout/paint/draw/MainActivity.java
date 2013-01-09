@@ -82,9 +82,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		connectCore = new ConnectCore(this, handler, new ConnectCore.ShareMessageInterface() {
 			@Override
 			public void getMassage(ShareMessage message) {
+
 				nativefunc.joint(message.layernum, message.bmp, message.width, 
 						message.height, message.f, message.size, message.color, 
-						message.points, message.points_size);
+						message.points, message.points_size, message.mode);
 			}
 		});
 
@@ -113,7 +114,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		colorV_t.setColor(color);
 		colorV_b.setColor(color);
 		nativefunc.setColor(color);
-
 	}
 
 	@Override
@@ -178,7 +178,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 		LinearLayout layer_l = (LinearLayout) paint_layer_l
 				.findViewById(R.id.layer);
-		layerAdapter = new LayerAdapter(this, layer_l);
+		layerAdapter = new LayerAdapter(this, layer_l,nativefunc);
 		alpher_seek = (SeekBar)findViewById(R.id.seek_alphr);
 
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
@@ -191,7 +191,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 												View view, int position, long id) {
 						if(!spinerflag){
 							layerAdapter.setLayermode(position);
-							new RepaintAsyncTask(MainActivity.this, nativefunc, position).execute();
+							nativefunc.setLayerMode(position);
+							new RecompositionAsyncTask(MainActivity.this, nativefunc).execute();
 						}
 						spinerflag = false;
 					}
@@ -203,7 +204,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				layerAdapter.setAlpher(seekBar.getProgress());
-				//nativefunc.setLayerAlpher(seekBar.getProgress());
+				//nativefunc.setLayerAlpha(seekBar.getProgress());
+				new RecompositionAsyncTask(MainActivity.this, nativefunc).execute();
 			}
 			
 			@Override
@@ -317,6 +319,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					j_message.size = seek_brush_b.getProgress();
 					j_message.layernum =  layerAdapter.getCurrentlayer();
 					j_message.points = new int[list.size()]; 
+					PaintMode mode = paint.getMode();
+					j_message.mode = 0;
+					if(mode == PaintMode.Eraser){
+						j_message.mode = 1;
+					}
 					int i = 0;
 					for(Iterator<Integer> iter = list.iterator();iter.hasNext();){ 
 						j_message.points[i] = ((Integer)iter.next()).intValue(); 
@@ -326,7 +333,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					String mes = j_message.getMessage();
 					connectCore.shareMessage(mes);
 				}
-				layerAdapter.setPreview(nativefunc);
+				layerAdapter.setPreview();
 			}
 		});
 	}
@@ -403,6 +410,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				layerAdapter.selectLayer(temp);
 				spinerflag = true;
 				spinner_l.setSelection(layerAdapter.getLayermode());
+				alpher_seek.setProgress(layerAdapter.getLayerAlpha());
+				Toast.makeText(MainActivity.this, "tag:"+ temp, Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
@@ -411,6 +420,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		boolean temp = layerAdapter.deleteLayer();
 		if(temp){
 			nativefunc.deleteLayer();
+			new RecompositionAsyncTask(MainActivity.this, nativefunc).execute();
 		}
 	}
 
