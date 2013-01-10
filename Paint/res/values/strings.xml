@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">Paint</string>
+    <string name="app_name">PaintBuiLder</string>
     <string name="menu_settings">Settings</string>
     <string name="file">file</string>
     <string name="color">color</string>
@@ -14,11 +14,24 @@
     <string name="delete_layer">Delete</string>
     <string name="bucket">bucket</string>
     <string name="shere">Shere</string>
-        <color name="bgcolor">#FFFFFF</color>
+
+    <color name="bgcolor">#FFFFFF</color>
+
     <string name="main_activity">部屋選択</string>
+    <string name="paint_button">描画モード</string>
+    <string name="com_button">通信モード</string>
+    <string name="room_select">部屋選択</string>
     <string name="make_room">部屋作成</string>
     <string name="refresh">更新</string>
-    <string name="textview"></string>
     <string name="send">送信</string>
+    <string name="blank"></string>
+    <string name="up_directory">../</string>
+    <string name="make_shelf">作\n成</string>
+    <string name="make_book">ノ\n｜\nト\nと\nし\nて\n認\n識</string>
+    <string name="create">作成</string>
+    <string name="delete">削除</string>
+    <string name="right">右へ</string>
+    <string name="left">左へ</string>
+    <string name="miss">失敗</string>
 
 </resources>

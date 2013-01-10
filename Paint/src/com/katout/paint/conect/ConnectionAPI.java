@@ -29,7 +29,6 @@ public class ConnectionAPI {
 
 				userIP = new String(ip);
 				int size;
-				String str;
 				byte[] w = new byte[10240];
 				try {
 					// ソケット接続
