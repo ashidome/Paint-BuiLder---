@@ -548,6 +548,16 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setPosition(JNIEnv* env,
 }
 
 JNIEXPORT jboolean
+JNICALL Java_com_katout_paint_draw_NativeFunction_setPositionD(JNIEnv* env,
+		jobject obj) {
+	i_printf("setPositionD\n");
+	disp.x = 0;
+	disp.y = 0;
+
+	return JNI_TRUE;
+}
+
+JNIEXPORT jboolean
 JNICALL Java_com_katout_paint_draw_NativeFunction_setRadian(JNIEnv* env,
 		jobject obj, jdouble rad) {
 	i_printf("setRadian\n");
