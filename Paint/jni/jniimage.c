@@ -272,8 +272,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 			Array[j * jwidth + i] = 0xFF000000;
 		}
 	}
+	i_printf("width = %d, height = %d\n", jwidth, jheight);
 
-	if (c.height / jheight < c.width / jwidth) {
+	if ((double) c.height / jheight < (double) c.width / jwidth) {
 		i_printf("Preview width apply\n");
 		//浮動小数点演算対策
 		s = jwidth * 1000 / c.width;
@@ -300,6 +301,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 		//浮動小数点演算対策
 		s = jheight * 1000 / c.height;
 		black_padding = (jwidth - jheight * c.width / c.height) / 2;
+
+		i_printf("s = %d, black_padding = %d\n", s, black_padding);
 		//imgの二次元配列を一次元配列に変換し代入
 		for (i = black_padding; i < jwidth - black_padding; i++) {
 			//拡縮元座標の算出
@@ -404,7 +407,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setBrushSiz
 		JNIEnv* env, jobject obj, jint jsize) {
 //jsize = 1~500
 //使用時に√x * 3.0 で補正;
-	i_printf("setBrushSize\n");
+	i_printf("setBrushSize JNI\n");
 	setBrushSize(jsize, 0);
 	return JNI_TRUE;
 }
