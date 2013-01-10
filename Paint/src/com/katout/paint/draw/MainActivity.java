@@ -204,7 +204,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				layerAdapter.setAlpher(seekBar.getProgress());
-				//nativefunc.setLayerAlpha(seekBar.getProgress());
+				nativefunc.setLayerAlpha(seekBar.getProgress());
 				new RecompositionAsyncTask(MainActivity.this, nativefunc).execute();
 			}
 			
