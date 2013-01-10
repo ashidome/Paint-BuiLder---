@@ -278,14 +278,14 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 		i_printf("Preview width apply\n");
 		//浮動小数点演算対策
 		s = jwidth * 1000 / c.width;
-		black_padding = (jheight - jwidth * c.height / c.width) / 2;
+		black_padding = (jheight - jwidth * (double) c.height / c.width) / 2;
 
 		//imgの二次元配列を一次元配列に変換し代入
 		for (i = 0; i < jwidth; i++) {
 			//拡縮元座標の算出
 			xx = i * 1000 / s;
 			x = (int) xx;
-			for (j = black_padding; j < jheight - black_padding; j++) {
+			for (j = black_padding; j < jheight - black_padding - 1; j++) {
 				//拡縮元座標の算出
 				yy = (j - black_padding) * 1000 / s;
 				y = (int) yy;
@@ -300,11 +300,11 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 		i_printf("Preview height apply\n");
 		//浮動小数点演算対策
 		s = jheight * 1000 / c.height;
-		black_padding = (jwidth - jheight * c.width / c.height) / 2;
+		black_padding = (jwidth - jheight * (double) c.width / c.height) / 2;
 
 		i_printf("s = %d, black_padding = %d\n", s, black_padding);
 		//imgの二次元配列を一次元配列に変換し代入
-		for (i = black_padding; i < jwidth - black_padding; i++) {
+		for (i = black_padding; i < jwidth - black_padding - 1; i++) {
 			//拡縮元座標の算出
 			xx = (i - black_padding) * 1000 / s;
 			x = (int) xx;
