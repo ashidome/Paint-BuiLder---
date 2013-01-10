@@ -563,7 +563,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		JNIEnv* env, jobject obj, jint x, jint y, jint jflag, jintArray jmap) {
 	i_printf("init\n");
 	//flag == 1 のときmap利用
-	//初回フラグ
+	//初回フラグinit_flag
 	//既に初期化されていればfalse,初期化されていなければtrue
 
 	if (init_flag == 1) {
@@ -894,12 +894,8 @@ void blendBuff(int x, int y, int flag) {
 	}
 	for (i = 0; i < layers.layer_max; i++) {
 		if (i == layers.current_layer) {
-			if (i == 0) {
-				Pixel = Edit;
-			} else {
-				Pixel = Blend_Layer(layerdata[layers.current_layer].mode, Edit,
-						Pixel, i);
-			}
+			Pixel = Blend_Layer(layerdata[layers.current_layer].mode, Edit,
+					Pixel, i);
 		} else {
 			Pixel = Blend_Layer(layerdata[i].mode, layerdata[i].img[x][y],
 					Pixel, i);
@@ -1287,14 +1283,14 @@ void setBrushSize(int size, int flag) {
  * flag = 1 は共同描画用
  */
 void startDraw(int x, int y, int flag) {
-//始点の保持
+	//始点の保持
 	dp[flag].x = x;
 	dp[flag].y = y;
 
-//始点の描画
+	//始点の描画
 	brush_draw(dp[flag].x, dp[flag].y, flag);
 
-//次点フラグをオフ（次のdraw呼出ポイントを2点目とする）
+	//次点フラグをオフ（次のdraw呼出ポイントを2点目とする）
 	dp[flag].flag = 0;
 }
 
@@ -1303,19 +1299,19 @@ void startDraw(int x, int y, int flag) {
  * flag = 1 は共同描画用
  */
 void draw(int x, int y, int flag) {
-//3点目である場合
+	//3点目である場合
 	if (dp[flag].flag == 1) {
-//3点Bezier曲線描画
+		//3点Bezier曲線描画
 		Bezier(dp[flag].x, dp[flag].y, dp[flag].x2, dp[flag].y2, x, y, flag);
 
-//2点目を次回の1点目にする
+		//2点目を次回の1点目にする
 		dp[flag].x = dp[flag].x2;
 		dp[flag].y = dp[flag].y2;
-//3点目を次回の2点目にする
+		//3点目を次回の2点目にする
 		dp[flag].x2 = x;
 		dp[flag].y2 = y;
 	} else {
-//2点目である場合
+		//2点目である場合
 		dp[flag].x2 = x;
 		dp[flag].y2 = y;
 	}
@@ -1330,7 +1326,7 @@ int grayscale(int c) {
 	int gray;
 	int MAX, MIN;
 
-//a = (c & 0xFF000000) >> 24;
+	//a = (c & 0xFF000000) >> 24;
 	r = (c & 0x00FF0000) >> 16;
 	g = (c & 0x0000FF00) >> 8;
 	b = (c & 0x000000FF);
@@ -1340,7 +1336,7 @@ int grayscale(int c) {
 
 	gray = (MAX + MIN) / 2;
 
-//gray = (77 * r + 150 * g + 29 * b) >> 8;
+	//gray = (77 * r + 150 * g + 29 * b) >> 8;
 
 	return (255 - gray);
 }
@@ -1363,14 +1359,14 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	int a, r, g, b;
 	int result;
 
-//上側
+	//上側
 	src_a = (src & 0xFF000000) >> 24;
 	src_r = (src & 0x00FF0000) >> 16;
 	src_g = (src & 0x0000FF00) >> 8;
 	src_b = (src & 0x000000FF);
 	src_a = src_a * layerdata[layer_num].alpha / 255;
 
-//下側
+	//下側
 	dest_a = (dest & 0xFF000000) >> 24;
 	dest_r = (dest & 0x00FF0000) >> 16;
 	dest_g = (dest & 0x0000FF00) >> 8;
