@@ -312,7 +312,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						int h = bitmap.getHeight();
 						int[] map = new int[w*h];
 						bitmap.getPixels(map, 0, w, 0, 0, w, h);
-						return nativefunc.init(w, h,0,map);
+						return nativefunc.init(w, h,1,map);
 					} catch (FileNotFoundException e) {
 						// TODO 自動生成された catch ブロック
 						e.printStackTrace();
