@@ -104,6 +104,7 @@ static struct Brush *brush;
 static struct LayerData *layerdata;
 static int Size;
 static int theta;
+static int init_flag = 0;
 
 static int ***EditLayer;
 static int **BuffImg;
@@ -208,15 +209,38 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMod
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerAlpha(
 		JNIEnv* env, jobject obj, jint progress) {
-	i_printf("setLayerAlpha");
+	i_printf("setLayerAlpha\n");
 	i_printf("set alpha = %d", progress);
 	layerdata[layers.current_layer].alpha = progress;
 	return JNI_TRUE;
 }
 
+JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getLayerNum(
+		JNIEnv* env, jobject obj) {
+	i_printf("getLayerNum\n");
+	return layers.layer_max;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getLayersData(
+		JNIEnv* env, jobject obj, jintArray jmode, jintArray jalpha) {
+	i_printf("getLayersData\n");
+	jint* mode = (*env)->GetIntArrayElements(env, jmode, 0);
+	jint* alpha = (*env)->GetIntArrayElements(env, jalpha, 0);
+	int i;
+
+	for (i = 0; i < layers.layer_max; i++) {
+		mode[i] = layerdata[i].mode;
+		alpha[i] = layerdata[i].alpha;
+	}
+
+	(*env)->ReleaseIntArrayElements(env, jmode, mode, 0);
+	(*env)->ReleaseIntArrayElements(env, jalpha, alpha, 0);
+	return JNI_TRUE;
+}
+
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Recomposition(
 		JNIEnv* env, jobject obj) {
-	i_printf("Recomposition");
+	i_printf("Recomposition\n");
 	recomposition(0);
 	return JNI_TRUE;
 }
@@ -424,11 +448,13 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Bucket(
 
 JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getCanvasHeight(
 		JNIEnv* env, jobject obj) {
+	i_printf("getCanvasHeight\n");
 	return c.height;
 }
 
 JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getCanvasWidth(
 		JNIEnv* env, jobject obj) {
+	i_printf("getCanvasWidth\n");
 	return c.width;
 }
 
@@ -528,131 +554,151 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_setScale(JNIEnv* env,
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
-		JNIEnv* env, jobject obj, jint x, jint y) {
+		JNIEnv* env, jobject obj, jint x, jint y, jint jflag, jintArray jmap) {
 	i_printf("init\n");
-	int i, j, k;
-	c.width = x;
-	c.height = y;
-	disp.x = 0;
-	disp.y = 0;
-	scale = 1.0;
+	//flag == 1 のときmap利用
+	//初回フラグ
+	//既に初期化されていればfalse,初期化されていなければtrue
 
-	//layerdataの確保と初期化
-	layerdata = (struct LayerData*) malloc(
-			sizeof(struct LayerData) * MAX_LAYER_SIZE);
-	for (i = 0; i < MAX_LAYER_SIZE; i++) {
-		layerdata[i].img = (int **) malloc(sizeof(int*) * c.width);
-		for (j = 0; j < c.width; j++) {
-			layerdata[i].img[j] = (int*) malloc(sizeof(int) * c.height);
-		}
-	}
-	for (i = 0; i < MAX_LAYER_SIZE; i++) {
-		for (j = 0; j < c.width; j++) {
-			for (k = 0; k < c.height; k++) {
-				layerdata[i].img[j][k] = 0x00FFFFFF;
+	if (init_flag == 1) {
+		return JNI_FALSE;
+	} else {
+		jint* map = (*env)->GetIntArrayElements(env, jmap, 0);
+
+		int i, j, k;
+		c.width = x;
+		c.height = y;
+		disp.x = 0;
+		disp.y = 0;
+		scale = 1.0;
+
+		//layerdataの確保と初期化
+		layerdata = (struct LayerData*) malloc(
+				sizeof(struct LayerData) * MAX_LAYER_SIZE);
+		for (i = 0; i < MAX_LAYER_SIZE; i++) {
+			layerdata[i].img = (int **) malloc(sizeof(int*) * c.width);
+			for (j = 0; j < c.width; j++) {
+				layerdata[i].img[j] = (int*) malloc(sizeof(int) * c.height);
 			}
 		}
-	}
-	for (i = 0; i < c.width; i++) {
-		for (j = 0; j < c.height; j++) {
-			layerdata[0].img[i][j] = 0xFFFFFFFF;
-		}
-	}
-
-//レイヤーモード配列確保と初期化
-	for (i = 0; i < MAX_LAYER_SIZE; i++) {
-		layerdata[i].mode = 0;
-		layerdata[i].alpha = 255;
-	}
-
-	//EditLayerの確保と初期化
-	EditLayer = (int***) malloc(sizeof(int **) * MAX_BRUSH_NUM);
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		EditLayer[i] = (int **) malloc(sizeof(int*) * c.width);
-		for (j = 0; j < c.width; j++) {
-			EditLayer[i][j] = (int*) malloc(sizeof(int) * c.height);
-		}
-	}
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		for (j = 0; j < c.width; j++) {
-			for (k = 0; k < c.height; k++) {
-				EditLayer[i][j][k] = 0x00000000;
+		for (i = 0; i < MAX_LAYER_SIZE; i++) {
+			for (j = 0; j < c.width; j++) {
+				for (k = 0; k < c.height; k++) {
+					layerdata[i].img[j][k] = 0x00FFFFFF;
+				}
 			}
 		}
-	}
-	//バッファ配列の確保と初期化
-	BuffImg = (int **) malloc(sizeof(int*) * c.width);
-	for (i = 0; i < c.width; i++) {
-		BuffImg[i] = (int*) malloc(sizeof(int) * c.height);
-	}
-	for (i = 0; i < c.width; i++) {
-		for (j = 0; j < c.height; j++) {
-			BuffImg[i][j] = 0xFFFFFFFF;
-		}
-	}
-
-	//brushmapの確保と初期化
-	brushmap = (struct BrushMap*) malloc(
-			sizeof(struct BrushMap) * MAX_BRUSH_NUM);
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		brushmap[i].map_img = (char **) malloc(sizeof(char*) * MAX_BRUSH_WIDTH);
-		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
-			brushmap[i].map_img[j] = (char*) malloc(
-					sizeof(char) * MAX_BRUSH_HEIGHT);
-		}
-	}
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
-			for (k = 0; k < MAX_BRUSH_HEIGHT; k++) {
-				brushmap[i].map_img[j][k] = 255;
+		for (i = 0; i < c.width; i++) {
+			for (j = 0; j < c.height; j++) {
+				if (jflag == 0) {
+					layerdata[0].img[i][j] = 0xFFFFFFFF;
+				} else {
+					layerdata[0].img[i][j] = map[j * c.width + i];
+				}
 			}
 		}
-	}
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		brushmap[i].width = 10;
-		brushmap[i].height = 10;
-		brushmap[i].frequency = 30;
-	}
 
-	//brushの確保と初期化
-	brush = (struct Brush*) malloc(sizeof(struct Brush) * 2);
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		brush[i].brush_img = (int **) malloc(
-				sizeof(int*) * MAX_BRUSH_WIDTH * 20);
-		for (j = 0; j < MAX_BRUSH_WIDTH * 20; j++) {
-			brush[i].brush_img[j] = (int*) malloc(
-					sizeof(int) * MAX_BRUSH_HEIGHT * 20);
+		//レイヤーモード配列確保と初期化
+		for (i = 0; i < MAX_LAYER_SIZE; i++) {
+			layerdata[i].mode = 0;
+			layerdata[i].alpha = 255;
 		}
-	}
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		brush[i].width = 10;
-		brush[i].height = 10;
-		brush[i].color = 0xFFFFFFFF;
-		brush[i].Mode = 0;
-	}
 
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		for (j = 0; j < brush[i].width; j++) {
-			for (k = 0; k < brush[i].height; k++) {
-				brush[i].brush_img[j][k] = brushmap[i].map_img[j][k];
+		//EditLayerの確保と初期化
+		EditLayer = (int***) malloc(sizeof(int **) * MAX_BRUSH_NUM);
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			EditLayer[i] = (int **) malloc(sizeof(int*) * c.width);
+			for (j = 0; j < c.width; j++) {
+				EditLayer[i][j] = (int*) malloc(sizeof(int) * c.height);
 			}
 		}
-	}
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			for (j = 0; j < c.width; j++) {
+				for (k = 0; k < c.height; k++) {
+					EditLayer[i][j][k] = 0x00000000;
+				}
+			}
+		}
+		//バッファ配列の確保と初期化
+		BuffImg = (int **) malloc(sizeof(int*) * c.width);
+		for (i = 0; i < c.width; i++) {
+			BuffImg[i] = (int*) malloc(sizeof(int) * c.height);
+		}
+		for (i = 0; i < c.width; i++) {
+			for (j = 0; j < c.height; j++) {
+				BuffImg[i][j] = 0xFFFFFFFF;
+			}
+		}
 
-//DrawPoints配列の確保と初期化
-	dp = (struct DrawPoints*) malloc(sizeof(struct DrawPoints) * MAX_BRUSH_NUM);
-	for (i = 0; i < MAX_BRUSH_NUM; i++) {
-		dp[i].flag = 0;
-		dp[i].x = 0;
-		dp[i].x2 = 0;
-		dp[i].y = 0;
-		dp[i].y2 = 0;
-	}
+		//brushmapの確保と初期化
+		brushmap = (struct BrushMap*) malloc(
+				sizeof(struct BrushMap) * MAX_BRUSH_NUM);
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			brushmap[i].map_img = (char **) malloc(
+					sizeof(char*) * MAX_BRUSH_WIDTH);
+			for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
+				brushmap[i].map_img[j] = (char*) malloc(
+						sizeof(char) * MAX_BRUSH_HEIGHT);
+			}
+		}
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
+				for (k = 0; k < MAX_BRUSH_HEIGHT; k++) {
+					brushmap[i].map_img[j][k] = 255;
+				}
+			}
+		}
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			brushmap[i].width = 10;
+			brushmap[i].height = 10;
+			brushmap[i].frequency = 30;
+		}
 
-	layers.layer_max = 1;
-	layers.current_layer = 0;
-	Size = 16;
-	return JNI_TRUE;
+		//brushの確保と初期化
+		brush = (struct Brush*) malloc(sizeof(struct Brush) * 2);
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			brush[i].brush_img = (int **) malloc(
+					sizeof(int*) * MAX_BRUSH_WIDTH * 20);
+			for (j = 0; j < MAX_BRUSH_WIDTH * 20; j++) {
+				brush[i].brush_img[j] = (int*) malloc(
+						sizeof(int) * MAX_BRUSH_HEIGHT * 20);
+			}
+		}
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			brush[i].width = 10;
+			brush[i].height = 10;
+			brush[i].color = 0xFFFFFFFF;
+			brush[i].Mode = 0;
+		}
+
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			for (j = 0; j < brush[i].width; j++) {
+				for (k = 0; k < brush[i].height; k++) {
+					brush[i].brush_img[j][k] = brushmap[i].map_img[j][k];
+				}
+			}
+		}
+
+		//DrawPoints配列の確保と初期化
+		dp = (struct DrawPoints*) malloc(
+				sizeof(struct DrawPoints) * MAX_BRUSH_NUM);
+		for (i = 0; i < MAX_BRUSH_NUM; i++) {
+			dp[i].flag = 0;
+			dp[i].x = 0;
+			dp[i].x2 = 0;
+			dp[i].y = 0;
+			dp[i].y2 = 0;
+		}
+
+		layers.layer_max = 1;
+		layers.current_layer = 0;
+		Size = 16;
+
+		init_flag = 1;
+
+		(*env)->ReleaseIntArrayElements(env, jmap, map, 0);
+		return JNI_TRUE;
+	}
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
