@@ -706,6 +706,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		init_flag = 1;
 
 		if (jflag == 1) {
+			recomposition(0);
 			(*env)->ReleaseIntArrayElements(env, jmap, map, 0);
 		}
 		return JNI_TRUE;
