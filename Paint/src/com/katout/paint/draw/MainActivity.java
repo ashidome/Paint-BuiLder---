@@ -89,7 +89,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
-		spinerflag = false;
 		connectCore = new ConnectCore(this, handler, new ConnectCore.ShareMessageInterface() {
 			@Override
 			public void getMassage(ShareMessage message) {
@@ -180,6 +179,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	@Override
 	public void onContentChanged() {
 		super.onContentChanged();
+		spinerflag = true;
 		paint_menu_t = (LinearLayout) findViewById(R.id.paint_menu_t);
 		paint_menu_b = (LinearLayout) findViewById(R.id.paint_menu_b);
 		colorV_t = (ColorView) paint_menu_t.findViewById(R.id.colorview);
