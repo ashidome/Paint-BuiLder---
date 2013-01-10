@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -37,6 +38,11 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 		super.onCreate(bundle);
 		setContentView(R.layout.book_shelf_layout);
 		current_path = new String(root_path) + "/paint";
+		Intent intent = this.getIntent();
+		String path = intent.getStringExtra("path");
+		if(path != null){
+			current_path = path;
+		}
 		back = (Button)findViewById(R.id.back);
 		title = (TextView)findViewById(R.id.title);
 		back.setOnClickListener(this);
@@ -55,7 +61,9 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 		Items = new ArrayList<FileData>();
 		Items.clear();
 		for(int i = 0 ; i < filelist.length; i++){
-			Items.add(new FileData(filelist[i].toString(),filelist[i].getName()));
+			if(filelist[i].isDirectory() | BooksAPI.isImage(filelist[i].getName())){
+				Items.add(new FileData(filelist[i].getParent(),filelist[i].getName()));
+			}
 		}
 
 		//リストビューの生成
@@ -128,7 +136,7 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 		File[] files =new File(path).listFiles();
 		
 		for(int i = 0 ; i < files.length; i++){
-			items.add(new FileData(files[i].toString(), files[i].getName()));
+			items.add(new FileData(files[i].getParent(),files[i].getName()));
 		}
 
 		//リストビューの生成

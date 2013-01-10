@@ -42,43 +42,51 @@ public class DrawBookPagerAdapter extends PagerAdapter{
 		View[] views = new View[files.length];
 		
 		for(int i = 0; i < files.length; i++){
-			views[i] = mInflater.inflate(R.layout.draw_book_view, pager, false);
-			views[i].setTag(files[i].getPath());
-			
-			//サムネイルの作成
-			ImageView img = (ImageView)views[i].findViewById(R.id.file_image);
-			FileInputStream f_input = null;
-			BufferedInputStream buf = null;
-			try{
-				f_input = new FileInputStream(files[i].getPath());
-				buf = new BufferedInputStream(f_input);
-				Bitmap bitmap = BitmapFactory.decodeStream(buf);
-				img.setImageBitmap(bitmap);
-				f_input.close();
-				buf.close();
-			}
-			catch(FileNotFoundException e){
-				e.printStackTrace();
-			}
-			catch(IOException e){
-				e.printStackTrace();
-			}
-			
-			Button file_name = (Button)views[i].findViewById(R.id.file_name);
-			file_name.setText(files[i].getName());
-			file_name.setTag(files[i].getParent());
-			file_name.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					Button button = (Button)v;
-					Intent intent=new Intent(context,MainActivity.class);
-					intent.putExtra("path", button.getTag().toString());
-					intent.putExtra("newflag",false);//新規押した時、フォルダのパス
-					intent.putExtra("name", button.getText().toString());
-					context.startActivity(intent);
+			String name = files[i].getName();
+			if(BooksAPI.isImage(name)){
+				views[i] = mInflater.inflate(R.layout.draw_book_view, pager, false);
+				views[i].setTag(files[i].getPath());
+				//サムネイルの作成
+				ImageView img = (ImageView)views[i].findViewById(R.id.file_image);
+				Bitmap bitmap = ImageCache.getImage(files[i].getPath());
+				if(bitmap == null){
+					FileInputStream f_input = null;
+					BufferedInputStream buf = null;
+					try{
+						f_input = new FileInputStream(files[i].getPath());
+						buf = new BufferedInputStream(f_input);
+						ImageCache.getImage(files[i].getPath());
+						bitmap = BitmapFactory.decodeStream(buf);
+						f_input.close();
+						buf.close();
+						ImageCache.setImage(files[i].getPath(), bitmap);
+					}
+					catch(FileNotFoundException e){
+						e.printStackTrace();
+					}
+					catch(IOException e){
+						e.printStackTrace();
+					}
 				}
-			});
-			pager.addView(views[i], i);
+				img.setImageBitmap(bitmap);
+				
+				
+				Button file_name = (Button)views[i].findViewById(R.id.file_name);
+				file_name.setText(files[i].getName());
+				file_name.setTag(files[i].getParent());
+				file_name.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Button button = (Button)v;
+						Intent intent=new Intent(context,MainActivity.class);
+						intent.putExtra("path", button.getTag().toString());
+						intent.putExtra("newflag",false);//新規押した時、フォルダのパス
+						intent.putExtra("name", button.getText().toString());
+						context.startActivity(intent);
+					}
+				});
+				pager.addView(views[i], i);
+			}
 		}
 		return views[position];
 	}

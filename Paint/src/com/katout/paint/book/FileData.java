@@ -18,4 +18,8 @@ public class FileData {
 	public String getName() {
 		return name;
 	}
+	
+	public String getFullPath(){
+		return path + "/"+name;
+	}
 }

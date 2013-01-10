@@ -14,6 +14,7 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.katout.paint.R;
@@ -25,6 +26,8 @@ public class DrawBookActivity extends Activity implements OnClickListener{
 	private View other;
 	private PagerAdapter pa;
 	private String path;
+	private SeekBar seek;
+	private int pagenum;
 
 	@Override
 	public void onCreate(Bundle bundle){
@@ -32,16 +35,28 @@ public class DrawBookActivity extends Activity implements OnClickListener{
 
 		Intent intent = this.getIntent();
 		path = intent.getStringExtra("path");
+		BooksAPI.makeDirectory("paint", Environment.getExternalStorageDirectory().toString());
 		if(path == null){
 			path = Environment.getExternalStorageDirectory().toString() + "/paint";
-			BooksAPI.isBook(path);
 		}
 
 		setContentView(R.layout.draw_book_layout);
-
-		viewPager = (ViewPager)findViewById(R.id.view_pager);
-		pa = new DrawBookPagerAdapter(this,path);
-		viewPager.setAdapter(pa);
+		seek = (SeekBar)findViewById(R.id.seek);
+		seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			@Override
+			public void onStopTrackingTouch(SeekBar arg0) {}
+			@Override
+			public void onStartTrackingTouch(SeekBar arg0) {}
+			@Override
+			public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
+				if(pagenum > 1){
+					viewPager.setCurrentItem(arg1);
+				}else{
+					arg0.setProgress(1);
+				}
+				
+			}
+		});
 
 		//ボタンのセット
 		Button create = (Button)findViewById(R.id.create);
@@ -50,17 +65,33 @@ public class DrawBookActivity extends Activity implements OnClickListener{
 		Button delete = (Button)findViewById(R.id.delete);
 		delete.setTag("delete");
 		delete.setOnClickListener(this);
-		Button left = (Button)findViewById(R.id.left);
-		left.setTag("left");
-		left.setOnClickListener(this);
-		Button right = (Button)findViewById(R.id.right);
-		right.setTag("right");
-		right.setOnClickListener(this);
+//		Button left = (Button)findViewById(R.id.left);
+//		left.setTag("left");
+//		left.setOnClickListener(this);
+//		Button right = (Button)findViewById(R.id.right);
+//		right.setTag("right");
+//		right.setOnClickListener(this);
 	}
 
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		pagerLoader();
+		pagenum = pa.getCount();
+		
+		if(pagenum < 2){
+			seek.setMax(2);
+			seek.setProgress(1);
+		}else{
+			seek.setMax(pagenum-1);
+			seek.setProgress(0);
+		}
+		
 	}
 
 	@Override
@@ -101,17 +132,40 @@ public class DrawBookActivity extends Activity implements OnClickListener{
 				Toast.makeText(this,"削除するファイルがありません",Toast.LENGTH_SHORT).show();
 			}
 		}
-		else if(v.getTag() == "left"){
-			viewPager.setCurrentItem(viewPager.getCurrentItem()-1);
-		}
-		else if(v.getTag() == "right"){
-			viewPager.setCurrentItem(viewPager.getCurrentItem()+1);
-		}
 	}
 
 	public void pagerLoader(){
-		viewPager.removeAllViews();
+		if(viewPager != null){
+			viewPager.removeAllViews();
+		}
 		viewPager = (ViewPager)findViewById(R.id.view_pager);
+		viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+			@Override
+			public void onPageSelected(int arg0) {
+				if(pagenum > 1){
+					seek.setProgress(arg0);
+				}
+			}
+			
+			@Override
+			public void onPageScrolled(int arg0, float arg1, int arg2) {
+				// TODO 自動生成されたメソッド・スタブ
+				
+			}
+			
+			@Override
+			public void onPageScrollStateChanged(int arg0) {
+				// TODO 自動生成されたメソッド・スタブ
+				
+			}
+		});
 		viewPager.setAdapter(pa = new DrawBookPagerAdapter(this,path));
+	}
+	
+	public void onBack(View v) {
+		Intent intent=new Intent(this,BookShelfActivity.class);
+		intent.putExtra("path", new File(path).getParent().toString());
+		startActivity(intent);
+		finish();
 	}
 }

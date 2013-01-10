@@ -124,13 +124,15 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
-		paint_menuH = paint_menu_t.getHeight();
-		paint_menuW = paint_layer_l.getWidth();
-		paint.setmenuwSize(paint_menuH, paint_menuW);
-		int color = sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0));
-		colorV_t.setColor(color);
-		colorV_b.setColor(color);
-		nativefunc.setColor(color);
+		if(hasFocus){
+			paint_menuH = paint_menu_t.getHeight();
+			paint_menuW = paint_layer_l.getWidth();
+			paint.setmenuwSize(paint_menuH, paint_menuW);
+			int color = sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0));
+			colorV_t.setColor(color);
+			colorV_b.setColor(color);
+			nativefunc.setColor(color);
+		}
 	}
 
 	@Override
@@ -613,6 +615,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			 // 保存処理開始
 			 FileOutputStream fos = null;
+			 if(filename.indexOf(".")>0){
+				 filename.subSequence(0, filename.indexOf("."));
+			 }
 			 fos = new FileOutputStream(new File(path,filename + ".png"));
 
 			 // pngで保存
