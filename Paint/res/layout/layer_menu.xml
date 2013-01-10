@@ -88,13 +88,14 @@
                 <TextView
                     android:id="@+id/textView2"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@color/list_item"
                     android:clickable="true"
-                    android:drawableBottom="@drawable/record"
+                    android:drawableBottom="@drawable/eye_open"
                     android:gravity="center"
-                    android:text="@string/mask"
+                    android:onClick="onVisibility"
+                    android:text="@string/visibility"
                     android:textColor="#000000" />
 
                 <TextView

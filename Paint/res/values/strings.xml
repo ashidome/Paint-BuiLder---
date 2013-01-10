@@ -33,5 +33,6 @@
     <string name="right">右へ</string>
     <string name="left">左へ</string>
     <string name="miss">失敗</string>
+    <string name="visibility">visibility</string>
 
 </resources>

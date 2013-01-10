@@ -40,6 +40,8 @@ public class NativeFunction {
 	public native boolean draw(int x, int y);
 
 	public native boolean setPosition(int x, int y);
+	
+	public native boolean setPositionD();
 
 	public native boolean setRadian(double rad);
 

@@ -41,13 +41,15 @@ import com.katout.paint.OnColorChangedListener;
 import com.katout.paint.R;
 import com.katout.paint.conect.ConnectCore;
 import com.katout.paint.conect.RoomDialog;
+import com.katout.paint.draw.RecompositionAsyncTask.RePreviewLisner;
 import com.katout.paint.draw.brush.SelectBrushDialog;
 import com.katout.paint.draw.layer.LayerAdapter;
 
-public class MainActivity extends Activity implements PaintView.MenuLiner {
+public class MainActivity extends Activity implements PaintView.MenuLiner ,RePreviewLisner{
 	private NativeFunction			nativefunc;
 	private ConnectCore				connectCore;
 	private Handler					handler;
+	private SurfaceView				surface;
 	private PaintView				paint;
 	private LinearLayout			paint_menu_t;
 	private LinearLayout			paint_menu_b;
@@ -105,7 +107,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						message.points, message.points_size, message.mode);
 			}
 		});
-
+		preview_Change_flag = true;
 
 	}
 
@@ -214,10 +216,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					@Override
 					public void onItemSelected(AdapterView<?> parent,
 												View view, int position, long id) {
+						Log.d("test", "onItemSelected:" + position);
 						if(!spinerflag){
 							layerAdapter.setLayermode(position);
 							nativefunc.setLayerMode(position);
-							new RecompositionAsyncTask(MainActivity.this, nativefunc).execute();
+							new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this).execute();
 						}
 						spinerflag = false;
 					}
@@ -230,7 +233,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				layerAdapter.setAlpher(seekBar.getProgress());
 				nativefunc.setLayerAlpha(seekBar.getProgress());
-				new RecompositionAsyncTask(MainActivity.this, nativefunc).execute();
+				new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this).execute();
 			}
 			
 			@Override
@@ -275,7 +278,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		// layerAdapter_r = new LayerAdapter(this, layer_list);
 		// layer_l.setAdapter(layerAdapter_l);
 		// layer_r.setAdapter(layerAdapter_r);
-		SurfaceView surface = (SurfaceView) findViewById(R.id.surfaceView1);
+		surface = (SurfaceView) findViewById(R.id.surfaceView1);
 		surface.setZOrderOnTop(false);
 		paint = new PaintView(this, surface, this, new EventLisner() {
 			@Override
@@ -327,6 +330,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						int[] map = new int[w*h];
 						bitmap.getPixels(map, 0, w, 0, 0, w, h);
 						init_flag =  nativefunc.init(w, h,1,map);
+						layerAdapter.setPreview();
 					} catch (FileNotFoundException e) {
 						init_flag =  nativefunc.init(x, y, 0, null);
 					}
@@ -483,7 +487,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		boolean temp = layerAdapter.deleteLayer();
 		if(temp){
 			nativefunc.deleteLayer();
-			new RecompositionAsyncTask(MainActivity.this, nativefunc).execute();
+			new RecompositionAsyncTask(MainActivity.this, nativefunc,this).execute();
 		}
 	}
 
@@ -491,7 +495,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 
 		// 表示項目の配列
-		final CharSequence[] colors = { "新規", "開く", "保存" , "終了" };
+		final CharSequence[] colors = { "初期位置", "保存" , "終了" };
 		// タイトルを設定
 		alertDialogBuilder.setTitle("メニュー");
 		// 表示項目とリスナの設定
@@ -500,11 +504,13 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			public void onClick(DialogInterface dialog, int which) {
 				switch (which) {
 				case 0:
-
+					paint.setScale(1.0);
+					paint.setPos(0, 0);
+					nativefunc.setPositionD();
+					
+					
 					break;
 				case 1:
-					break;
-				case 2:
 					if(new_flag){
 						final EditText ed = new EditText(MainActivity.this);
 						new AlertDialog.Builder(MainActivity.this)
@@ -524,7 +530,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					}
 					
 					break;
-				case 3:
+				case 2:
 					paint.tread_flag = false;
 					nativefunc.destructor();
 					paint.tread_flag = false;
@@ -532,16 +538,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						;
 					finish();
 					break;
-				case 4:
-					break;
 				default:
 					break;
 				}
 			}
 		});
-
-		// back keyを使用不可に設定
-		alertDialogBuilder.setCancelable(false);
 
 		// ダイアログを表示
 		alertDialogBuilder.create().show();
@@ -642,7 +643,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		finish();
 	}
 	
-	private void setPreView(){
+	@Override
+	public void setPreView(){
 		if(preview_map == null){
 			previewwidth = preview.getWidth();
 			previewheight = preview.getHeight();
@@ -655,7 +657,22 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		
 		nativefunc.getPreview(-1, preview_map, previewwidth, previewheight);
 		preview_bitmap.setPixels(preview_map, 0, previewwidth, 0, 0, previewwidth, previewheight);
-		preview.setImageBitmap(preview_bitmap);
+		handler.post(new Runnable() {
+			
+			@Override
+			public void run() {
+				preview.setImageBitmap(preview_bitmap);
+			}
+		});
 		preview_Change_flag = false;
+	}
+	
+	public void onVisibility(View v) {
+		if(layerAdapter.getLayermode()==12){
+			spinner_l.setSelection(0);
+		}else{
+			spinner_l.setSelection(12);
+		}
+		
 	}
 }

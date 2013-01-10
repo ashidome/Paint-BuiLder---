@@ -15,10 +15,16 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 	ProgressDialog	dialog;
 	Context			context;
 	NativeFunction nativefunc;
+	private RePreviewLisner lisner;
+	
+	public interface RePreviewLisner{
+		void setPreView();
+	}
 
-	public RecompositionAsyncTask(Context context, NativeFunction nativefunc) {
+	public RecompositionAsyncTask(Context context, NativeFunction nativefunc,RePreviewLisner lisner) {
 		this.context = context;
 		this.nativefunc = nativefunc;
+		this.lisner = lisner;
 	}
 
 	@Override
@@ -34,8 +40,9 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 
 	@Override
 	protected Long doInBackground(String... params) {
-
+		
 		nativefunc.Recomposition();
+		lisner.setPreView();
 		return 123L;
 	}
 

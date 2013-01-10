@@ -86,7 +86,13 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 			showMakeFileDialog(0,"本棚の作成");
 		}
 		else if(v == add_book){
-			showMakeFileDialog(1,"お絵かき帳の作成");
+			if(BooksAPI.note_recognition(current_path)){
+				//falseならお絵かき帳ディレクトリ
+				Intent intent=new Intent(this,DrawBookActivity.class);
+				intent.putExtra("path", current_path+"/");
+				startActivity(intent);
+				finish();
+			}
 		}
 	}
 
@@ -116,6 +122,7 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 		})
 		.show();
 	}
+
 	
 	public void pathChange(String path){
 		current_path = path;

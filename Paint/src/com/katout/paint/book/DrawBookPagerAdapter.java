@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import android.content.Context;
 import android.content.Intent;
@@ -25,12 +26,19 @@ public class DrawBookPagerAdapter extends PagerAdapter{
 	static int NUM_VIEW;
 	LayoutInflater mInflater;
 	File dir;
-	File[] files;
+	ArrayList<File> files;
 	private Context context;
 	
 	public DrawBookPagerAdapter(Context context,String keypath){
 		dir=new File(keypath);
-		files=dir.listFiles();
+		files= new ArrayList<File>();
+		File[] temp = dir.listFiles();
+		for(int i = 0; i < temp.length;i++){
+			if(BooksAPI.isImage(temp[i].toString())){
+				files.add(temp[i]);
+			}
+		}
+		
 		this.context=context;
 		mInflater=(LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	}
@@ -39,56 +47,63 @@ public class DrawBookPagerAdapter extends PagerAdapter{
 	@Override
 	public Object instantiateItem(View collection, int position){
 		ViewPager pager = (ViewPager)collection;
-		View[] views = new View[files.length];
-		
-		for(int i = 0; i < files.length; i++){
-			String name = files[i].getName();
-			if(BooksAPI.isImage(name)){
-				views[i] = mInflater.inflate(R.layout.draw_book_view, pager, false);
-				views[i].setTag(files[i].getPath());
-				//サムネイルの作成
-				ImageView img = (ImageView)views[i].findViewById(R.id.file_image);
-				Bitmap bitmap = ImageCache.getImage(files[i].getPath());
-				if(bitmap == null){
-					FileInputStream f_input = null;
-					BufferedInputStream buf = null;
-					try{
-						f_input = new FileInputStream(files[i].getPath());
-						buf = new BufferedInputStream(f_input);
-						ImageCache.getImage(files[i].getPath());
-						bitmap = BitmapFactory.decodeStream(buf);
-						f_input.close();
-						buf.close();
-						ImageCache.setImage(files[i].getPath(), bitmap);
-					}
-					catch(FileNotFoundException e){
-						e.printStackTrace();
-					}
-					catch(IOException e){
-						e.printStackTrace();
-					}
+		ArrayList<View> views = new ArrayList<View>();
+		for(int i = 0; i < files.size(); i++){
+			
+			views.add(mInflater.inflate(R.layout.draw_book_view, pager, false));
+			views.get(i).setTag(files.get(i).getPath());
+			//サムネイルの作成
+			ImageView img = (ImageView)views.get(i).findViewById(R.id.file_image);
+			Bitmap bitmap = ImageCache.getImage(files.get(i).getPath());
+			if(bitmap == null){
+				FileInputStream f_input = null;
+				BufferedInputStream buf = null;
+				try{
+					f_input = new FileInputStream(files.get(i).getPath());
+					buf = new BufferedInputStream(f_input);
+					ImageCache.getImage(files.get(i).getPath());
+					bitmap = BitmapFactory.decodeStream(buf);
+					f_input.close();
+					buf.close();
+					ImageCache.setImage(files.get(i).getPath(), bitmap);
 				}
-				img.setImageBitmap(bitmap);
-				
-				
-				Button file_name = (Button)views[i].findViewById(R.id.file_name);
-				file_name.setText(files[i].getName());
-				file_name.setTag(files[i].getParent());
-				file_name.setOnClickListener(new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						Button button = (Button)v;
-						Intent intent=new Intent(context,MainActivity.class);
-						intent.putExtra("path", button.getTag().toString());
-						intent.putExtra("newflag",false);//新規押した時、フォルダのパス
-						intent.putExtra("name", button.getText().toString());
-						context.startActivity(intent);
-					}
-				});
-				pager.addView(views[i], i);
+				catch(FileNotFoundException e){
+					e.printStackTrace();
+				}
+				catch(IOException e){
+					e.printStackTrace();
+				}
 			}
+			img.setImageBitmap(bitmap);
+			
+			
+			final Button file_name = (Button)views.get(i).findViewById(R.id.file_name);
+			file_name.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Button button = (Button)v;
+					Intent intent=new Intent(context,MainActivity.class);
+					intent.putExtra("path", button.getTag().toString());
+					intent.putExtra("newflag",false);//新規押した時、フォルダのパス
+					intent.putExtra("name", button.getText().toString());
+					context.startActivity(intent);
+				}
+			});
+			img.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Intent intent=new Intent(context,MainActivity.class);
+					intent.putExtra("path", file_name.getTag().toString());
+					intent.putExtra("newflag",false);//新規押した時、フォルダのパス
+					intent.putExtra("name", file_name.getText().toString());
+					context.startActivity(intent);
+				}
+			});
+			file_name.setText(files.get(i).getName());
+			file_name.setTag(files.get(i).getParent());
+			pager.addView(views.get(i), i);
 		}
-		return views[position];
+		return views.get(position);
 	}
 	
 	//ViewPagerからViewを削除
@@ -100,7 +115,7 @@ public class DrawBookPagerAdapter extends PagerAdapter{
     //ページ数を返す
 	@Override
 	public int getCount() {	
-		return files.length;
+		return files.size();
 	}
 	
 	//ページを構成するViewの判定

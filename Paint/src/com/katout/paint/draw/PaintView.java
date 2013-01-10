@@ -57,7 +57,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private int nowPosX; // 現在の左上のx座標
 	private int nowPosY; // 現在の左上のy座標
 
-	private double rad; // 現在の画面角度
 	private double Scale; // 現在の拡大率
 	private int nowMenuPosX; // 現在のメニューの位置
 	private int nowMenuPosY; // 現在のメニューの位置
@@ -92,7 +91,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		nowPosX = 0;
 		nowPosY = 0;
 		Scale = 1.0;
-		rad = 1.0;
 		mode = PaintMode.Brush;
 		paint_points = new ArrayList<Integer>();
 	}
@@ -210,7 +208,6 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 				/**************************** 回転 ******************************/
 				double temp_rad = Math.atan2(points[1][1] - points[1][0],
 						points[0][1] - points[0][0]);
-				rad += temp_rad - pre_rad;
 				pre_rad = temp_rad;
 				event_lisner.setRadian(temp_Scale);
 
@@ -335,27 +332,27 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		if (temp_flag) {
 			canvas.drawBitmap(bitmap, 0, w, 0, 0, w, h, true, paint);
 		}
-		for (int i = 0; i < touch_count; i++) {
-			canvas.drawLine(0, points[1][i], w, points[1][i], paint);
-			canvas.drawLine(points[0][i], 0, points[0][i], h, paint);
-		}
-
-		paint.setTextSize(30);
-		String debugText = "State = " + state + "\n";
-		canvas.drawText(debugText, 5, 30, paint);
-		debugText = "Pos X: " + nowPosX + "	,Y: " + nowPosY + "\n";
-		canvas.drawText(debugText, 5, 60, paint);
-
-		debugText = "preVecterSize = " + preVecterSize + "\n";
-		canvas.drawText(debugText, 5, 90, paint);
-		debugText = "Scale = " + (int) (Scale * 100) + "%\n";
-		canvas.drawText(debugText, 5, 120, paint);
-		debugText = "Rad = " + rad;
-		canvas.drawText(debugText, 5, 150, paint);
-		debugText = "menux = " + nowMenuPosX;
-		canvas.drawText(debugText, 5, 180, paint);
-		debugText = "menuY = " + nowMenuPosY;
-		canvas.drawText(debugText, 5, 210, paint);
+//		for (int i = 0; i < touch_count; i++) {
+//			canvas.drawLine(0, points[1][i], w, points[1][i], paint);
+//			canvas.drawLine(points[0][i], 0, points[0][i], h, paint);
+//		}
+//
+//		paint.setTextSize(30);
+//		String debugText = "State = " + state + "\n";
+//		canvas.drawText(debugText, 5, 30, paint);
+//		debugText = "Pos X: " + nowPosX + "	,Y: " + nowPosY + "\n";
+//		canvas.drawText(debugText, 5, 60, paint);
+//
+//		debugText = "preVecterSize = " + preVecterSize + "\n";
+//		canvas.drawText(debugText, 5, 90, paint);
+//		debugText = "Scale = " + (int) (Scale * 100) + "%\n";
+//		canvas.drawText(debugText, 5, 120, paint);
+//		debugText = "Rad = " + rad;
+//		canvas.drawText(debugText, 5, 150, paint);
+//		debugText = "menux = " + nowMenuPosX;
+//		canvas.drawText(debugText, 5, 180, paint);
+//		debugText = "menuY = " + nowMenuPosY;
+//		canvas.drawText(debugText, 5, 210, paint);
 
 		holder.unlockCanvasAndPost(canvas);
 	}
@@ -389,6 +386,16 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	
 	public PaintMode getMode(){
 		return mode;
+	}
+	
+	public void setPos(int x,int y) {
+		nowPosX = x;
+		nowPosY = y;
+	}
+	
+	public void setScale(double s){
+		Scale = s;
+		event_lisner.setScale(s);
 	}
 
 }

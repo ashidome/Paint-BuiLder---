@@ -180,6 +180,7 @@ public final class R {
         public static final int send=0x7f070014;
         public static final int shere=0x7f07000d;
         public static final int up_directory=0x7f070016;
+        public static final int visibility=0x7f07001e;
     }
     public static final class style {
         public static final int AppTheme=0x7f080000;

@@ -104,15 +104,13 @@ public class DrawBookActivity extends Activity implements OnClickListener{
 			DrawBookActivity.this.startActivity(intent);
 		}
 		else if(v.getTag() == "delete"){
-			File file = new File(path);
-			File[] dir = file.listFiles();
-			if(dir.length != 0){
+			other = viewPager.getChildAt(viewPager.getCurrentItem());
+			if(other != null){
 				new AlertDialog.Builder(DrawBookActivity.this)
 				.setTitle("本当に削除しますか？")
 				.setPositiveButton("OK",new DialogInterface.OnClickListener(){
 					@Override
 					public void onClick(DialogInterface dialog, int which){
-						other = viewPager.getChildAt(viewPager.getCurrentItem());
 						File file = new File(other.getTag().toString());
 						if(file.delete()){
 							Toast.makeText(DrawBookActivity.this,"削除しました",Toast.LENGTH_SHORT).show();
@@ -120,15 +118,10 @@ public class DrawBookActivity extends Activity implements OnClickListener{
 						pagerLoader();
 					}
 				})
-				.setNegativeButton("キャンセル", new DialogInterface.OnClickListener(){
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						//何もしない
-					}
-				})
+				.setNegativeButton("キャンセル", null)
 				.show();
-			}
-			else{
+				
+			}else{
 				Toast.makeText(this,"削除するファイルがありません",Toast.LENGTH_SHORT).show();
 			}
 		}

@@ -1,9 +1,13 @@
 package com.katout.paint.book;
 
 import java.io.File;
+import java.io.IOException;
+
+import android.os.Environment;
 
 public class BooksAPI {
 	private static String filename = ".PaintBuilder";
+	private static String root = Environment.getExternalStorageDirectory().toString();
 	
 	static public String makeDirectory(String name,String backpath) {
 		String path = backpath + "/"+name;//作成するディレクトリのパス
@@ -39,6 +43,25 @@ public class BooksAPI {
 				name.endsWith("PNG") | name.endsWith("JPG") | name.endsWith("BMP") | name.endsWith("GIF")|
 				name.endsWith("jpeg") | name.endsWith("JPEG")){
 			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * ノートとして認識
+	 */
+	public static boolean note_recognition(String path){
+		if(path.equals(root)){
+			return false;
+		}else{
+			try {
+				File file = new File(path, filename);
+				file.createNewFile();
+				return true;
+			} catch (IOException e) {
+				// TODO 自動生成された catch ブロック
+				e.printStackTrace();
+			}
 		}
 		return false;
 	}
