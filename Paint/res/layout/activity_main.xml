@@ -34,11 +34,12 @@
                 android:background="#AAAAAA" >
             </FrameLayout>
 
-            <include
+            <ImageView
+                android:id="@+id/preview"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="2"
-                layout="@layout/preview" />
+                android:src="@drawable/white" />
 
             <FrameLayout
                 android:layout_width="4dp"

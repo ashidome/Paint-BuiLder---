@@ -29,6 +29,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -72,6 +73,12 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private boolean					spinerflag;
 	
 	private SeekBar					alpher_seek;
+	private boolean	preview_Change_flag;
+	private ImageView				preview;
+	private int[]	preview_map;
+	private int	previewwidth;
+	private int	previewheight;
+	private Bitmap	preview_bitmap;
 
 
 	@Override
@@ -169,6 +176,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			paint_layer_l.layout((x * paint_menuW / 100) - paint_menuW,
 					paint_layer_l.getTop(), (x * paint_menuW / 100),
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
+			if(x>60 & preview_Change_flag){
+				setPreView();
+				
+			}
 		} else {
 			paint_layer_l.layout(-paint_menuW, paint_layer_l.getTop(), 0,
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
@@ -185,6 +196,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		colorV_t = (ColorView) paint_menu_t.findViewById(R.id.colorview);
 		colorV_b = (ColorView) paint_menu_b.findViewById(R.id.colorview);
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
+		preview = (ImageView)findViewById(R.id.preview);
 		
 
 		LinearLayout layer_l = (LinearLayout) paint_layer_l
@@ -350,7 +362,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			@Override
 			public void endDraw(ArrayList<Integer> list) {
 				nativefunc.endDraw();
-				
+				preview_Change_flag = true;
 				if(connectCore.getInRoom()){
 					ShareMessage j_message = new ShareMessage();
 					//ブラシサイズ取得
@@ -623,5 +635,22 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		while (paint.thread.isAlive())
 			;
 		finish();
+	}
+	
+	private void setPreView(){
+		if(preview_map == null){
+			previewwidth = preview.getWidth();
+			previewheight = preview.getHeight();
+			preview_map = new int[previewwidth*previewheight];
+		}
+
+		if(preview_bitmap == null){
+			preview_bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
+		}
+		
+		nativefunc.getPreview(-1, preview_map, previewwidth, previewheight);
+		preview_bitmap.setPixels(preview_map, 0, previewwidth, 0, 0, previewwidth, previewheight);
+		preview.setImageBitmap(preview_bitmap);
+		preview_Change_flag = false;
 	}
 }
