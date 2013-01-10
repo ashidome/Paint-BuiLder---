@@ -5,7 +5,7 @@ public class NativeFunction {
 		System.loadLibrary("jniimage");
 	}
 	
-	public native boolean init(int x,int y);
+	public native boolean init(int x,int y, int init_flag, int[] map);
 	
 	public native boolean destructor();
 
@@ -68,4 +68,7 @@ public class NativeFunction {
 
 	public native void setLayerAlpha(int progress) ;
 	public native boolean Recomposition();
+	
+	public native int getLayerNum();
+	public native boolean getLayersData(int[] mode , int[] alpha);
 }

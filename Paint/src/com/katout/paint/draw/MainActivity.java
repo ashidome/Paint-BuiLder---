@@ -1,22 +1,23 @@
 package com.katout.paint.draw;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -27,6 +28,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -50,7 +52,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private LinearLayout			paint_menu_t;
 	private LinearLayout			paint_menu_b;
 	private int						paint_menuH;
-
+	
+	private String 					path;
+	private String					filename;
+	private boolean 				new_flag;
+	
 	private LinearLayout			paint_layer_l;
 	private LayerAdapter			layerAdapter;
 	private int						paint_menuW;
@@ -72,6 +78,12 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		Intent intent = this.getIntent();
+		path = intent.getStringExtra("path");
+		new_flag = intent.getBooleanExtra("newflag", false);
+		filename = intent.getStringExtra("name");
+		
 		nativefunc = new NativeFunction();
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		handler = new Handler();
@@ -290,7 +302,23 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean init(int x, int y) {
-				return nativefunc.init(x, y);
+				if(!new_flag){
+					try {
+						File srcFile = new File(path + filename);
+		    			FileInputStream fis;
+						fis = new FileInputStream(srcFile);
+						Bitmap bitmap = BitmapFactory.decodeStream(fis);
+						int w = bitmap.getWidth();
+						int h = bitmap.getHeight();
+						int[] map = new int[w*h];
+						bitmap.getPixels(map, 0, w, 0, 0, w, h);
+						return nativefunc.init(w, h,0,map);
+					} catch (FileNotFoundException e) {
+						// TODO 自動生成された catch ブロック
+						e.printStackTrace();
+					}
+				}
+				return nativefunc.init(x, y, 0, null);
 			}
 
 			@Override
@@ -442,37 +470,24 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 				case 1:
 					break;
 				case 2:
-					try{
-						int h =nativefunc.getCanvasHeight();
-						int w = nativefunc.getCanvasWidth();
-
-						int[] canvas = new int[h*w];
-						nativefunc.getRawdata(canvas);
-						Bitmap map = Bitmap.createBitmap(canvas, w, h, Bitmap.Config.ARGB_8888);
-
-						// sdcardフォルダを指定
-						 File root = Environment.getExternalStorageDirectory();
-
-						 // 日付でファイル名を作成　
-						 Date mDate = new Date();
-						 SimpleDateFormat fileName = new SimpleDateFormat("yyyyMMdd_HHmmss");
-
-						 // 保存処理開始
-						 FileOutputStream fos = null;
-						 fos = new FileOutputStream(new File(root, fileName.format(mDate) + ".png"));
-
-						 // jpegで保存
-						 map.compress(CompressFormat.PNG, 100, fos);
-
-						 // 保存処理終了
-						 fos.close();
-						 Toast.makeText(MainActivity.this, "保存完了", Toast.LENGTH_LONG).show();
-
-
-					}catch (Exception e) {
-						Toast.makeText(MainActivity.this, "メモリー不足により保存準備ができません¥nレイヤーを減らしてください", Toast.LENGTH_LONG).show();
-						// TODO: handle exception
+					if(new_flag){
+						final EditText ed = new EditText(MainActivity.this);
+						new AlertDialog.Builder(MainActivity.this)
+						.setTitle("ファイルの作成")
+						.setView(ed)
+						.setPositiveButton("追加", new DialogInterface.OnClickListener(){
+							@Override
+							public void onClick(DialogInterface dia,int which){
+								filename = ed.getText().toString();
+								save();
+							}
+						})
+						.setNegativeButton("キャンセル", null)
+						.show();
+					}else{
+						save();
 					}
+					
 					break;
 				case 3:
 					paint.tread_flag = false;
@@ -542,10 +557,38 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 	
 	@Override
 	protected void onDestroy() {
+		Log.d("test", "onDestroy");
 		if(connectCore.getInRoom()){
 			connectCore.exit_room();
 		}
 		nativefunc.destructor();
 		super.onDestroy();
+	}
+	
+	private void save(){
+		try{
+			int h =nativefunc.getCanvasHeight();
+			int w = nativefunc.getCanvasWidth();
+
+			int[] canvas = new int[h*w];
+			nativefunc.getRawdata(canvas);
+			Bitmap map = Bitmap.createBitmap(canvas, w, h, Bitmap.Config.ARGB_8888);
+
+			 // 保存処理開始
+			 FileOutputStream fos = null;
+			 fos = new FileOutputStream(new File(path,filename + ".png"));
+
+			 // pngで保存
+			 map.compress(CompressFormat.PNG, 100, fos);
+
+			 // 保存処理終了
+			 fos.close();
+			 Toast.makeText(MainActivity.this, "保存完了", Toast.LENGTH_LONG).show();
+
+
+		}catch (Exception e) {
+			Toast.makeText(MainActivity.this, "メモリー不足により保存準備ができません¥nレイヤーを減らしてください", Toast.LENGTH_LONG).show();
+			// TODO: handle exception
+		}
 	}
 }

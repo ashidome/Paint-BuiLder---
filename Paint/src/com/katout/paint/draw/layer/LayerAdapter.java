@@ -51,8 +51,6 @@ public class LayerAdapter{
 		
 		layerdata.layout = (LinearLayout) mInflater.inflate(
 				R.layout.layer_column, null);
-		setAlpher(255);
-		setLayermode(0);
 		temp = layerdata.layout;
 			
 		for(int j = layers.size()-1; j >= 0   ; j--){
@@ -63,6 +61,8 @@ public class LayerAdapter{
 		if(layernum>1){
 			currentlayer++;
 		}
+		setAlpher(255);
+		setLayermode(0);
 		
 		selectLayer(currentlayer);
 		return temp;

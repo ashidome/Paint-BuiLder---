@@ -1,4 +1,4 @@
-package pbl.paint;
+package com.katout.paint.book;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,30 +12,33 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.katout.paint.R;
 
 public class BookShelfActivity extends Activity implements View.OnClickListener{
 
 	private ArrayList<FileData> Items;
-	public String root_path = Environment.getExternalStorageDirectory().toString();
-	public String current_path = root_path+"/paint/";
+	public final String root_path = Environment.getExternalStorageDirectory().toString();
+	public String current_path;
 
 	private Button back;
 	private Button add_shelf;//shelf:本棚
 	private Button add_book;//book:お絵かき帳
 	private EditText editText;
+	private TextView title;
 	
 	public ListView listView;
 
 	
 	@Override
 	public void onCreate(Bundle bundle){
-		
-		
 		super.onCreate(bundle);
 		setContentView(R.layout.book_shelf_layout);
-		
+		current_path = new String(root_path) + "/paint";
 		back = (Button)findViewById(R.id.back);
+		title = (TextView)findViewById(R.id.title);
 		back.setOnClickListener(this);
 
 		add_shelf = (Button)findViewById(R.id.add_shelf);
@@ -44,11 +47,10 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 		add_book = (Button)findViewById(R.id.add_book);
 		add_book.setOnClickListener(this);
 		
-		fileCreate("root", "data/data/pbl.paint/", 0);
-		new File(root_path).setWritable(true);
+		BooksAPI.makeDirectory("paint", root_path);
 		
-		setTitle("/root/");
-		File[] filelist = new File(root_path).listFiles();
+		setmyTitle(current_path);
+		File[] filelist = new File(current_path).listFiles();
 		
 		Items = new ArrayList<FileData>();
 		Items.clear();
@@ -67,7 +69,7 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 			if(current_path.equals(root_path)){
 				pathChange(root_path);
 			}else{
-				pathChange((new File(current_path).getParentFile()).getPath()+"/");
+				pathChange((new File(current_path).getParentFile()).getPath());
 				//Toast.makeText(this,subpath,Toast.LENGTH_SHORT).show();
 				ListViewLoader(listView,current_path);
 			}
@@ -93,7 +95,7 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 					Toast.makeText(BookShelfActivity.this,"名前が入力されていません",Toast.LENGTH_SHORT).show();
 				}
 				else{
-					fileCreate(editText.getText().toString(),current_path,file_mode);
+					BooksAPI.makeDirectory(editText.getText().toString(),current_path);
 					ListViewLoader(listView, current_path);
 				}
 			}
@@ -109,30 +111,14 @@ public class BookShelfActivity extends Activity implements View.OnClickListener{
 	
 	public void pathChange(String path){
 		current_path = path;
-		setTitle(path.substring(19));
+		setmyTitle(path);
 	}
 
-	//ディレクトリの作成
-	public void fileCreate(String name,String backpath,int mode){
-		String path = backpath + name;//作成するディレクトリのパス
-		File file = new File(path);
-		File parent = new File(backpath);//parent:今居るディレクトリ
-		
-		parent.setWritable(true);
-		try{
-			if(!file.exists()){// ディレクトリが存在しない場合新規作成
-				file.mkdir();
-				if(mode == 0){
-					file.setWritable(true);//本棚の場合(true)
-				}
-				else if(mode == 1){
-					file.setWritable(false);//お絵かき帳の場合(false)
-				}
-			}
-		}catch(SecurityException ex){
-			ex.printStackTrace();
-		}
-	}
+	public void setmyTitle(CharSequence string) {
+		string = string.subSequence(root_path.length(), string.length());
+		title.setText(string+"/");
+	};
+
 
 
 	//リストビューの再描画
