@@ -563,14 +563,19 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 	if (init_flag == 1) {
 		return JNI_FALSE;
 	} else {
-		jint* map = (*env)->GetIntArrayElements(env, jmap, 0);
-
+		jint* map;
 		int i, j, k;
+		if (jflag == 1) {
+			map = (*env)->GetIntArrayElements(env, jmap, 0);
+		}
+
 		c.width = x;
 		c.height = y;
 		disp.x = 0;
 		disp.y = 0;
 		scale = 1.0;
+
+		i_printf("pre map");
 
 		//layerdataの確保と初期化
 		layerdata = (struct LayerData*) malloc(
@@ -597,6 +602,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 				}
 			}
 		}
+
+		i_printf("load map");
 
 		//レイヤーモード配列確保と初期化
 		for (i = 0; i < MAX_LAYER_SIZE; i++) {
@@ -696,7 +703,11 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 
 		init_flag = 1;
 
-		(*env)->ReleaseIntArrayElements(env, jmap, map, 0);
+		i_printf("pre Release");
+
+		if (jflag == 1) {
+			(*env)->ReleaseIntArrayElements(env, jmap, map, 0);
+		}
 		return JNI_TRUE;
 	}
 }
@@ -718,7 +729,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 
 	i_printf("free(img)\n");
 
-	//編集レイヤー配列の開放
+//編集レイヤー配列の開放
 	for (i = 0; i < MAX_BRUSH_NUM; i++) {
 		for (j = 0; j < c.width; j++) {
 			free(EditLayer[i][j]);
@@ -729,7 +740,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 
 	i_printf("free(EditLayer)\n");
 
-	//バッファ配列の開放
+//バッファ配列の開放
 	for (i = 0; i < c.width; i++) {
 		free(BuffImg[i]);
 	}
@@ -737,7 +748,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 
 	i_printf("free(BuffImg)\n");
 
-	//brushmap配列の開放
+//brushmap配列の開放
 	for (i = 0; i < MAX_BRUSH_NUM; i++) {
 		for (j = 0; j < MAX_BRUSH_WIDTH; j++) {
 			free(brushmap[i].map_img[j]);
@@ -758,6 +769,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	free(brush);
 
 	i_printf("free(brush)\n");
+
+	init_flag = 0;
 
 	return JNI_TRUE;
 }
@@ -786,26 +799,26 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
 
 	brushmap[1].frequency = jfrequency;
 
-	//ブラシマップサイズの定義
+//ブラシマップサイズの定義
 	brushmap[1].width = jw;
 	brushmap[1].height = jh;
 
 	brush[1].Mode = jmode;
 
-	//新規ブラシマップの適用
+//新規ブラシマップの適用
 	setBrush(colors, 1);
 
-	//色指定
+//色指定
 	setColor(color, 1);
 
-	//サイズ変更の適用
+//サイズ変更の適用
 	setBrushSize(jsize, 1);
 
 	i_printf("end setBrushSize\n");
 
 	i_printf("points[0] = %d, points[1] = %d\n", points[0], points[1]);
 
-	//始点描画
+//始点描画
 	startDraw(points[0], points[1], 1);
 
 	i_printf("end startDraw\n");
@@ -816,10 +829,10 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
 
 	i_printf("joint_draw_end\n");
 
-	//EditLayerをimg配列に適用する
+//EditLayerをimg配列に適用する
 	applyEdit(1);
 
-	//EditLayerの初期化
+//EditLayerの初期化
 	for (i = 0; i < c.width; i++) {
 		for (j = 0; j < c.height; j++) {
 			EditLayer[1][i][j] = 0x00000000;
@@ -1350,14 +1363,14 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	int a, r, g, b;
 	int result;
 
-	//上側
+//上側
 	src_a = (src & 0xFF000000) >> 24;
 	src_r = (src & 0x00FF0000) >> 16;
 	src_g = (src & 0x0000FF00) >> 8;
 	src_b = (src & 0x000000FF);
 	src_a = src_a * layerdata[layer_num].alpha / 255;
 
-	//下側
+//下側
 	dest_a = (dest & 0xFF000000) >> 24;
 	dest_r = (dest & 0x00FF0000) >> 16;
 	dest_g = (dest & 0x0000FF00) >> 8;
