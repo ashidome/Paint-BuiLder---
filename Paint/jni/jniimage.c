@@ -209,6 +209,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerMod
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setLayerAlpha(
 		JNIEnv* env, jobject obj, jint progress) {
 	i_printf("setLayerAlpha");
+	i_printf("set alpha = %d", progress);
 	layerdata[layers.current_layer].alpha = progress;
 	return JNI_TRUE;
 }
@@ -834,8 +835,12 @@ void blendBuff(int x, int y, int flag) {
 	}
 	for (i = 0; i < layers.layer_max; i++) {
 		if (i == layers.current_layer) {
-			Pixel = Blend_Layer(layerdata[layers.current_layer].mode, Edit,
-					Pixel, i);
+			if (i == 0) {
+				Pixel = Edit;
+			} else {
+				Pixel = Blend_Layer(layerdata[layers.current_layer].mode, Edit,
+						Pixel, i);
+			}
 		} else {
 			Pixel = Blend_Layer(layerdata[i].mode, layerdata[i].img[x][y],
 					Pixel, i);
@@ -1299,12 +1304,14 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	int a, r, g, b;
 	int result;
 
+	//上側
 	src_a = (src & 0xFF000000) >> 24;
 	src_r = (src & 0x00FF0000) >> 16;
 	src_g = (src & 0x0000FF00) >> 8;
 	src_b = (src & 0x000000FF);
 	src_a = src_a * layerdata[layer_num].alpha / 255;
 
+	//下側
 	dest_a = (dest & 0xFF000000) >> 24;
 	dest_r = (dest & 0x00FF0000) >> 16;
 	dest_g = (dest & 0x0000FF00) >> 8;
