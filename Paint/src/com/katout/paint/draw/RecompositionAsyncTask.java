@@ -59,7 +59,9 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 	@Override
 	protected void onPostExecute(Long result) {
 		Log.d(TAG, "onPostExecute - " + result);
-		dialog.dismiss();
+		if(dialog != null){
+			dialog.dismiss();
+		}
 	}
 
 	@Override

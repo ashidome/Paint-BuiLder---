@@ -71,4 +71,5 @@ public class NativeFunction {
 	
 	public native int getLayerNum();
 	public native boolean getLayersData(int[] mode , int[] alpha);
+	public native int getCurrentNum();
 }

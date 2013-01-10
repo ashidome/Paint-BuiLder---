@@ -36,7 +36,7 @@ public class LayerAdapter{
 		this.func = func;
 	}
 	
-	public LinearLayout addLayer(LayerData data){
+	public LinearLayout addLayer(){
 		//左右あるかここでは２回回している
 		layouts.removeAllViews();
 		
@@ -143,5 +143,34 @@ public class LayerAdapter{
 
 	public int getLayerAlpha() {
 		return layers.get(currentlayer).alpha;
+	}
+	
+	public ArrayList<LinearLayout> init_layers(int[] mode, int[] alpha){
+		ArrayList<LinearLayout> returns = new ArrayList<LinearLayout>();
+		layers.get(0).layermode = mode[0];
+		layers.get(0).alpha = alpha[0];
+		
+		if(mode.length > 1){
+			for(int i = 1; i < mode.length; i++){
+				LayerData data = new LayerData();
+				data.layout = (LinearLayout) mInflater.inflate(R.layout.layer_column, null);
+				
+				data.alpha = alpha[i];
+				TextView text = (TextView)data.layout.findViewById(R.id.layer_alpha);
+				text.setText("不透明度："+data.alpha);
+				data.layermode = mode[i];
+				text = (TextView)data.layout.findViewById(R.id.layer_mode);
+				text.setText(context.getResources().getStringArray(R.array.SpinnerItems)[data.layermode]);
+				layers.add(data);
+				returns.add(data.layout);
+			}
+		}
+		layouts.removeAllViews();
+		for(int j = layers.size() - 1; j > -1 ; j--){
+			layouts.addView(layers.get(j).layout);
+			layers.get(j).layout.setTag(j);
+		}
+		selectLayer(currentlayer);
+		return returns;
 	}
 }

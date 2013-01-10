@@ -66,14 +66,14 @@ public class DrawBookPagerAdapter extends PagerAdapter{
 			
 			Button file_name = (Button)views[i].findViewById(R.id.file_name);
 			file_name.setText(files[i].getName());
-			file_name.setTag(files[i].getPath());
+			file_name.setTag(files[i].getParent());
 			file_name.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					Button button = (Button)v;
 					Intent intent=new Intent(context,MainActivity.class);
 					intent.putExtra("path", button.getTag().toString());
-					intent.putExtra("newflag",true);//新規押した時、フォルダのパス
+					intent.putExtra("newflag",false);//新規押した時、フォルダのパス
 					intent.putExtra("name", button.getText().toString());
 					context.startActivity(intent);
 				}

@@ -42,7 +42,6 @@ import com.katout.paint.conect.ConnectCore;
 import com.katout.paint.conect.RoomDialog;
 import com.katout.paint.draw.brush.SelectBrushDialog;
 import com.katout.paint.draw.layer.LayerAdapter;
-import com.katout.paint.draw.layer.LayerData;
 
 public class MainActivity extends Activity implements PaintView.MenuLiner {
 	private NativeFunction			nativefunc;
@@ -302,9 +301,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 
 			@Override
 			public boolean init(int x, int y) {
+				boolean init_flag = false;
 				if(!new_flag){
 					try {
-						File srcFile = new File(path + filename);
+						File srcFile = new File(path +"/"+ filename);
 		    			FileInputStream fis;
 						fis = new FileInputStream(srcFile);
 						Bitmap bitmap = BitmapFactory.decodeStream(fis);
@@ -312,13 +312,33 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 						int h = bitmap.getHeight();
 						int[] map = new int[w*h];
 						bitmap.getPixels(map, 0, w, 0, 0, w, h);
-						return nativefunc.init(w, h,1,map);
+						init_flag =  nativefunc.init(w, h,1,map);
 					} catch (FileNotFoundException e) {
-						// TODO 自動生成された catch ブロック
-						e.printStackTrace();
+						init_flag =  nativefunc.init(x, y, 0, null);
 					}
+				}else {
+					init_flag =  nativefunc.init(x, y, 0, null);
 				}
-				return nativefunc.init(x, y, 0, null);
+				if(!init_flag){
+					//初期化済みだった場合
+					int num = nativefunc.getLayerNum();
+					int[] alphas = new int[num];
+					int[] modes = new int[num];
+					nativefunc.getLayersData(modes, alphas);
+					ArrayList<LinearLayout> layouts = layerAdapter.init_layers(modes, alphas);
+					for(LinearLayout layout: layouts){
+						layout.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								layerOnclickEvent(v);
+							}
+						});
+					}
+					int c = nativefunc.getCurrentNum();
+					layerAdapter.selectLayer(c);
+				}
+				
+				return true;
 			}
 
 			@Override
@@ -389,10 +409,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		if (keyCode != KeyEvent.KEYCODE_BACK) {
 			return super.onKeyDown(keyCode, event);
 		} else {
-			paint.tread_flag = false;
-			while (paint.thread.isAlive())
-				;
-			finish();
+			myFinish();
 			return false;
 		}
 	}
@@ -427,21 +444,25 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		}
 	}
 	private void add(){
-		LinearLayout layouts = layerAdapter.addLayer(new LayerData());
+		LinearLayout layouts = layerAdapter.addLayer();
 		layouts.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				//レイヤーが選択された時
-				int temp = (Integer)v.getTag();
-				nativefunc.selectLayer(temp);
-				layerAdapter.selectLayer(temp);
-				spinerflag = true;
-				spinner_l.setSelection(layerAdapter.getLayermode());
-				alpher_seek.setProgress(layerAdapter.getLayerAlpha());
-				Toast.makeText(MainActivity.this, "tag:"+ temp, Toast.LENGTH_SHORT).show();
+				layerOnclickEvent(v);
 			}
 		});
+	}
+	private void layerOnclickEvent(View v){
+		//レイヤーが選択された時
+		int temp = (Integer)v.getTag();
+		nativefunc.selectLayer(temp);
+		layerAdapter.selectLayer(temp);
+		spinerflag = true;
+		spinner_l.setSelection(layerAdapter.getLayermode());
+		alpher_seek.setProgress(layerAdapter.getLayerAlpha());
+		Toast.makeText(MainActivity.this, "tag:"+ temp, Toast.LENGTH_SHORT).show();
 	}
 	
 	public void ondeleteLayer(View v) {
@@ -491,6 +512,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 					break;
 				case 3:
 					paint.tread_flag = false;
+					nativefunc.destructor();
+					paint.tread_flag = false;
+					while (paint.thread.isAlive())
+						;
 					finish();
 					break;
 				case 4:
@@ -552,7 +577,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		    RoomDialog dialog = new RoomDialog(this,connectCore);
 		    dialog.show();
 		}
-
+		
 	}
 	
 	@Override
@@ -561,7 +586,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 		if(connectCore.getInRoom()){
 			connectCore.exit_room();
 		}
-		nativefunc.destructor();
+		
 		super.onDestroy();
 	}
 	
@@ -590,5 +615,13 @@ public class MainActivity extends Activity implements PaintView.MenuLiner {
 			Toast.makeText(MainActivity.this, "メモリー不足により保存準備ができません¥nレイヤーを減らしてください", Toast.LENGTH_LONG).show();
 			// TODO: handle exception
 		}
+	}
+	
+	private void myFinish() {
+		nativefunc.destructor();
+		paint.tread_flag = false;
+		while (paint.thread.isAlive())
+			;
+		finish();
 	}
 }
