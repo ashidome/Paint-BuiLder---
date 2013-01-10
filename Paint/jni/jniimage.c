@@ -221,6 +221,12 @@ JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getLayerNum(
 	return layers.layer_max;
 }
 
+JNIEXPORT jint JNICALL Java_com_katout_paint_draw_NativeFunction_getCurrentNum(
+		JNIEnv* env, jobject obj) {
+	i_printf("getCurrentNum\n");
+	return layers.current_layer;
+}
+
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getLayersData(
 		JNIEnv* env, jobject obj, jintArray jmode, jintArray jalpha) {
 	i_printf("getLayersData\n");
@@ -575,8 +581,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		disp.y = 0;
 		scale = 1.0;
 
-		i_printf("pre map");
-
 		//layerdataの確保と初期化
 		layerdata = (struct LayerData*) malloc(
 				sizeof(struct LayerData) * MAX_LAYER_SIZE);
@@ -602,8 +606,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 				}
 			}
 		}
-
-		i_printf("load map");
 
 		//レイヤーモード配列確保と初期化
 		for (i = 0; i < MAX_LAYER_SIZE; i++) {
@@ -702,8 +704,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		Size = 16;
 
 		init_flag = 1;
-
-		i_printf("pre Release");
 
 		if (jflag == 1) {
 			(*env)->ReleaseIntArrayElements(env, jmap, map, 0);
