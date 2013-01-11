@@ -10,7 +10,7 @@
 #define MAXSIZE 40000000
 #define MAX_BRUSH_WIDTH 100
 #define MAX_BRUSH_HEIGHT 100
-#define MAX_LAYER_SIZE 10
+#define MAX_LAYER_SIZE 5
 #define MAX_BRUSH_NUM 2
 
 void brush_draw(int x, int y, int flag);
