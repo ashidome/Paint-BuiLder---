@@ -81,6 +81,7 @@ public class DrawBookActivity extends Activity implements OnClickListener{
 	@Override
 	protected void onResume() {
 		super.onResume();
+		ImageCache.clearCache();
 		pagerLoader();
 		pagenum = pa.getCount();
 		

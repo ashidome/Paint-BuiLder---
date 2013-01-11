@@ -43,6 +43,7 @@ public class DrawBookPagerAdapter extends PagerAdapter{
 		mInflater=(LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	}
 	
+	
 	//ViewPagerへViewの追加
 	@Override
 	public Object instantiateItem(View collection, int position){

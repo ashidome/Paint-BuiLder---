@@ -617,7 +617,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			 // 保存処理開始
 			 FileOutputStream fos = null;
 			 if(filename.indexOf(".")>0){
-				 filename.subSequence(0, filename.indexOf("."));
+				 filename = filename.subSequence(0, filename.indexOf(".")).toString();
 			 }
 			 fos = new FileOutputStream(new File(path,filename + ".png"));
 
