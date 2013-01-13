@@ -3,9 +3,11 @@ package com.katout.paint.draw;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Shader;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -41,11 +43,13 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private State state;
 	private MenuLiner menu_lisner;
 	private EventLisner event_lisner;
+	private FrameRate rate;
 
 	// タッチまわり
 	private int touch_count; // 前フレームのタッチ数
 	private int[][] points;
-	private int[] bitmap;
+	private Bitmap bitmap;
+	private Paint paint;
 
 	private int aveX; // 前フレームの平均x座標
 	private int aveY; // 前フレームの平均y座標
@@ -74,6 +78,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner, EventLisner event_lisner) {
 		Log.e("test", "PaintView initial");
 		init_flag = false;
+		paint = new Paint();
+		paint.setTextSize(30);
+		rate = new FrameRate();
 		this.sv = sv;
 		this.menu_lisner = menu_lisner;
 		this.event_lisner = event_lisner;
@@ -299,7 +306,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		if(!init_flag){
 			w = sv.getWidth();
 			h = sv.getHeight();
-			bitmap = new int[w * h];
+			bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			event_lisner.init(w, h);
 			init_flag = true;
 			Log.e("test", "init");
@@ -324,37 +331,44 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	}
 
 	private void Draw() {
-		Paint paint = new Paint();
+		rate.count();
 		Canvas canvas = sv.getHolder().lockCanvas();
 		canvas.drawColor(Color.WHITE);
-
-		boolean temp_flag = event_lisner.getBitmap(bitmap, w, h);
+		boolean temp_flag = true;
+		temp_flag = event_lisner.getBitmap(bitmap);
 		if (temp_flag) {
-			canvas.drawBitmap(bitmap, 0, w, 0, 0, w, h, true, paint);
+
+			canvas.drawBitmap(bitmap, 0, 0, null);
 		}
-//		for (int i = 0; i < touch_count; i++) {
-//			canvas.drawLine(0, points[1][i], w, points[1][i], paint);
-//			canvas.drawLine(points[0][i], 0, points[0][i], h, paint);
-//		}
-//
-//		paint.setTextSize(30);
-//		String debugText = "State = " + state + "\n";
-//		canvas.drawText(debugText, 5, 30, paint);
-//		debugText = "Pos X: " + nowPosX + "	,Y: " + nowPosY + "\n";
-//		canvas.drawText(debugText, 5, 60, paint);
-//
-//		debugText = "preVecterSize = " + preVecterSize + "\n";
-//		canvas.drawText(debugText, 5, 90, paint);
-//		debugText = "Scale = " + (int) (Scale * 100) + "%\n";
-//		canvas.drawText(debugText, 5, 120, paint);
-//		debugText = "Rad = " + rad;
-//		canvas.drawText(debugText, 5, 150, paint);
-//		debugText = "menux = " + nowMenuPosX;
-//		canvas.drawText(debugText, 5, 180, paint);
-//		debugText = "menuY = " + nowMenuPosY;
-//		canvas.drawText(debugText, 5, 210, paint);
+		String debugText = "FPS = " + rate.getFrameRate();
+		canvas.drawText(debugText, 5, 30, paint);
+
 
 		holder.unlockCanvasAndPost(canvas);
+	}
+	
+	private void ondebag(Canvas canvas) {
+		for (int i = 0; i < touch_count; i++) {
+			canvas.drawLine(0, points[1][i], w, points[1][i], paint);
+			canvas.drawLine(points[0][i], 0, points[0][i], h, paint);
+		}
+
+		
+		String debugText = "State = " + state + "\n";
+		canvas.drawText(debugText, 5, 30, paint);
+		debugText = "Pos X: " + nowPosX + "	,Y: " + nowPosY + "\n";
+		canvas.drawText(debugText, 5, 60, paint);
+
+		debugText = "preVecterSize = " + preVecterSize + "\n";
+		canvas.drawText(debugText, 5, 90, paint);
+		debugText = "Scale = " + (int) (Scale * 100) + "%\n";
+		canvas.drawText(debugText, 5, 120, paint);
+		debugText = "Rad = " + 0;
+		canvas.drawText(debugText, 5, 150, paint);
+		debugText = "menux = " + nowMenuPosX;
+		canvas.drawText(debugText, 5, 180, paint);
+		debugText = "menuY = " + nowMenuPosY;
+		canvas.drawText(debugText, 5, 210, paint);
 	}
 
 

@@ -1,5 +1,7 @@
 package com.katout.paint.draw;
 
+import android.graphics.Bitmap;
+
 public class NativeFunction {
 	static {
 		System.loadLibrary("jniimage");
@@ -55,7 +57,7 @@ public class NativeFunction {
 	
 	public native boolean getRawdata(int[] canvas);
 	
-	public native boolean getBitmap(int[] canvas, int width, int height);
+	public native boolean getBitmap(Bitmap bitmap);
 	
 	public native boolean endDraw();
 	

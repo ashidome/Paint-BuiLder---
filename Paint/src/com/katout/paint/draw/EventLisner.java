@@ -2,6 +2,8 @@ package com.katout.paint.draw;
 
 import java.util.ArrayList;
 
+import android.graphics.Bitmap;
+
 public interface EventLisner {
 	boolean init(int x, int y);
 
@@ -19,7 +21,7 @@ public interface EventLisner {
 
 	boolean deleteEditLayer();
 
-	boolean getBitmap(int[] canvas, int width, int height);
+	boolean getBitmap(Bitmap bitmap);
 
 	void bucket(int i, int j);
 

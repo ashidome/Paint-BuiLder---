@@ -1,8 +1,9 @@
 #include <jni.h>
 #include <android/log.h>
-//#include <android/bitmap.h>
+#include <android/bitmap.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include <stdbool.h>
 
 #define i_printf(...) __android_log_print(ANDROID_LOG_INFO, "hj", __VA_ARGS__)
@@ -13,6 +14,7 @@
 #define MAX_LAYER_SIZE 5
 #define MAX_BRUSH_NUM 2
 
+void*  mymemset(void*  dst, int c, int n);
 void brush_draw(int x, int y, int flag);
 void applyEdit(int flag);
 void initEditLayer(int flag);
@@ -94,6 +96,8 @@ struct LayerData {
 	int mode;
 };
 
+static clock_t start,end;
+
 static struct Display disp;
 static struct Canvas c;
 static struct Layers layers;
@@ -117,11 +121,22 @@ struct BufStr {
 struct BufStr buff[MAXSIZE]; /* シード登録用バッファ */
 struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
 
+void*  mymemset(void*  dst, int c, int n){
+    int*  q   = dst;
+    int*  end = q + n;
+
+    for (;q < end;) {
+        *q++ = c;
+    }
+
+  return dst;
+}
+
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
 		JNIEnv* env, jobject obj, jint jx, jint jy) {
 	i_printf("setCanvasSize\n");
 	if (c.flag) {
-		c.flag = false;
+		c.flag = JNI_FALSE;
 		c.height = jx;
 		c.width = jy;
 		return JNI_TRUE;
@@ -489,48 +504,59 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
-		JNIEnv* env, jobject obj, jintArray color, jint jw, jint jh) {
-	int i, j;
-	int flag = 0;
-	jint* colors = (*env)->GetIntArrayElements(env, color, 0);
-//i_printf("getBitmap\n");
+		JNIEnv* env, jobject obj, jobject bitmap) {
+	short  i, j;
+	short  x, y;
+	short  s;
+	AndroidBitmapInfo info;
+	int* pixels;
+	int ret;
+	static int init;
 
-//画面サイズの代入
-	disp.width = jw;
-	disp.height = jh;
-//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 
-	int xx, yy;
-	int x, y;
-	int s;
+	if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+		i_printf("AndroidBitmap_getInfo() failed ! error=%d", ret);
+		return JNI_FALSE;
+	}
 
-//浮動小数点演算対策
-	s = scale * 1000;
+	if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+		i_printf("Bitmap format is not RGBA_8888 !");
+		return JNI_FALSE;
+	}
 
-//imgの二次元配列を一次元配列に変換し代入
-	for (i = 0; i < disp.width; i++) {
-//拡縮元座標の算出
-		xx = (i + disp.x) * 1000 / s;
-		x = (int) xx;
-		for (j = 0; j < disp.height; j++) {
+	if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
+		i_printf("AndroidBitmap_lockPixels() failed ! error=%d", ret);
+	}
+
+
+	//画面サイズの代入
+	disp.width = info.width;
+	disp.height = info.height;
+	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
+
+
+	//浮動小数点演算対策
+	s = scale * 512;
+	y = (0 + disp.y) * 512 / s;
+	//imgの二次元配列を一次元配列に変換し代入
+	for (i = 0,j = 0; j < disp.height; i++) {
+		if (i == disp.width) {
+			i = -1;
+			j++;
 			//拡縮元座標の算出
-			yy = (j + disp.y) * 1000 / s;
-			y = (int) yy;
-
-			if ((xx < c.width) && (yy < c.height) && (xx > 0) && (yy > 0)) {
-				colors[j * disp.width + i] = BuffImg[x][y];
-			} else {
-				colors[j * disp.width + i] = 0xFF000000;
-				flag = 1;
-			}
+			y = (j + disp.y) * 512 / s;
+			continue;
+		}
+		//拡縮元座標の算出
+		x = (i + disp.x) * 512 / s;
+		if ((y < c.height) && (y > 0) && (x < c.width) && (x > 0)) {
+			*(pixels++) = BuffImg[x][y];
+		} else {
+			*(pixels++) = 0xFF000000;
 		}
 	}
-	(*env)->ReleaseIntArrayElements(env, color, colors, 0);
-	if (flag == 0) {
-		return JNI_TRUE;
-	} else {
-		return JNI_TRUE;
-	}
+	AndroidBitmap_unlockPixels(env, bitmap);
+	return JNI_TRUE;
 }
 
 /*
@@ -1405,7 +1431,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 			a = 255;
 		}
 
-		result = (a << 24) | (r << 16) | (g << 8) | b;
+		result = (a << 24) | (b<< 16) | (g << 8) | r;
 		break;
 	case 1: //乗算
 		r = (src_r * dest_r) / 255;
@@ -1424,7 +1450,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (r << 16) | (g << 8) | b;
+		result = (a << 24) | (b<< 16) | (g << 8) | r;
 		break;
 	case 2: //スクリーン
 		if ((src_a != 0) && (dest_a != 0)) {
@@ -1457,7 +1483,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (r << 16) | (g << 8) | b;
+		result = (a << 24) | (b<< 16) | (g << 8) | r;
 		break;
 	case 3: //オーバレイ
 		if (dest_r < 128) {
@@ -1488,7 +1514,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (r << 16) | (g << 8) | b;
+		result = (a << 24) | (b<< 16) | (g << 8) | r;
 		break;
 	case 4: //ソフトライト
 		break;

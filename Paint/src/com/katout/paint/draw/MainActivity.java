@@ -312,8 +312,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			}
 
 			@Override
-			public boolean getBitmap(int[] canvas, int width, int height) {
-				return nativefunc.getBitmap(canvas, width, height);
+			public boolean getBitmap(Bitmap map) {
+				return nativefunc.getBitmap(map);
 			}
 
 			@Override
