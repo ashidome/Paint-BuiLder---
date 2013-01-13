@@ -271,72 +271,83 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Recompositi
  * レイヤー番号 == -1 で全体Preview
  */
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
-		JNIEnv* env, jobject obj, jint layer_num, jintArray array, jint jwidth,
-		jint jheight) {
+		JNIEnv* env, jobject obj, jint layer_num, jobject bitmap) {
 	i_printf("getPreview");
-	jint* Array = (*env)->GetIntArrayElements(env, array, 0);
-	int i, j;
-	int xx, yy;
-	int x, y;
-	int s;
+
+	short i, j;
+	short x, y;
+	short s;
+	AndroidBitmapInfo info;
+	int* pixels;
+	int ret;
 
 	int black_padding;
 
-	for (i = 0; i < jwidth; i++) {
-		for (j = 0; j < jheight; j++) {
-			Array[j * jwidth + i] = 0xFF000000;
+	if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+		i_printf("AndroidBitmap_getInfo() failed ! error=%d", ret);
+		return JNI_FALSE;
+	}
+
+	if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+		i_printf("Bitmap format is not RGBA_8888 !");
+		return JNI_FALSE;
+	}
+
+	if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
+		i_printf("AndroidBitmap_lockPixels() failed ! error=%d", ret);
+	}
+
+	for (i = 0; i < info.width; i++) {
+		for (j = 0; j < info.height; j++) {
+			pixels[j * info.width + i] = 0xFF000000;
 		}
 	}
-	i_printf("width = %d, height = %d\n", jwidth, jheight);
 
-	if ((double) c.height / jheight < (double) c.width / jwidth) {
+	if ((double) c.height / info.height < (double) c.width / info.width) {
 		i_printf("Preview width apply\n");
 		//浮動小数点演算対策
-		s = jwidth * 1000 / c.width;
-		black_padding = (jheight - jwidth * (double) c.height / c.width) / 2;
+		s = info.width * 512 / c.width;
+		black_padding = (info.height - info.width * (double) c.height / c.width)
+				/ 2;
 
 		//imgの二次元配列を一次元配列に変換し代入
-		for (i = 0; i < jwidth; i++) {
+		for (i = 0; i < info.width; i++) {
 			//拡縮元座標の算出
-			xx = i * 1000 / s;
-			x = (int) xx;
-			for (j = black_padding; j < jheight - black_padding - 1; j++) {
+			x = i * 512 / s;
+			for (j = black_padding; j < info.height - black_padding - 1; j++) {
 				//拡縮元座標の算出
-				yy = (j - black_padding) * 1000 / s;
-				y = (int) yy;
+				y = (j - black_padding) * 512 / s;
 				if (layer_num == -1) {
-					Array[j * jwidth + i] = BuffImg[x][y];
+					pixels[j * info.width + i] = BuffImg[x][y];
 				} else {
-					Array[j * jwidth + i] = layerdata[layer_num].img[x][y];
+					pixels[j * info.width + i] = layerdata[layer_num].img[x][y];
 				}
 			}
 		}
 	} else {
 		i_printf("Preview height apply\n");
 		//浮動小数点演算対策
-		s = jheight * 1000 / c.height;
-		black_padding = (jwidth - jheight * (double) c.width / c.height) / 2;
+		s = info.height * 512 / c.height;
+		black_padding = (info.width - info.height * (double) c.width / c.height)
+				/ 2;
 
 		i_printf("s = %d, black_padding = %d\n", s, black_padding);
 		//imgの二次元配列を一次元配列に変換し代入
-		for (i = black_padding; i < jwidth - black_padding - 1; i++) {
+		for (i = black_padding; i < info.width - black_padding - 1; i++) {
 			//拡縮元座標の算出
-			xx = (i - black_padding) * 1000 / s;
-			x = (int) xx;
-			for (j = 0; j < jheight; j++) {
+			x = (i - black_padding) * 512 / s;
+			for (j = 0; j < info.height; j++) {
 				//拡縮元座標の算出
-				yy = j * 1000 / s;
-				y = (int) yy;
+				y = j * 512 / s;
 				if (layer_num == -1) {
-					Array[j * jwidth + i] = BuffImg[x][y];
+					pixels[j * info.width + i] = BuffImg[x][y];
 				} else {
-					Array[j * jwidth + i] = layerdata[layer_num].img[x][y];
+					pixels[j * info.width + i] = layerdata[layer_num].img[x][y];
 				}
 			}
 		}
 	}
-
-	(*env)->ReleaseIntArrayElements(env, array, Array, 0);
+	AndroidBitmap_unlockPixels(env, bitmap);
 	return JNI_TRUE;
 }
 
