@@ -77,7 +77,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	private SeekBar					alpher_seek;
 	private boolean	preview_Change_flag;
 	private ImageView				preview;
-	private int[]	preview_map;
 	private int	previewwidth;
 	private int	previewheight;
 	private Bitmap	preview_bitmap;
@@ -645,20 +644,15 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	
 	@Override
 	public void setPreView(){
-		if(preview_map == null){
-			previewwidth = preview.getWidth();
-			previewheight = preview.getHeight();
-			preview_map = new int[previewwidth*previewheight];
-		}
+		previewwidth = preview.getWidth();
+		previewheight = preview.getHeight();
 
 		if(preview_bitmap == null){
 			preview_bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
 		}
 		
-		nativefunc.getPreview(-1, preview_map, previewwidth, previewheight);
-		preview_bitmap.setPixels(preview_map, 0, previewwidth, 0, 0, previewwidth, previewheight);
-		handler.post(new Runnable() {
-			
+		nativefunc.getPreview(-1, preview_bitmap);
+		handler.post(new Runnable() {			
 			@Override
 			public void run() {
 				preview.setImageBitmap(preview_bitmap);

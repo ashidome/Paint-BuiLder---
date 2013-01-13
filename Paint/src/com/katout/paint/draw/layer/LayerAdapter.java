@@ -21,7 +21,6 @@ public class LayerAdapter{
 	private ArrayList<LayerData> layers;//左右にあるレイヤーのレイアウト
 	private int layernum;
 	private int currentlayer;
-	private int[] img_map;
 	private int previewheight;
 	private int previewwidth;
 	private NativeFunction func;
@@ -83,19 +82,15 @@ public class LayerAdapter{
 	
 	public void setPreview(){
 		ImageView img = (ImageView) layers.get(currentlayer).layout.findViewById(R.id.preview_image);
-		if(img_map == null){
-			previewwidth = img.getWidth();
-			previewheight = img.getHeight();
-			img_map = new int[previewwidth*previewheight];
-		}
+		previewwidth = img.getWidth();
+		previewheight = img.getHeight();
 		Bitmap bitmap = layers.get(currentlayer).preview ;
 		if(bitmap == null){
 			bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
 			layers.get(currentlayer).preview = bitmap;
 		}
 		
-		func.getPreview(currentlayer, img_map, previewwidth, previewheight);
-		bitmap.setPixels(img_map, 0, previewwidth, 0, 0, previewwidth, previewheight);
+		func.getPreview(currentlayer, bitmap);
 		img.setImageBitmap(bitmap);
 		
 	}
