@@ -129,10 +129,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			paint_menuH = paint_menu_t.getHeight();
 			paint_menuW = paint_layer_l.getWidth();
 			paint.setmenuwSize(paint_menuH, paint_menuW);
-			int color = sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0));
-			colorV_t.setColor(color);
-			colorV_b.setColor(color);
-			nativefunc.setColor(color);
 		}
 	}
 
@@ -318,6 +314,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public boolean init(int x, int y) {
 				boolean init_flag = false;
+
 				if(!new_flag){
 					try {
 						File srcFile = new File(path +"/"+ filename);
@@ -354,6 +351,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					int c = nativefunc.getCurrentNum();
 					layerAdapter.selectLayer(c);
 				}
+				int color = sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0));
+				colorV_t.setColor(color);
+				colorV_b.setColor(color);
+				nativefunc.setColor(color);
 				
 				return true;
 			}
@@ -398,7 +399,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					String mes = j_message.getMessage();
 					connectCore.shareMessage(mes);
 				}
-				layerAdapter.setPreview();
+				layerAdapter.setPreviewflag();
 			}
 		});
 	}
@@ -651,13 +652,14 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			preview_bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
 		}
 		
-		nativefunc.getPreview(-1, preview_bitmap);
+		//nativefunc.getPreview(-1, preview_bitmap);
 		handler.post(new Runnable() {			
 			@Override
 			public void run() {
 				preview.setImageBitmap(preview_bitmap);
 			}
 		});
+		layerAdapter.setPreview(); 
 		preview_Change_flag = false;
 	}
 	

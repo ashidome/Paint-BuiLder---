@@ -8,4 +8,5 @@ public class LayerData {
 	public int layermode = 0;
 	public LinearLayout layout;
 	public Bitmap preview;
+	public boolean tempEdit;
 }

@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Shader;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -76,7 +75,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private ArrayList<Integer> paint_points;
 
 	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner, EventLisner event_lisner) {
-		Log.e("test", "PaintView initial");
+		Log.d("java", "PaintView initial");
 		init_flag = false;
 		paint = new Paint();
 		paint.setTextSize(30);
@@ -340,35 +339,35 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 			canvas.drawBitmap(bitmap, 0, 0, null);
 		}
-		String debugText = "FPS = " + rate.getFrameRate();
-		canvas.drawText(debugText, 5, 30, paint);
+		ondebag(true, canvas);
 
 
 		holder.unlockCanvasAndPost(canvas);
 	}
 	
-	private void ondebag(Canvas canvas) {
+	private void ondebag(boolean flag, Canvas canvas) {
 		for (int i = 0; i < touch_count; i++) {
 			canvas.drawLine(0, points[1][i], w, points[1][i], paint);
 			canvas.drawLine(points[0][i], 0, points[0][i], h, paint);
 		}
 
-		
-		String debugText = "State = " + state + "\n";
+		String debugText = "FPS = " + rate.getFrameRate();
 		canvas.drawText(debugText, 5, 30, paint);
-		debugText = "Pos X: " + nowPosX + "	,Y: " + nowPosY + "\n";
+		debugText = "State = " + state + "\n";
 		canvas.drawText(debugText, 5, 60, paint);
+		debugText = "Pos X: " + nowPosX + "	,Y: " + nowPosY + "\n";
+		canvas.drawText(debugText, 5, 90, paint);
 
 		debugText = "preVecterSize = " + preVecterSize + "\n";
-		canvas.drawText(debugText, 5, 90, paint);
-		debugText = "Scale = " + (int) (Scale * 100) + "%\n";
 		canvas.drawText(debugText, 5, 120, paint);
-		debugText = "Rad = " + 0;
+		debugText = "Scale = " + (int) (Scale * 100) + "%\n";
 		canvas.drawText(debugText, 5, 150, paint);
-		debugText = "menux = " + nowMenuPosX;
+		debugText = "Rad = " + pre_rad;
 		canvas.drawText(debugText, 5, 180, paint);
-		debugText = "menuY = " + nowMenuPosY;
+		debugText = "menux = " + nowMenuPosX;
 		canvas.drawText(debugText, 5, 210, paint);
+		debugText = "menuY = " + nowMenuPosY;
+		canvas.drawText(debugText, 5, 240, paint);
 	}
 
 

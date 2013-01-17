@@ -41,7 +41,7 @@ void recomposition(int flag);
 void initLayer(int current);
 void startDraw(int x, int y, int flag);
 void draw(int x, int y, int flag);
-
+int swap_rgb(int c);
 /*
  * レイヤ周り
  */
@@ -272,7 +272,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Recompositi
  */
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 		JNIEnv* env, jobject obj, jint layer_num, jobject bitmap) {
-	i_printf("getPreview");
+	i_printf("getPreview:%d",layer_num);
 
 	short i, j;
 	short x, y;
@@ -318,7 +318,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 				//拡縮元座標の算出
 				y = (j - black_padding) * 512 / s;
 				if (layer_num == -1) {
-					pixels[j * info.width + i] = BuffImg[x][y];
+					int temp = BuffImg[x][y];
+					pixels[j * info.width + i] =temp;
 				} else {
 					pixels[j * info.width + i] = layerdata[layer_num].img[x][y];
 				}
@@ -506,7 +507,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 				pixel = Blend_Layer(layerdata[k].mode, layerdata[k].img[i][j],
 						pixel, k);
 			}
-			colors[j * c.width + i] = pixel;
+			colors[j * c.width + i] = swap_rgb(pixel);
 		}
 	}
 
@@ -545,7 +546,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	disp.height = info.height;
 	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 
-
+	 start = clock();
 	//浮動小数点演算対策
 	s = scale * 512;
 	y = (0 + disp.y) * 512 / s;
@@ -566,6 +567,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 			*(pixels++) = 0xFF000000;
 		}
 	}
+	end = clock();
+	//i_printf("%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
 	AndroidBitmap_unlockPixels(env, bitmap);
 	return JNI_TRUE;
 }
@@ -652,7 +655,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 				if (jflag == 0) {
 					layerdata[0].img[i][j] = 0xFFFFFFFF;
 				} else {
-					layerdata[0].img[i][j] = map[j * c.width + i];
+					layerdata[0].img[i][j] = swap_rgb(map[j * c.width + i]);
 				}
 			}
 		}
@@ -974,6 +977,15 @@ int get_alpha(int c) {
 	return ((c & 0xFF000000) >> 24);
 }
 
+int swap_rgb(int c){
+	short a,r,g,b;
+	a= get_alpha(c);
+	r = ((c & 0x00FF0000) >> 16);
+	g = ((c & 0x0000FF00) >> 8);
+	b = (c & 0x000000FF);
+	return (a << 24) | (b<< 16) | (g << 8) | r;
+}
+
 /*
  * EditLayerの変更をimg配列に適用する関数
  */
@@ -1064,7 +1076,7 @@ void Bicubic(int sx, int sy, double by, int flag) {
 	int a, rgb;
 
 	a = get_alpha(brush[flag].color);
-	rgb = (brush[flag].color & 0x00FFFFFF);
+	rgb = swap_rgb(brush[flag].color & 0x00FFFFFF);
 
 	nscale = 1.0 / by;
 
@@ -1442,7 +1454,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 			a = 255;
 		}
 
-		result = (a << 24) | (b<< 16) | (g << 8) | r;
+		result = (a << 24) | (r<< 16) | (g << 8) | b;
 		break;
 	case 1: //乗算
 		r = (src_r * dest_r) / 255;
@@ -1461,7 +1473,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (b<< 16) | (g << 8) | r;
+		result = (a << 24) | (r<< 16) | (g << 8) | b;
 		break;
 	case 2: //スクリーン
 		if ((src_a != 0) && (dest_a != 0)) {
@@ -1494,7 +1506,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (b<< 16) | (g << 8) | r;
+		result = (a << 24) | (r<< 16) | (g << 8) | b;
 		break;
 	case 3: //オーバレイ
 		if (dest_r < 128) {
@@ -1525,7 +1537,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (b<< 16) | (g << 8) | r;
+		result = (a << 24) | (r<< 16) | (g << 8) | b;
 		break;
 	case 4: //ソフトライト
 		break;

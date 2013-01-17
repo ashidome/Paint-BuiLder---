@@ -33,14 +33,15 @@ public class LayerAdapter{
 		currentlayer = 0;
 		this.context = context;
 		this.func = func;
+		handler = new Handler();
 	}
 	
 	public LinearLayout addLayer(){
-		//左右あるかここでは２回回している
 		layouts.removeAllViews();
 		
 		LinearLayout temp;
 		LayerData layerdata = new LayerData();
+		layerdata.tempEdit = true;
 		if(layers.size() <= currentlayer+1){
 			layers.add(layerdata);
 		}else{
@@ -80,19 +81,34 @@ public class LayerAdapter{
 		}
 	}
 	
+	public void setPreviewflag(){
+		layers.get(currentlayer).tempEdit = true;
+	}
+	
 	public void setPreview(){
-		ImageView img = (ImageView) layers.get(currentlayer).layout.findViewById(R.id.preview_image);
-		previewwidth = img.getWidth();
-		previewheight = img.getHeight();
-		Bitmap bitmap = layers.get(currentlayer).preview ;
-		if(bitmap == null){
-			bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
-			layers.get(currentlayer).preview = bitmap;
+		for(int i = 0; i < layers.size(); i++){
+			LayerData data = layers.get(i);
+			if(data.tempEdit){
+				final ImageView img = (ImageView) data.layout.findViewById(R.id.preview_image);
+				previewwidth = img.getWidth();
+				previewheight = img.getHeight();
+				Bitmap bitmap = data.preview ;
+				if(bitmap == null){
+					bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
+					data.preview = bitmap;
+				}
+				final Bitmap bitmap2 = bitmap;
+				
+				func.getPreview(currentlayer, bitmap);
+				handler.post(new Runnable() {
+					@Override
+					public void run() {
+						img.setImageBitmap(bitmap2);
+					}
+				});
+				data.tempEdit = false;
+			}
 		}
-		
-		func.getPreview(currentlayer, bitmap);
-		img.setImageBitmap(bitmap);
-		
 	}
 	
 	public boolean deleteLayer(){
@@ -148,6 +164,7 @@ public class LayerAdapter{
 		if(mode.length > 1){
 			for(int i = 1; i < mode.length; i++){
 				LayerData data = new LayerData();
+				data.tempEdit = true;
 				data.layout = (LinearLayout) mInflater.inflate(R.layout.layer_column, null);
 				
 				data.alpha = alpha[i];
@@ -169,3 +186,4 @@ public class LayerAdapter{
 		return returns;
 	}
 }
+
