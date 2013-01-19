@@ -312,7 +312,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			}
 
 			@Override
-			public boolean init(int x, int y) {
+			public boolean init(int w, int h) {
 				boolean init_flag = false;
 
 				if(!new_flag){
@@ -321,17 +321,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		    			FileInputStream fis;
 						fis = new FileInputStream(srcFile);
 						Bitmap bitmap = BitmapFactory.decodeStream(fis);
-						int w = bitmap.getWidth();
-						int h = bitmap.getHeight();
-						int[] map = new int[w*h];
-						bitmap.getPixels(map, 0, w, 0, 0, w, h);
-						init_flag =  nativefunc.init(w, h,1,map);
+						int x = bitmap.getWidth();
+						int y = bitmap.getHeight();
+						int[] map = new int[x*y];
+						bitmap.getPixels(map, 0, x, 0, 0, x, y);
+						init_flag =  nativefunc.init(x, y,1,map);
 						layerAdapter.setPreview();
 					} catch (FileNotFoundException e) {
-						init_flag =  nativefunc.init(x, y, 0, null);
+						init_flag =  nativefunc.init(w, h, 0, null);
 					}
 				}else {
-					init_flag =  nativefunc.init(x, y, 0, null);
+					init_flag =  nativefunc.init(w, h, 0, null);
 				}
 				if(!init_flag){
 					//初期化済みだった場合
@@ -652,7 +652,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			preview_bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
 		}
 		
-		//nativefunc.getPreview(-1, preview_bitmap);
+		nativefunc.getPreview(-1, preview_bitmap);
 		handler.post(new Runnable() {			
 			@Override
 			public void run() {

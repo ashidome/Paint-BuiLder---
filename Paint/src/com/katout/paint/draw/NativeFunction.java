@@ -6,12 +6,19 @@ public class NativeFunction {
 	static {
 		System.loadLibrary("jniimage");
 	}
-	
+	/**
+	 * 
+	 * @param w 画面サイズ
+	 * @param h 画面縦幅
+	 * @param x キャンバス横幅
+	 * @param y キャンバス縦幅
+	 * @param init_flag 初期化画像の有無
+	 * @param map 初期化画像
+	 * @return
+	 */
 	public native boolean init(int x,int y, int init_flag, int[] map);
 	
 	public native boolean destructor();
-
-	public native boolean setCanvasSize(int x, int y);
 
 	public native boolean deleteEditLayer();
 

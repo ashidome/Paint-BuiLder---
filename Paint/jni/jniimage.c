@@ -14,7 +14,7 @@
 #define MAX_LAYER_SIZE 5
 #define MAX_BRUSH_NUM 2
 
-void*  mymemset(void*  dst, int c, int n);
+void mymemset(void*  dst, int c, int n);
 void brush_draw(int x, int y, int flag);
 void applyEdit(int flag);
 void initEditLayer(int flag);
@@ -111,7 +111,7 @@ static int theta;
 static int init_flag = 0;
 
 static int ***EditLayer;
-static int **BuffImg;
+static int *BuffImg;
 static double scale;
 
 struct BufStr {
@@ -121,15 +121,16 @@ struct BufStr {
 struct BufStr buff[MAXSIZE]; /* シード登録用バッファ */
 struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
 
-void*  mymemset(void*  dst, int c, int n){
-    int*  q   = dst;
-    int*  end = q + n;
-
-    for (;q < end;) {
-        *q++ = c;
-    }
-
-  return dst;
+void  mymemset(void*  dst, int color, int size){
+	__asm__ volatile (
+		"loopBegin:\n\t"
+		"STR %[color],[%[dst], #+4]!\n\t"
+		"SUBS	%[size], %[size], #1\n\t"
+		"BNE loopBegin\n\t"
+		: [dst] "+r" (dst)
+		: [color] "r" (color), [size] "r" (size)
+		:
+	);
 }
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setCanvasSize(
@@ -318,7 +319,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 				//拡縮元座標の算出
 				y = (j - black_padding) * 512 / s;
 				if (layer_num == -1) {
-					int temp = BuffImg[x][y];
+					int temp = BuffImg[y * c.width + x];
 					pixels[j * info.width + i] =temp;
 				} else {
 					pixels[j * info.width + i] = layerdata[layer_num].img[x][y];
@@ -341,7 +342,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 				//拡縮元座標の算出
 				y = j * 512 / s;
 				if (layer_num == -1) {
-					pixels[j * info.width + i] = BuffImg[x][y];
+					pixels[j * info.width + i] = BuffImg[y * c.width + x];
 				} else {
 					pixels[j * info.width + i] = layerdata[layer_num].img[x][y];
 				}
@@ -515,6 +516,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 	return JNI_TRUE;
 }
 
+// TODO getBitmap
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 		JNIEnv* env, jobject obj, jobject bitmap) {
 	short  i, j;
@@ -545,30 +547,30 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	disp.width = info.width;
 	disp.height = info.height;
 	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
-
 	 start = clock();
 	//浮動小数点演算対策
-	s = scale * 512;
-	y = (0 + disp.y) * 512 / s;
+	s = scale * 256;
+	y = (disp.y<<8) / s;
+
 	//imgの二次元配列を一次元配列に変換し代入
 	for (i = 0,j = 0; j < disp.height; i++) {
 		if (i == disp.width) {
 			i = -1;
 			j++;
 			//拡縮元座標の算出
-			y = (j + disp.y) * 512 / s;
+			y = ((j + disp.y) <<8) / s;
 			continue;
 		}
 		//拡縮元座標の算出
-		x = (i + disp.x) * 512 / s;
+		x = ((i + disp.x) <<8) / s;
 		if ((y < c.height) && (y > 0) && (x < c.width) && (x > 0)) {
-			*(pixels++) = BuffImg[x][y];
+			*(pixels++) = BuffImg[y * c.width + x];
 		} else {
 			*(pixels++) = 0xFF000000;
 		}
 	}
 	end = clock();
-	//i_printf("%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
+	i_printf("%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
 	AndroidBitmap_unlockPixels(env, bitmap);
 	return JNI_TRUE;
 }
@@ -645,9 +647,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 		for (i = 0; i < MAX_LAYER_SIZE; i++) {
 			for (j = 0; j < c.width; j++) {
-				for (k = 0; k < c.height; k++) {
-					layerdata[i].img[j][k] = 0x00FFFFFF;
-				}
+				mymemset(layerdata[i].img[j], 0x00FFFFFF,c.height);
 			}
 		}
 		for (i = 0; i < c.width; i++) {
@@ -676,21 +676,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 		for (i = 0; i < MAX_BRUSH_NUM; i++) {
 			for (j = 0; j < c.width; j++) {
-				for (k = 0; k < c.height; k++) {
-					EditLayer[i][j][k] = 0x00000000;
-				}
+				mymemset(EditLayer[i][j], 0x00000000,c.height);
 			}
 		}
 		//バッファ配列の確保と初期化
-		BuffImg = (int **) malloc(sizeof(int*) * c.width);
-		for (i = 0; i < c.width; i++) {
-			BuffImg[i] = (int*) malloc(sizeof(int) * c.height);
-		}
-		for (i = 0; i < c.width; i++) {
-			for (j = 0; j < c.height; j++) {
-				BuffImg[i][j] = 0xFFFFFFFF;
-			}
-		}
+		BuffImg = (int *) malloc(sizeof(int) * c.width*c.height);
+		mymemset(BuffImg,0xffffffff,c.width*c.height);
 
 		//brushmapの確保と初期化
 		brushmap = (struct BrushMap*) malloc(
@@ -795,9 +786,6 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_destructor(
 	i_printf("free(EditLayer)\n");
 
 //バッファ配列の開放
-	for (i = 0; i < c.width; i++) {
-		free(BuffImg[i]);
-	}
 	free(BuffImg);
 
 	i_printf("free(BuffImg)\n");
@@ -955,7 +943,7 @@ void blendBuff(int x, int y, int flag) {
 					Pixel, i);
 		}
 	}
-	BuffImg[x][y] = Pixel;
+	BuffImg[y * c.width + x] = Pixel;
 }
 
 /*
@@ -1644,4 +1632,3 @@ int min(int a, int b) {
 		return b;
 	}
 }
-
