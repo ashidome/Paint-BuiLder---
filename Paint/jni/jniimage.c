@@ -275,9 +275,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 		JNIEnv* env, jobject obj, jint layer_num, jobject bitmap) {
 	i_printf("getPreview:%d",layer_num);
 
-	short i, j;
-	short x, y;
-	short s;
+	int i, j;
+	int x, y;
+	int s;
 	AndroidBitmapInfo info;
 	int* pixels;
 	int ret;
@@ -519,9 +519,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 // TODO getBitmap
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 		JNIEnv* env, jobject obj, jobject bitmap) {
-	short  i, j;
-	short  x, y;
-	short  s;
+	int  i, j;
+	int  x, y,ym;
+	int  s;
 	AndroidBitmapInfo info;
 	int* pixels;
 	int ret;
@@ -551,7 +551,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	//浮動小数点演算対策
 	s = scale * 256;
 	y = (disp.y<<8) / s;
-
+	ym = y * c.width;
 	//imgの二次元配列を一次元配列に変換し代入
 	for (i = 0,j = 0; j < disp.height; i++) {
 		if (i == disp.width) {
@@ -559,18 +559,20 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 			j++;
 			//拡縮元座標の算出
 			y = ((j + disp.y) <<8) / s;
+			ym = y * c.width;
 			continue;
 		}
+
 		//拡縮元座標の算出
 		x = ((i + disp.x) <<8) / s;
 		if ((y < c.height) && (y > 0) && (x < c.width) && (x > 0)) {
-			*(pixels++) = BuffImg[y * c.width + x];
+			*(pixels++) = BuffImg[ym + x];
 		} else {
 			*(pixels++) = 0xFF000000;
 		}
 	}
 	end = clock();
-	i_printf("%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
+	//i_printf("%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
 	AndroidBitmap_unlockPixels(env, bitmap);
 	return JNI_TRUE;
 }
@@ -966,7 +968,7 @@ int get_alpha(int c) {
 }
 
 int swap_rgb(int c){
-	short a,r,g,b;
+	int a,r,g,b;
 	a= get_alpha(c);
 	r = ((c & 0x00FF0000) >> 16);
 	g = ((c & 0x0000FF00) >> 8);

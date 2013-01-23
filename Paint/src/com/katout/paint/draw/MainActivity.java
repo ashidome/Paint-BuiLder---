@@ -531,12 +531,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					
 					break;
 				case 2:
-					paint.tread_flag = false;
-					nativefunc.destructor();
-					paint.tread_flag = false;
-					while (paint.thread.isAlive())
-						;
-					finish();
+					myFinish();
 					break;
 				default:
 					break;
@@ -636,10 +631,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	}
 	
 	private void myFinish() {
-		nativefunc.destructor();
 		paint.tread_flag = false;
 		while (paint.thread.isAlive())
 			;
+		nativefunc.destructor();
 		finish();
 	}
 	
