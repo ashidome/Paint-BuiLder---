@@ -125,7 +125,7 @@ struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
 void  mymemset(int*  dst, int color, int size){
 	__asm__ volatile (
 		"loopBegin:\n\t"
-		"STR %[color],[%[dst], #+4]!\n\t"
+		"STR %[color],[%[dst]], #+4\n\t"
 		"SUBS	%[size], %[size], #1\n\t"
 		"BNE loopBegin\n\t"
 		: [dst] "+r" (dst)
@@ -137,7 +137,7 @@ void  mymemset(int*  dst, int color, int size){
 void  mymemset2(int*  dst, int color, int size){
 	__asm__ volatile (
 		"loopBegin2:\n\t"
-		"STR %[color],[%[dst], #-4]!\n\t"
+		"STR %[color],[%[dst]], #-4\n\t"
 		"SUBS	%[size], %[size], #1\n\t"
 		"BNE loopBegin2\n\t"
 		: [dst] "+r" (dst)
@@ -540,6 +540,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	int ret;
 	static int init;
 	int x_s,y_s,x_f,y_f;
+	//i_printf( "getBitmap start");
 
 	if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
 		i_printf("AndroidBitmap_getInfo() failed ! error=%d", ret);
@@ -559,17 +560,16 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	//画面サイズの代入
 	disp.width = info.width;
 	disp.height = info.height;
-	//i_printf( "disp.x = %d, disp.y = %d", disp.x, disp.y);
 	 start = clock();
 	//浮動小数点演算対策
-	s = scale * 256;
+	s = scale * 512;
 
 	//上方向黒埋め
-	y =(disp.y<<8) / s;
 	y_s = 0;
+	y =(disp.y<<9) / s;
 	if(y < 0){
 		for(y_s = 1;y_s < disp.height; y_s++){
-			y = ((y_s + disp.y) <<8) / s;
+			y = ((y_s + disp.y) <<9) / s;
 			if(y >=0){
 				break;
 			}
@@ -579,26 +579,26 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	}
 
 	//下方向黒埋め
-	y = ((disp.height + disp.y) << 8) / s;
 	y_f = disp.height;
+	y = ((disp.height + disp.y) << 9) / s;
 	if (y >= c.height) {
 		while(y_f--){
-			y = ((y_f + disp.y) <<8) / s;
+			y = ((y_f + disp.y) <<9) / s;
 			if(y < c.height){
 				break;
 			}
 		}
-		mymemset2(pixels + disp.height*disp.width, 0xFF00FF00, (disp.height - y_f)*disp.width);
-		y_f++;
+		mymemset2(pixels + disp.height*disp.width, 0xFF000000, (disp.height - y_f)*disp.width);
+		//y_f++;
 	}
 
 
 	//左方向黒埋め
-	x = (disp.x << 8) / s;
 	x_s = 0;
+	x = (disp.x << 9) / s;
 	if (x < 0) {
 		for (x_s = 1; x_s < disp.width; x_s++) {
-			x = ((x_s + disp.x) <<8) / s;
+			x = ((x_s + disp.x) <<9) / s;
 			if (x >= 0) {
 				break;
 			}
@@ -610,44 +610,45 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	}
 
 	//右方向黒埋め
-	x = ((disp.width + disp.x) <<8) / s;
 	x_f = disp.width;
+	x = ((disp.width + disp.x) <<9) / s;
 	if (x >= c.width) {
 		while (x_f--) {
-			x = ((x_f + disp.x) <<8) / s;
+			x = ((x_f + disp.x) <<9) / s;
 			if (x < c.width) {
 				break;
 			}
 		}
 		for (j = y_s; j < y_f; j++) {
-			mymemset(pixels + j * disp.width + x_f, 0xFF0000FF, disp.width - x_f);
+			mymemset(pixels + j * disp.width + x_f, 0xFF000000, disp.width - x_f);
 		}
-		y_f++;
+		//なぜかこれでうまくいく
+		//y_f++;
 	}
 
 
-	y = (disp.y<<8) / s;
+	y = (disp.y<<9) / s;
 	ym = y * c.width;
 	pixels+=y_s*disp.width + x_s;
 	//imgの二次元配列を一次元配列に変換し代入
 	for (i = x_s,j = y_s; j < y_f; i++) {
-		if (i == x_f) {
+		if (i >= x_f) {
 			i = x_s-1;
 			j++;
 			//拡縮元座標の算出
-			y = ((j + disp.y) <<8) / s;
+			y = ((j + disp.y) <<9) / s;
 			ym = y * c.width;
 			pixels += x_s + (disp.width - x_f);
 			continue;
 		}
 
 		//拡縮元座標の算出
-		x = ((i + disp.x) <<8) / s;
+		x = ((i + disp.x) <<9) / s;
 
 		*(pixels++) = BuffImg[ym + x];
 	}
 	end = clock();
-	//i_printf("%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
+	//i_printf("getbitmap end:%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
 	AndroidBitmap_unlockPixels(env, bitmap);
 	return JNI_TRUE;
 }

@@ -351,7 +351,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					int c = nativefunc.getCurrentNum();
 					layerAdapter.selectLayer(c);
 				}
-				int color = sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0));
+				int color = sp.getInt("wid_back_color", Color.argb(255, 51, 181, 229));
 				colorV_t.setColor(color);
 				colorV_b.setColor(color);
 				nativefunc.setColor(color);
@@ -447,7 +447,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 						colorV_t.setColor(color);
 						colorV_b.setColor(color);
 					}
-				}, sp.getInt("wid_back_color", Color.argb(65, 0, 0, 0)));
+				}, sp.getInt("wid_back_color", Color.argb(255, 51, 181, 229)));
 		mColorPickerDialog.show();
 	}
 

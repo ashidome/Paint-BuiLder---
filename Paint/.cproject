@@ -41,8 +41,8 @@
 							<tool id="org.eclipse.cdt.build.core.settings.holder.691251213" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.705424274" name="インクルード・パス" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}\platforms\android-14\arch-arm\usr\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}sources\cxx-stl\gnu-libstdc++\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}sources\cxx-stl\gnu-libstdc++\4.6\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}\sources\cxx-stl\gnu-libstdc++\include&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1716499502" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
