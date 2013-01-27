@@ -35,7 +35,7 @@
             android:name=".draw.MainActivity"
             android:configChanges="keyboardHidden|orientation"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
+            android:theme="@style/Theme.NoBackground" >
         </activity>
     </application>
 

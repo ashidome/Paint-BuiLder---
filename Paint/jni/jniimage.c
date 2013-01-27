@@ -14,7 +14,8 @@
 #define MAX_LAYER_SIZE 5
 #define MAX_BRUSH_NUM 2
 
-void mymemset(void*  dst, int c, int n);
+void mymemset(int*  dst, int c, int n);
+void mymemset2(int*  dst, int c, int n);
 void brush_draw(int x, int y, int flag);
 void applyEdit(int flag);
 void initEditLayer(int flag);
@@ -121,12 +122,24 @@ struct BufStr {
 struct BufStr buff[MAXSIZE]; /* シード登録用バッファ */
 struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
 
-void  mymemset(void*  dst, int color, int size){
+void  mymemset(int*  dst, int color, int size){
 	__asm__ volatile (
 		"loopBegin:\n\t"
 		"STR %[color],[%[dst], #+4]!\n\t"
 		"SUBS	%[size], %[size], #1\n\t"
 		"BNE loopBegin\n\t"
+		: [dst] "+r" (dst)
+		: [color] "r" (color), [size] "r" (size)
+		:
+	);
+}
+
+void  mymemset2(int*  dst, int color, int size){
+	__asm__ volatile (
+		"loopBegin2:\n\t"
+		"STR %[color],[%[dst], #-4]!\n\t"
+		"SUBS	%[size], %[size], #1\n\t"
+		"BNE loopBegin2\n\t"
 		: [dst] "+r" (dst)
 		: [color] "r" (color), [size] "r" (size)
 		:
@@ -526,7 +539,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	int* pixels;
 	int ret;
 	static int init;
-
+	int x_s,y_s,x_f,y_f;
 
 	if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
 		i_printf("AndroidBitmap_getInfo() failed ! error=%d", ret);
@@ -550,26 +563,88 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	 start = clock();
 	//浮動小数点演算対策
 	s = scale * 256;
+
+	//上方向黒埋め
+	y =(disp.y<<8) / s;
+	y_s = 0;
+	if(y < 0){
+		for(y_s = 1;y_s < disp.height; y_s++){
+			y = ((y_s + disp.y) <<8) / s;
+			if(y >=0){
+				break;
+			}
+		}
+		mymemset(pixels, 0xFF000000, y_s*disp.width);
+		y_s--;
+	}
+
+	//下方向黒埋め
+	y = ((disp.height + disp.y) << 8) / s;
+	y_f = disp.height;
+	if (y >= c.height) {
+		while(y_f--){
+			y = ((y_f + disp.y) <<8) / s;
+			if(y < c.height){
+				break;
+			}
+		}
+		mymemset2(pixels + disp.height*disp.width, 0xFF00FF00, (disp.height - y_f)*disp.width);
+		y_f++;
+	}
+
+
+	//左方向黒埋め
+	x = (disp.x << 8) / s;
+	x_s = 0;
+	if (x < 0) {
+		for (x_s = 1; x_s < disp.width; x_s++) {
+			x = ((x_s + disp.x) <<8) / s;
+			if (x >= 0) {
+				break;
+			}
+		}
+		for(j = y_s; j < y_f; j++){
+			mymemset(pixels + j * disp.width, 0xFF000000, x_s);
+		}
+		x_s--;
+	}
+
+	//右方向黒埋め
+	x = ((disp.width + disp.x) <<8) / s;
+	x_f = disp.width;
+	if (x >= c.width) {
+		while (x_f--) {
+			x = ((x_f + disp.x) <<8) / s;
+			if (x < c.width) {
+				break;
+			}
+		}
+		for (j = y_s; j < y_f; j++) {
+			mymemset(pixels + j * disp.width + x_f, 0xFF0000FF, disp.width - x_f);
+		}
+		y_f++;
+	}
+
+
 	y = (disp.y<<8) / s;
 	ym = y * c.width;
+	pixels+=y_s*disp.width + x_s;
 	//imgの二次元配列を一次元配列に変換し代入
-	for (i = 0,j = 0; j < disp.height; i++) {
-		if (i == disp.width) {
-			i = -1;
+	for (i = x_s,j = y_s; j < y_f; i++) {
+		if (i == x_f) {
+			i = x_s-1;
 			j++;
 			//拡縮元座標の算出
 			y = ((j + disp.y) <<8) / s;
 			ym = y * c.width;
+			pixels += x_s + (disp.width - x_f);
 			continue;
 		}
 
 		//拡縮元座標の算出
 		x = ((i + disp.x) <<8) / s;
-		if ((y < c.height) && (y > 0) && (x < c.width) && (x > 0)) {
-			*(pixels++) = BuffImg[ym + x];
-		} else {
-			*(pixels++) = 0xFF000000;
-		}
+
+		*(pixels++) = BuffImg[ym + x];
 	}
 	end = clock();
 	//i_printf("%.3f\n",(double)(end-start)/CLOCKS_PER_SEC);
