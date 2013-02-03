@@ -539,7 +539,9 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	int* pixels;
 	int ret;
 	static int init;
-	int x_s,y_s,x_f,y_f;
+	int x_s,y_s,x_f,y_f, temp_x, temp_y;
+	temp_x = disp.x;
+	temp_y = disp.y;
 	//i_printf( "getBitmap start");
 
 	if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
@@ -566,68 +568,71 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 
 	//上方向黒埋め
 	y_s = 0;
-	y =(disp.y<<9) / s;
+	y =(temp_y<<9) / s;
 	if(y < 0){
 		for(y_s = 1;y_s < disp.height; y_s++){
-			y = ((y_s + disp.y) <<9) / s;
+			y = ((y_s + temp_y) <<9) / s;
 			if(y >=0){
 				break;
 			}
 		}
-		mymemset(pixels, 0xFF000000, y_s*disp.width);
 		y_s--;
+		mymemset(pixels, 0xFF000000, y_s*disp.width);
+		i_printf("上方向\n");
 	}
 
 	//下方向黒埋め
-	y_f = disp.height;
-	y = ((disp.height + disp.y) << 9) / s;
+	y_f = disp.height - 1;
+	y = ((y_f + temp_y) << 9) / s;
 	if (y >= c.height) {
 		while(y_f--){
-			y = ((y_f + disp.y) <<9) / s;
+			y = ((y_f + temp_y) <<9) / s;
 			if(y < c.height){
 				break;
 			}
 		}
+		y_f++;
 		mymemset2(pixels + disp.height*disp.width, 0xFF000000, (disp.height - y_f)*disp.width);
-		//y_f++;
+		i_printf("下方向\n");
 	}
 
 
 	//左方向黒埋め
 	x_s = 0;
-	x = (disp.x << 9) / s;
+	x = (temp_x << 9) / s;
 	if (x < 0) {
 		for (x_s = 1; x_s < disp.width; x_s++) {
-			x = ((x_s + disp.x) <<9) / s;
+			x = ((x_s + temp_x) <<9) / s;
 			if (x >= 0) {
 				break;
 			}
 		}
+		x_s--;
 		for(j = y_s; j < y_f; j++){
 			mymemset(pixels + j * disp.width, 0xFF000000, x_s);
 		}
-		x_s--;
+		i_printf("左方向\n");
 	}
 
 	//右方向黒埋め
-	x_f = disp.width;
-	x = ((disp.width + disp.x) <<9) / s;
+	x_f = disp.width - 1;
+	x = ((x_f + temp_x) <<9) / s;
 	if (x >= c.width) {
 		while (x_f--) {
-			x = ((x_f + disp.x) <<9) / s;
+			x = ((x_f + temp_x) <<9) / s;
 			if (x < c.width) {
 				break;
 			}
 		}
+		x_f++;
 		for (j = y_s; j < y_f; j++) {
 			mymemset(pixels + j * disp.width + x_f, 0xFF000000, disp.width - x_f);
 		}
-		//なぜかこれでうまくいく
-		//y_f++;
+		i_printf("右方向\n");
 	}
 
-
-	y = (disp.y<<9) / s;
+	i_printf("pixel埋め開始\n");
+	y = (temp_y<<9) / s;
 	ym = y * c.width;
 	pixels+=y_s*disp.width + x_s;
 	//imgの二次元配列を一次元配列に変換し代入
@@ -636,14 +641,14 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 			i = x_s-1;
 			j++;
 			//拡縮元座標の算出
-			y = ((j + disp.y) <<9) / s;
+			y = ((j + temp_y) <<9) / s;
 			ym = y * c.width;
-			pixels += x_s + (disp.width - x_f);
+			pixels += x_s + (disp.width - x_f) ;
 			continue;
 		}
 
 		//拡縮元座標の算出
-		x = ((i + disp.x) <<9) / s;
+		x = ((i + temp_x) <<9) / s;
 
 		*(pixels++) = BuffImg[ym + x];
 	}
