@@ -43,6 +43,8 @@ void initLayer(int current);
 void startDraw(int x, int y, int flag);
 void draw(int x, int y, int flag);
 int swap_rgb(int c);
+int alphablend(int src, int dst, int alpha);
+
 /*
  * レイヤ周り
  */
@@ -1510,11 +1512,6 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	dest_g = (dest & 0x0000FF00) >> 8;
 	dest_b = (dest & 0x000000FF);
 
-	dest_a = dest_a * (255 - src_a) + src_a;
-	dest_r = dest_r * (255 - src_a) + src_r;
-	dest_g = dest_g * (255 - src_a) + src_g;
-	dest_b = dest_b * (255 - src_a) + src_b;
-
 	switch (mode) {
 	case 0: //通常
 		r = (src_r * src_a + dest_r * (255 - src_a)) / 255;
@@ -1534,18 +1531,21 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 			a = 255;
 		}
 
-		result = (a << 24) | (r<< 16) | (g << 8) | b;
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 1: //乗算
-		r = (src_r * dest_r) / 255;
+		dest_r = (src_r * dest_r) / 255;
+		r = alphablend(src_r, dest_r, src_a);
 		if (r > 255) {
 			r = 255;
 		}
-		g = (src_g * dest_g) / 255;
+		dest_g = (src_g * dest_g) / 255;
+		g = alphablend(src_g, dest_g, src_a);
 		if (g > 255) {
 			g = 255;
 		}
-		b = (src_b * dest_b) / 255;
+		dest_b = (src_b * dest_b) / 255;
+		b = alphablend(src_b, dest_b, src_a);
 		if (b > 255) {
 			b = 255;
 		}
@@ -1556,37 +1556,26 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		result = (a << 24) | (r<< 16) | (g << 8) | b;
 		break;
 	case 2: //スクリーン
-		if ((src_a != 0) && (dest_a != 0)) {
-			r = 255 - ((255 - src_r) * (255 - dest_r) / 255);
-			if (r > 255) {
-				r = 255;
-			}
-			g = 255 - ((255 - src_g) * (255 - dest_g) / 255);
-			if (g > 255) {
-				g = 255;
-			}
-			b = 255 - ((255 - src_b) * (255 - dest_b) / 255);
-			if (b > 255) {
-				b = 255;
-			}
-		} else if (src_a == 0) {
-			r = dest_r;
-			g = dest_g;
-			b = dest_b;
-		} else if (dest_a == 0) {
-			r = src_r;
-			g = src_g;
-			b = src_b;
-		} else {
-			r = dest_r;
-			g = dest_g;
-			b = dest_b;
+		dest_r = 255 - (255 - dest_r) * (255 - src_r) / 255;
+		r = alphablend(dest_r, src_r, src_a);
+		if(r > 255){
+			r = 255;
+		}
+		dest_g = 255 - (255 - dest_g) * (255 - src_g) / 255;
+		g = alphablend(dest_g, src_g, src_a);
+		if (g > 255) {
+			g = 255;
+		}
+		dest_b = 255 - (255 - dest_b) * (255 - src_b) / 255;
+		b = alphablend(dest_b, src_b, src_a);
+		if (b > 255) {
+			b = 255;
 		}
 		a = src_a + dest_a;
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (r<< 16) | (g << 8) | b;
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 3: //オーバレイ
 		if (dest_r < 128) {
@@ -1670,6 +1659,13 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		break;
 	}
 	return result;
+}
+
+/*
+ * アルファブレンド関数
+ */
+int alphablend(int src, int dst, int alpha) {
+	return ((255 - alpha) * dst + alpha * src) / 255;
 }
 
 /*
