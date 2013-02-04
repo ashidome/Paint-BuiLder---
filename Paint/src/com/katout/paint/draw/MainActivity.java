@@ -134,21 +134,9 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	@Override
 	public void paintMenuPos(int h, int y, boolean animation) {
 		if (y > 20) {
-			int visible = paint_menu_t.getVisibility();
-			if (visible == View.GONE || visible == View.INVISIBLE
-					|| paint_menu_b.getVisibility() == View.VISIBLE) {
-				paint_menu_b.setVisibility(View.INVISIBLE);
-				paint_menu_t.setVisibility(View.VISIBLE);
-			}
 			paint_menu_t.layout(paint_menu_t.getLeft(), y - paint_menuH,
 					paint_menu_t.getLeft() + paint_menu_t.getWidth(), y);
 		} else if (y < -20) {
-			int visible = paint_menu_b.getVisibility();
-			if (visible == View.GONE || visible == View.INVISIBLE
-					|| paint_menu_t.getVisibility() == View.VISIBLE) {
-				paint_menu_t.setVisibility(View.INVISIBLE);
-				paint_menu_b.setVisibility(View.VISIBLE);
-			}
 			paint_menu_b.layout(paint_menu_b.getLeft(), h + y,
 					paint_menu_b.getLeft() + paint_menu_b.getWidth(), h + y
 							+ paint_menuH);
@@ -159,8 +147,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			paint_menu_b.layout(paint_menu_b.getLeft(), h,
 					paint_menu_b.getLeft() + paint_menu_b.getWidth(), h
 							+ paint_menuH);
-			paint_menu_t.setVisibility(View.INVISIBLE);
-			paint_menu_b.setVisibility(View.INVISIBLE);
 		}
 	}
 
@@ -253,7 +239,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		// layer_l.setAdapter(layerAdapter_l);
 		// layer_r.setAdapter(layerAdapter_r);
 		surface = (SurfaceView) findViewById(R.id.surfaceView1);
-		surface.setZOrderOnTop(false);
+		//surface.setZOrderOnTop(false);
+		surface.setZOrderMediaOverlay(true);
 		paint = new PaintView(this, surface, this, new EventLisner() {
 			@Override
 			public boolean startDraw(int x, int y) {
@@ -378,17 +365,21 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 
 	@Override
 	public void setup() {
+		final int h = surface.getHeight();
 		try {
-			Thread.sleep(300);
+			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
-				paint_menu_t.setVisibility(View.INVISIBLE);
-				paint_menu_b.setVisibility(View.INVISIBLE);
 				paint_layer_l.setVisibility(View.INVISIBLE);
+				paint_menu_b.layout(paint_menu_b.getLeft(), h + 0,
+						paint_menu_b.getLeft() + paint_menu_b.getWidth(), h + 0
+								+ paint_menuH);
+				paint_menu_t.layout(paint_menu_t.getLeft(), 0 - paint_menuH,
+						paint_menu_t.getLeft() + paint_menu_t.getWidth(), 0);
 			}
 		});
 
