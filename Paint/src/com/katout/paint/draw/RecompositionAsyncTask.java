@@ -16,6 +16,8 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 	Context			context;
 	NativeFunction nativefunc;
 	private RePreviewLisner lisner;
+	private long startTime;
+	private long endTime;
 	
 	public interface RePreviewLisner{
 		void setPreView();
@@ -30,6 +32,7 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 	@Override
 	protected void onPreExecute() {
 		Log.d(TAG, "onPreExecute");
+		startTime = System.currentTimeMillis();
 		dialog = new ProgressDialog(context);
 		dialog.setTitle("Please wait");
 		dialog.setMessage("Progress...");
@@ -54,8 +57,11 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 	@Override
 	protected void onCancelled() {
 		Log.d(TAG, "onCancelled");
+		endTime = System.currentTimeMillis();
 		try {
-			Thread.sleep(600);
+			if(endTime - startTime  > 300){
+				Thread.sleep(300 - (endTime - startTime));
+			}
 		} catch (InterruptedException e) {
 			// TODO 自動生成された catch ブロック
 			e.printStackTrace();

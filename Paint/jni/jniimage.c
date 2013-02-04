@@ -1510,6 +1510,11 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	dest_g = (dest & 0x0000FF00) >> 8;
 	dest_b = (dest & 0x000000FF);
 
+	dest_a = dest_a * (255 - src_a) + src_a;
+	dest_r = dest_r * (255 - src_a) + src_r;
+	dest_g = dest_g * (255 - src_a) + src_g;
+	dest_b = dest_b * (255 - src_a) + src_b;
+
 	switch (mode) {
 	case 0: //通常
 		r = (src_r * src_a + dest_r * (255 - src_a)) / 255;
@@ -1617,8 +1622,38 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	case 4: //ソフトライト
 		break;
 	case 5: //ハードライト
+		if (src_r > 128) {
+
+		} else {
+
+		}
+		if (r > 255) {
+			r = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 6: //覆い焼きカラー
+		r = (256 * dest_r) / ((255 - src_r) - dest_r);
+		if (r > 255) {
+			r = 255;
+		}
+		g = (256 * dest_g) / ((255 - src_g) - dest_g);
+		if (g > 255) {
+			g = 255;
+		}
+		b = (256 * dest_b) / ((255 - src_b) - dest_b);
+		if (b > 255) {
+			b = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 7: //焼きこみカラー
 		break;
