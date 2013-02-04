@@ -576,9 +576,10 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 				break;
 			}
 		}
-		y_s--;
+		//y_s--;
+		//i_printf("y_s = %d", y_s);
 		mymemset(pixels, 0xFF000000, y_s*disp.width);
-		i_printf("上方向\n");
+		//i_printf("上方向\n");
 	}
 
 	//下方向黒埋め
@@ -591,9 +592,10 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 				break;
 			}
 		}
-		y_f++;
+		//y_f++;
+		//i_printf("y_f = %d", y_f);
 		mymemset2(pixels + disp.height*disp.width, 0xFF000000, (disp.height - y_f)*disp.width);
-		i_printf("下方向\n");
+		//i_printf("下方向\n");
 	}
 
 
@@ -607,11 +609,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 				break;
 			}
 		}
-		x_s--;
+		//x_s--;
+		//i_printf("x_s = %d", x_s);
 		for(j = y_s; j < y_f; j++){
 			mymemset(pixels + j * disp.width, 0xFF000000, x_s);
 		}
-		i_printf("左方向\n");
+		//i_printf("左方向\n");
 	}
 
 	//右方向黒埋め
@@ -624,14 +627,15 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 				break;
 			}
 		}
-		x_f++;
+		//x_f++;
+		//i_printf("x_f = %d", x_f);
 		for (j = y_s; j < y_f; j++) {
 			mymemset(pixels + j * disp.width + x_f, 0xFF000000, disp.width - x_f);
 		}
-		i_printf("右方向\n");
+		//i_printf("右方向\n");
 	}
 
-	i_printf("pixel埋め開始\n");
+	//i_printf("pixel埋め開始\n");
 	y = (temp_y<<9) / s;
 	ym = y * c.width;
 	pixels+=y_s*disp.width + x_s;
