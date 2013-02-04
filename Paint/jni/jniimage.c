@@ -14,8 +14,8 @@
 #define MAX_LAYER_SIZE 5
 #define MAX_BRUSH_NUM 2
 
-void mymemset(int*  dst, int c, int n);
-void mymemset2(int*  dst, int c, int n);
+void mymemset(int* dst, int c, int n);
+void mymemset2(int* dst, int c, int n);
 void brush_draw(int x, int y, int flag);
 void applyEdit(int flag);
 void initEditLayer(int flag);
@@ -99,7 +99,7 @@ struct LayerData {
 	int mode;
 };
 
-static clock_t start,end;
+static clock_t start, end;
 
 static struct Display disp;
 static struct Canvas c;
@@ -124,27 +124,27 @@ struct BufStr {
 struct BufStr buff[MAXSIZE]; /* シード登録用バッファ */
 struct BufStr *sIdx, *eIdx; /* buffの先頭・末尾ポインタ */
 
-void  mymemset(int*  dst, int color, int size){
+void mymemset(int* dst, int color, int size) {
 	__asm__ volatile (
-		"loopBegin:\n\t"
-		"STR %[color],[%[dst]], #+4\n\t"
-		"SUBS	%[size], %[size], #1\n\t"
-		"BNE loopBegin\n\t"
-		: [dst] "+r" (dst)
-		: [color] "r" (color), [size] "r" (size)
-		:
+			"loopBegin:\n\t"
+			"STR %[color],[%[dst]], #+4\n\t"
+			"SUBS %[size], %[size], #1\n\t"
+			"BNE loopBegin\n\t"
+			: [dst] "+r" (dst)
+			: [color] "r" (color), [size] "r" (size)
+			:
 	);
 }
 
-void  mymemset2(int*  dst, int color, int size){
+void mymemset2(int* dst, int color, int size) {
 	__asm__ volatile (
-		"loopBegin2:\n\t"
-		"STR %[color],[%[dst]], #-4\n\t"
-		"SUBS	%[size], %[size], #1\n\t"
-		"BNE loopBegin2\n\t"
-		: [dst] "+r" (dst)
-		: [color] "r" (color), [size] "r" (size)
-		:
+			"loopBegin2:\n\t"
+			"STR %[color],[%[dst]], #-4\n\t"
+			"SUBS %[size], %[size], #1\n\t"
+			"BNE loopBegin2\n\t"
+			: [dst] "+r" (dst)
+			: [color] "r" (color), [size] "r" (size)
+			:
 	);
 }
 
@@ -288,7 +288,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Recompositi
  */
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 		JNIEnv* env, jobject obj, jint layer_num, jobject bitmap) {
-	i_printf("getPreview:%d",layer_num);
+	i_printf("getPreview:%d", layer_num);
 
 	int i, j;
 	int x, y;
@@ -335,7 +335,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getPreview(
 				y = (j - black_padding) * 512 / s;
 				if (layer_num == -1) {
 					int temp = BuffImg[y * c.width + x];
-					pixels[j * info.width + i] =temp;
+					pixels[j * info.width + i] = temp;
 				} else {
 					pixels[j * info.width + i] = layerdata[layer_num].img[x][y];
 				}
@@ -534,14 +534,14 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getRawdata(
 // TODO getBitmap
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 		JNIEnv* env, jobject obj, jobject bitmap) {
-	int  i, j;
-	int  x, y,ym;
-	int  s;
+	int i, j;
+	int x, y, ym;
+	int s;
 	AndroidBitmapInfo info;
 	int* pixels;
 	int ret;
 	static int init;
-	int x_s,y_s,x_f,y_f, temp_x, temp_y;
+	int x_s, y_s, x_f, y_f, temp_x, temp_y;
 	temp_x = disp.x;
 	temp_y = disp.y;
 	//i_printf( "getBitmap start");
@@ -560,27 +560,26 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 		i_printf("AndroidBitmap_lockPixels() failed ! error=%d", ret);
 	}
 
-
 	//画面サイズの代入
 	disp.width = info.width;
 	disp.height = info.height;
-	 start = clock();
+	start = clock();
 	//浮動小数点演算対策
 	s = scale * 512;
 
 	//上方向黒埋め
 	y_s = 0;
-	y =(temp_y<<9) / s;
-	if(y < 0){
-		for(y_s = 1;y_s < disp.height; y_s++){
-			y = ((y_s + temp_y) <<9) / s;
-			if(y >=0){
+	y = (temp_y << 9) / s;
+	if (y < 0) {
+		for (y_s = 1; y_s < disp.height; y_s++) {
+			y = ((y_s + temp_y) << 9) / s;
+			if (y >= 0) {
 				break;
 			}
 		}
 		//y_s--;
 		//i_printf("y_s = %d", y_s);
-		mymemset(pixels, 0xFF000000, y_s*disp.width);
+		mymemset(pixels, 0xFF000000, y_s * disp.width);
 		//i_printf("上方向\n");
 	}
 
@@ -588,32 +587,32 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 	y_f = disp.height - 1;
 	y = ((y_f + temp_y) << 9) / s;
 	if (y >= c.height) {
-		while(y_f--){
-			y = ((y_f + temp_y) <<9) / s;
-			if(y < c.height){
+		while (y_f--) {
+			y = ((y_f + temp_y) << 9) / s;
+			if (y < c.height) {
 				break;
 			}
 		}
 		//y_f++;
 		//i_printf("y_f = %d", y_f);
-		mymemset2(pixels + disp.height*disp.width, 0xFF000000, (disp.height - y_f)*disp.width);
+		mymemset2(pixels + disp.height * disp.width, 0xFF000000,
+				(disp.height - y_f) * disp.width);
 		//i_printf("下方向\n");
 	}
-
 
 	//左方向黒埋め
 	x_s = 0;
 	x = (temp_x << 9) / s;
 	if (x < 0) {
 		for (x_s = 1; x_s < disp.width; x_s++) {
-			x = ((x_s + temp_x) <<9) / s;
+			x = ((x_s + temp_x) << 9) / s;
 			if (x >= 0) {
 				break;
 			}
 		}
 		//x_s--;
 		//i_printf("x_s = %d", x_s);
-		for(j = y_s; j < y_f; j++){
+		for (j = y_s; j < y_f; j++) {
 			mymemset(pixels + j * disp.width, 0xFF000000, x_s);
 		}
 		//i_printf("左方向\n");
@@ -621,10 +620,10 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 
 	//右方向黒埋め
 	x_f = disp.width - 1;
-	x = ((x_f + temp_x) <<9) / s;
+	x = ((x_f + temp_x) << 9) / s;
 	if (x >= c.width) {
 		while (x_f--) {
-			x = ((x_f + temp_x) <<9) / s;
+			x = ((x_f + temp_x) << 9) / s;
 			if (x < c.width) {
 				break;
 			}
@@ -632,29 +631,30 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_getBitmap(
 		//x_f++;
 		//i_printf("x_f = %d", x_f);
 		for (j = y_s; j < y_f; j++) {
-			mymemset(pixels + j * disp.width + x_f, 0xFF000000, disp.width - x_f);
+			mymemset(pixels + j * disp.width + x_f, 0xFF000000,
+					disp.width - x_f);
 		}
 		//i_printf("右方向\n");
 	}
 
 	//i_printf("pixel埋め開始\n");
-	y = (temp_y<<9) / s;
+	y = (temp_y << 9) / s;
 	ym = y * c.width;
-	pixels+=y_s*disp.width + x_s;
+	pixels += y_s * disp.width + x_s;
 	//imgの二次元配列を一次元配列に変換し代入
-	for (i = x_s,j = y_s; j < y_f; i++) {
+	for (i = x_s, j = y_s; j < y_f; i++) {
 		if (i >= x_f) {
-			i = x_s-1;
+			i = x_s - 1;
 			j++;
 			//拡縮元座標の算出
-			y = ((j + temp_y) <<9) / s;
+			y = ((j + temp_y) << 9) / s;
 			ym = y * c.width;
-			pixels += x_s + (disp.width - x_f) ;
+			pixels += x_s + (disp.width - x_f);
 			continue;
 		}
 
 		//拡縮元座標の算出
-		x = ((i + temp_x) <<9) / s;
+		x = ((i + temp_x) << 9) / s;
 
 		*(pixels++) = BuffImg[ym + x];
 	}
@@ -736,7 +736,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 		for (i = 0; i < MAX_LAYER_SIZE; i++) {
 			for (j = 0; j < c.width; j++) {
-				mymemset(layerdata[i].img[j], 0x00FFFFFF,c.height);
+				mymemset(layerdata[i].img[j], 0x00FFFFFF, c.height);
 			}
 		}
 		for (i = 0; i < c.width; i++) {
@@ -765,12 +765,12 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		}
 		for (i = 0; i < MAX_BRUSH_NUM; i++) {
 			for (j = 0; j < c.width; j++) {
-				mymemset(EditLayer[i][j], 0x00000000,c.height);
+				mymemset(EditLayer[i][j], 0x00000000, c.height);
 			}
 		}
 		//バッファ配列の確保と初期化
-		BuffImg = (int *) malloc(sizeof(int) * c.width*c.height);
-		mymemset(BuffImg,0xffffffff,c.width*c.height);
+		BuffImg = (int *) malloc(sizeof(int) * c.width * c.height);
+		mymemset(BuffImg, 0xffffffff, c.width * c.height);
 
 		//brushmapの確保と初期化
 		brushmap = (struct BrushMap*) malloc(
@@ -1054,13 +1054,13 @@ int get_alpha(int c) {
 	return ((c & 0xFF000000) >> 24);
 }
 
-int swap_rgb(int c){
-	int a,r,g,b;
-	a= get_alpha(c);
+int swap_rgb(int c) {
+	int a, r, g, b;
+	a = get_alpha(c);
 	r = ((c & 0x00FF0000) >> 16);
 	g = ((c & 0x0000FF00) >> 8);
 	b = (c & 0x000000FF);
-	return (a << 24) | (b<< 16) | (g << 8) | r;
+	return (a << 24) | (b << 16) | (g << 8) | r;
 }
 
 /*
@@ -1534,17 +1534,17 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 1: //乗算
-		dest_r = (src_r * dest_r) / 255;
+		src_r = (src_r * dest_r) / 255;
 		r = alphablend(src_r, dest_r, src_a);
 		if (r > 255) {
 			r = 255;
 		}
-		dest_g = (src_g * dest_g) / 255;
+		src_g = (src_g * dest_g) / 255;
 		g = alphablend(src_g, dest_g, src_a);
 		if (g > 255) {
 			g = 255;
 		}
-		dest_b = (src_b * dest_b) / 255;
+		src_b = (src_b * dest_b) / 255;
 		b = alphablend(src_b, dest_b, src_a);
 		if (b > 255) {
 			b = 255;
@@ -1553,23 +1553,37 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (r<< 16) | (g << 8) | b;
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 2: //スクリーン
-		dest_r = 255 - (255 - dest_r) * (255 - src_r) / 255;
-		r = alphablend(dest_r, src_r, src_a);
-		if(r > 255){
-			r = 255;
-		}
-		dest_g = 255 - (255 - dest_g) * (255 - src_g) / 255;
-		g = alphablend(dest_g, src_g, src_a);
-		if (g > 255) {
-			g = 255;
-		}
-		dest_b = 255 - (255 - dest_b) * (255 - src_b) / 255;
-		b = alphablend(dest_b, src_b, src_a);
-		if (b > 255) {
-			b = 255;
+		if ((src_a != 0) && (dest_a != 0)) {
+			src_r = 255 - (255 - dest_r) * (255 - src_r) / 255;
+			r = alphablend(src_r, dest_r, src_a);
+			if (r > 255) {
+				r = 255;
+			}
+			src_g = 255 - (255 - dest_g) * (255 - src_g) / 255;
+			g = alphablend(src_g, dest_g, src_a);
+			if (g > 255) {
+				g = 255;
+			}
+			src_b = 255 - (255 - dest_b) * (255 - src_b) / 255;
+			b = alphablend(src_b, dest_b, src_a);
+			if (b > 255) {
+				b = 255;
+			}
+		} else if (src_a == 0) {
+			r = dest_r;
+			g = dest_g;
+			b = dest_b;
+		} else if (dest_a == 0) {
+			r = src_r;
+			g = src_g;
+			b = src_b;
+		} else {
+			r = dest_r;
+			g = dest_g;
+			b = dest_b;
 		}
 		a = src_a + dest_a;
 		if (a > 255) {
@@ -1579,25 +1593,31 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		break;
 	case 3: //オーバレイ
 		if (dest_r < 128) {
-			r = 2 * dest_r * src_r / 255;
+			src_r = 2 * dest_r * src_r / 255;
+			r = alphablend(src_r, dest_r, src_a);
 		} else {
-			r = 255 - 2 * (255 - dest_r) * (255 - src_r) / 255;
+			src_r = 255 - 2 * (255 - dest_r) * (255 - src_r) / 255;
+			r = alphablend(src_r, dest_r, src_a);
 		}
 		if (r > 255) {
 			r = 255;
 		}
 		if (dest_g < 128) {
-			g = 2 * dest_g * src_g / 255;
+			src_g = 2 * dest_g * src_g / 255;
+			g = alphablend(src_g, dest_g, src_a);
 		} else {
-			g = 255 - 2 * (255 - dest_g) * (255 - src_g) / 255;
+			src_g = 255 - 2 * (255 - dest_g) * (255 - src_g) / 255;
+			g = alphablend(src_g, dest_g, src_a);
 		}
 		if (g > 255) {
 			g = 255;
 		}
 		if (dest_b < 128) {
-			b = 2 * dest_b * src_b / 255;
+			src_b = 2 * dest_b * src_b / 255;
+			b = alphablend(src_b, dest_b, src_a);
 		} else {
-			b = 255 - 2 * (255 - dest_b) * (255 - src_b) / 255;
+			src_b = 255 - 2 * (255 - dest_b) * (255 - src_b) / 255;
+			b = alphablend(src_b, dest_b, src_a);
 		}
 		if (b > 255) {
 			b = 255;
@@ -1606,18 +1626,81 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		if (a > 255) {
 			a = 255;
 		}
-		result = (a << 24) | (r<< 16) | (g << 8) | b;
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 4: //ソフトライト
-		break;
-	case 5: //ハードライト
-		if (src_r > 128) {
-
+		if (dest_r < 128) {
+			src_r = pow((double) dest_r / 255.0,
+					(255.0 - (double) src_r) / 128.0) * 255.0;
+			r = alphablend(src_r, dest_r, src_a);
 		} else {
-
+			src_r = pow((double) dest_r / 255.0, 128.0 / (double) src_r)
+					* 255.0;
+			r = alphablend(src_r, dest_r, src_a);
 		}
 		if (r > 255) {
 			r = 255;
+		}
+		if (dest_g < 128) {
+			src_g = pow((double) dest_g / 255.0,
+					(255.0 - (double) src_g) / 128.0) * 255.0;
+			g = alphablend(src_g, dest_g, src_a);
+		} else {
+			src_g = pow((double) dest_g / 255.0, 128.0 / (double) src_g)
+					* 255.0;
+			g = alphablend(src_g, dest_g, src_a);
+		}
+		if (g > 255) {
+			g = 255;
+		}
+		if (dest_b < 128) {
+			src_b = pow((double) dest_b / 255.0,
+					(255.0 - (double) src_b) / 128.0) * 255.0;
+			b = alphablend(src_b, dest_b, src_a);
+		} else {
+			src_b = pow((double) dest_b / 255.0, 128.0 / (double) src_b)
+					* 255.0;
+			b = alphablend(src_b, dest_b, src_a);
+		}
+		if (b > 255) {
+			b = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
+		break;
+	case 5: //ハードライト
+		if (dest_r < 128) {
+			src_r = 2 * src_r * dest_r / 255;
+			r = alphablend(src_r, dest_r, src_a);
+		} else {
+			src_r = 255 - 2 * (255 - src_r) * (255 - dest_r) / 255;
+			r = alphablend(src_r, dest_r, src_a);
+		}
+		if (r > 255) {
+			r = 255;
+		}
+		if (dest_g < 128) {
+			src_g = 2 * src_g * dest_g / 255;
+			g = alphablend(src_g, dest_g, src_a);
+		} else {
+			src_g = 255 - 2 * (255 - src_g) * (255 - dest_g) / 255;
+			g = alphablend(src_g, dest_g, src_a);
+		}
+		if (g > 255) {
+			g = 255;
+		}
+		if (dest_b < 128) {
+			src_b = 2 * src_b * dest_b / 255;
+			b = alphablend(src_b, dest_b, src_a);
+		} else {
+			src_b = 255 - 2 * (255 - src_b) * (255 - dest_b) / 255;
+			b = alphablend(src_b, dest_b, src_a);
+		}
+		if (b > 255) {
+			b = 255;
 		}
 		a = src_a + dest_a;
 		if (a > 255) {
@@ -1626,16 +1709,31 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 6: //覆い焼きカラー
-		r = (256 * dest_r) / ((255 - src_r) - dest_r);
-		if (r > 255) {
+		if (src_r != 255) {
+			src_r = dest_r * 255 / (255 - src_r);
+			if (src_r > 255) {
+				src_r = 255;
+			}
+			r = alphablend(src_r, dest_r, src_a);
+		} else {
 			r = 255;
 		}
-		g = (256 * dest_g) / ((255 - src_g) - dest_g);
-		if (g > 255) {
+		if (src_g != 255) {
+			src_g = dest_g * 255 / (255 - src_g);
+			if (src_g > 255) {
+				src_g = 255;
+			}
+			g = alphablend(src_g, dest_g, src_a);
+		} else {
 			g = 255;
 		}
-		b = (256 * dest_b) / ((255 - src_b) - dest_b);
-		if (b > 255) {
+		if (src_b != 255) {
+			src_b = dest_b * 255 / (255 - src_b);
+			if (src_b > 255) {
+				src_b = 255;
+			}
+			b = alphablend(src_b, dest_b, src_a);
+		} else {
 			b = 255;
 		}
 		a = src_a + dest_a;
@@ -1645,6 +1743,38 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 7: //焼きこみカラー
+		if (src_r != 0) {
+			src_r = 255 - ((255 - dest_r) * 255 / src_r);
+			if (src_r < 0) {
+				src_r = 0;
+			}
+			r = alphablend(src_r, dest_r, src_a);
+		} else {
+			r = 255;
+		}
+		if (src_g != 0) {
+			src_g = 255 - ((255 - dest_g) * 255 / src_g);
+			if (src_g < 0) {
+				src_g = 0;
+			}
+			g = alphablend(src_g, dest_g, src_a);
+		} else {
+			g = 255;
+		}
+		if (src_b != 0) {
+			src_b = 255 - ((255 - dest_b) * 255 / src_b);
+			if (src_b < 0) {
+				src_b = 0;
+			}
+			b = alphablend(src_b, dest_b, src_a);
+		} else {
+			b = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 8: //比較（暗）
 		break;
@@ -1665,7 +1795,7 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
  * アルファブレンド関数
  */
 int alphablend(int src, int dst, int alpha) {
-	return ((255 - alpha) * dst + alpha * src) / 255;
+	return ((alpha * src + (255 - alpha) * dst) / 255);
 }
 
 /*
