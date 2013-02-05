@@ -1,0 +1,6 @@
+# 特定のファイル名を指定して無視できる
+.DS_Store
+
+Paint/bin/*
+
+Paint/obj/*

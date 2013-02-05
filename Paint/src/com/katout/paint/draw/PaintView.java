@@ -158,7 +158,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						paint_points.add((int )(-nowPosX + points[0][0]/Scale));
 						paint_points.add((int )(-nowPosY + points[1][0]/Scale));
 					}
-					
+					if(mode == PaintMode.Bucket){
+						touch_count = 1;
+					}
 				}
 			}
 		} else if(temp_touch_count == touch_count){
@@ -284,15 +286,15 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			}
 			menu_lisner.layerMenuPos(w, nowMenuPosX * 100 / menuW, false);
 			menu_lisner.paintMenuPos(h, nowMenuPosY, false);
+			if(mode == PaintMode.Bucket && touch_count == 1){
+				event_lisner.bucket((int )(-nowPosX + points[0][0]/Scale), 
+						(int )(-nowPosY + points[1][0]/Scale));
+			}
 			touch_count = 0;
 			if (state == State.Drawing || state == State.DrawStart) {
 				// TODO event_lisner.stopDraw(points[0][0], points[1][0]);
 				event_lisner.endDraw(paint_points);
 				
-			}
-			if(mode == PaintMode.Bucket){
-				event_lisner.bucket((int )(-nowPosX + points[0][0]/Scale), 
-						(int )(-nowPosY + points[1][0]/Scale));
 			}
 			state = State.Non;
 		}

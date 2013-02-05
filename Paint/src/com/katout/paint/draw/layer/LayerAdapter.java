@@ -144,7 +144,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 			}
 			final Bitmap bitmap2 = bitmap;
 			
-			func.getPreview(layernum - currentlayer, bitmap);
+			func.getPreview(layernum - position, bitmap);
 			handler.post(new Runnable() {
 				@Override
 				public void run() {

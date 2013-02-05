@@ -1,1 +1,7 @@
 /bin
+
+/obj
+
+.DS_Store
+
+/libs/armeabi-v7a
