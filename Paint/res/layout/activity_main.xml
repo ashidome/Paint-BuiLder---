@@ -30,18 +30,63 @@
 
             </ListView>
 
-            <FrameLayout
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="#AAAAAA" >
-            </FrameLayout>
-
-            <ImageView
-                android:id="@+id/preview"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="2"
-                android:src="@drawable/white" />
+                android:orientation="vertical" >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" >
+
+                    <CheckBox
+                        android:id="@+id/alpha_hogo"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="不透明度保護"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/padding_12dp" />
+
+                    <CheckBox
+                        android:id="@+id/clipping"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="下のレイヤーでクリッピング"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/padding_12dp" />
+
+                </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#AAAAAA" >
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" >
+
+                    <FrameLayout
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#AAAAAA" >
+                    </FrameLayout>
+
+                    <ImageView
+                        android:id="@+id/preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:src="@drawable/white" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <FrameLayout
                 android:layout_width="4dp"
@@ -53,7 +98,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:visibility="visible" >
 
         <LinearLayout
             android:id="@+id/paint_menu_t"

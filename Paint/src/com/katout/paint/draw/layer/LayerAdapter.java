@@ -32,22 +32,21 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 	private int previewwidth;
 	private NativeFunction func;
 	private Spinner	spinner_l;
-	private RePreviewLisner lisner;
 	private SeekBar	alpher_seek;
+	private ArrayAdapter	adapter;
+	private RePreviewLisner	lisner;
 	private boolean fastFlag;
-	private ArrayAdapter adapter;
 	
-	public LayerAdapter(Context context, ArrayList<LayerData> list, 
-			NativeFunction func, RePreviewLisner lisner) {
+	public LayerAdapter(Context context, ArrayList<LayerData> list, NativeFunction func,RePreviewLisner lisner) {
 		super(context,0, list);
 		layers = list;
-		this.lisner = lisner;
 		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		layernum = 0;
 		currentlayer = 1;
 		this.context = context;
 		this.func = func;
 		handler = new Handler();
+		this.lisner = lisner;
 		fastFlag = false;
 	}
 	
@@ -71,12 +70,11 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 			//レイヤー設定の場合
 			if(convertView == null){
 				convertView = mInflater.inflate(R.layout.layer_menu, null);
-				adapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item,context.getResources().getStringArray(R.array.SpinnerItems));
+				adapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item,convertView.getResources().getStringArray(R.array.SpinnerItems));
 		        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
 				spinner_l = (Spinner)convertView.findViewById(R.id.spinner1);
 				spinner_l.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-							
 							@Override
 							public void onItemSelected(AdapterView<?> parent,View view, int position, long id) {
 								Log.d("test", "onItemSelected:" + position);
@@ -99,7 +97,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 					@Override
 					public void onStopTrackingTouch(SeekBar seekBar) {
 						setAlpher(seekBar.getProgress());
-						new RecompositionAsyncTask(context, func,lisner).execute();
+						new RecompositionAsyncTask(context, func, lisner).execute();
 
 						notifyDataSetChanged();
 					}
@@ -110,7 +108,6 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 					@Override
 					public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
 				});
-		
 			}
 		}else{
 			LayerData item = this.getItem(position);
@@ -134,24 +131,29 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 			
 			
 			//プレビューのセット
+			Bitmap bitmap = null;
+			bitmap = item.preview ;
 			final ImageView img = (ImageView) convertView.findViewById(R.id.preview_image);
-			previewwidth = img.getWidth();
-			previewheight = img.getHeight();
-			Bitmap bitmap = item.preview ;
+
 			if(bitmap == null & previewwidth >0){
 				bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
 				item.preview = bitmap;
 			}
+			if(item.tempEdit){
+				previewwidth = img.getWidth();
+				previewheight = img.getHeight();
+				
+				func.getPreview(layernum - position, bitmap);
+				item.tempEdit = false;
+			}
 			final Bitmap bitmap2 = bitmap;
-			
-			func.getPreview(layernum - currentlayer, bitmap);
 			handler.post(new Runnable() {
 				@Override
 				public void run() {
 					img.setImageBitmap(bitmap2);
 				}
 			});
-			item.tempEdit = false;
+			
 		}
 		
 		return convertView;
@@ -205,7 +207,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		return currentlayer;
 	}
 
-	private void setAlpher(int progress) {
+	public void setAlpher(int progress) {
 		LayerData data = layers.get(currentlayer);
 		data.alpha = progress;
 		func.setLayerAlpha(progress);
@@ -216,28 +218,29 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 	}
 	
 	public void init_layers(int[] mode, int[] alpha){
-		layers.get(0).layermode = mode[0];
-		layers.get(0).alpha = alpha[0];
-		
-		if(mode.length > 1){
-			for(int i = 1; i < mode.length; i++){
-				LayerData data = new LayerData();
-				data.tempEdit = true;
-				data.alpha = alpha[i];
-				data.layermode = mode[i];
-				layers.add(data);
-			}
+		layers.clear();
+		layers.add(new LayerData());	//メニュー用
+		layernum = 1;
+		for(int i = mode.length-1; i > -1 ; i--){
+			LayerData data = new LayerData();
+			data.tempEdit = true;
+			data.alpha = alpha[i];
+			data.layermode = mode[i];
+			layers.add(data);
+			layernum++;
 		}
 		notifyDataSetChanged();
 	}
 
 	public void selectLayer(int c) {
 		currentlayer = c ;
-		
-		func.selectLayer(layernum - currentlayer);
+
 		spinner_l.setSelection(getLayermode());
 		alpher_seek.setProgress(getLayerAlpha());
+		
+		func.selectLayer(layernum - currentlayer);
 	}
+	
 	public void onVisibility() {
 		if(getLayermode()==12){
 			setLayermode(0);
@@ -250,7 +253,6 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 //			adapter.notifyDataSetChanged();
 //			spinner_l.invalidate();
 		}
-		
 	}
 }
 

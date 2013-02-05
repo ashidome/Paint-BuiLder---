@@ -198,6 +198,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			}
 		});
 		
+		
+		
 
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
 		seek_brush_b = (SeekBar) paint_menu_b.findViewById(R.id.seek_brush);
@@ -308,7 +310,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					nativefunc.getLayersData(modes, alphas);
 					layerAdapter.init_layers(modes, alphas);
 					int c = nativefunc.getCurrentNum();
-					layerAdapter.selectLayer(c);
+					layerAdapter.selectLayer(listdata.size() - c );
 				}
 				int color = sp.getInt("wid_back_color", Color.argb(255, 51, 181, 229));
 				colorV_t.setColor(color);
@@ -367,7 +369,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	public void setup() {
 		final int h = surface.getHeight();
 		try {
-			Thread.sleep(200);
+			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -382,7 +384,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 						paint_menu_t.getLeft() + paint_menu_t.getWidth(), 0);
 			}
 		});
-
 	}
 
 	@Override
@@ -589,7 +590,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		previewwidth = preview.getWidth();
 		previewheight = preview.getHeight();
 
-		if(preview_bitmap == null){
+		if(preview_bitmap == null && previewwidth > 0){
 			preview_bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
 		}
 		
