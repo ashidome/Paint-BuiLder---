@@ -1336,7 +1336,7 @@ void scanLine(int lx, int rx, int y, unsigned int col) {
  */
 void fill(int x, int y, int threshold) {
 	i_printf("fill start!");
-	unsigned int paintCol = brush[0].color;
+	unsigned int paintCol = swap_rgb(brush[0].color);
 	int lx, rx;
 	int ly;
 	int i;
