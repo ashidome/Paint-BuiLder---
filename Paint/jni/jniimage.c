@@ -492,7 +492,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 	return JNI_TRUE;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Bucket(
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_bucket(
 		JNIEnv* env, jobject obj, jint jx, jint jy, jint t) {
 	fill(jx, jy, t);
 	return JNI_TRUE;
