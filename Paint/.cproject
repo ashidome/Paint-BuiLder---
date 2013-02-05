@@ -18,7 +18,7 @@
 					<folderInfo id="0.1258106711." name="/" resourcePath="">
 						<toolChain id="org.eclipse.cdt.build.core.prefbase.toolchain.885502197" name="ツールチェーンなし" resourceTypeBasedDiscovery="false" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
 							<targetPlatform id="org.eclipse.cdt.build.core.prefbase.toolchain.885502197.170718022" name=""/>
-							<builder arguments="-i -c" cleanBuildTarget="&quot;ndk-build clean&quot;" command="bash" id="org.eclipse.cdt.build.core.settings.default.builder.1609414509" incrementalBuildTarget="ndk-build" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make ビルダー" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<builder arguments="-i -c" cleanBuildTarget="&quot;ndk-build clean&quot;" command="bash" id="org.eclipse.cdt.build.core.settings.default.builder.1609414509" incrementalBuildTarget="&quot;ndk-build NDK_DEBUG=1&quot;" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make ビルダー" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.349263833" name="ライブラリー設定フォルダー" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.50979550" name="アセンブリー" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.928749658" name="インクルード・パス" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">

@@ -1,4 +1,4 @@
-obj/local/armeabi-v7a/objs/jniimage/jniimage.o: jni/jniimage.c \
+obj/local/armeabi/objs-debug/jniimage/jniimage.o: jni/jniimage.c \
  C:/android-ndk/platforms/android-8/arch-arm/usr/include/jni.h \
  C:/android-ndk/platforms/android-8/arch-arm/usr/include/android/log.h \
  C:/android-ndk/platforms/android-8/arch-arm/usr/include/android/bitmap.h \

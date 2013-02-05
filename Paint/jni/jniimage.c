@@ -27,7 +27,7 @@ double First_Neighborhood(double d);
 double Second_Neighborhood(double d);
 void Bilinear(int x, int y);
 void scanLine(int lx, int rx, int y, unsigned int col);
-void fill(int x, int y, unsigned int paintCol);
+void fill(int x, int y, int threshold);
 void setBrush(jchar brush_img[], int flag);
 int Normal_Draw(int src, int dest);
 int Eraser_Draw(int src, int dest);
@@ -107,12 +107,10 @@ static struct Display disp;
 static struct Canvas c;
 static struct Layers layers;
 static struct DrawPoints *dp;
-static struct FillPoint fp;
 static struct BrushMap *brushmap;
 static struct Brush *brush;
 static struct LayerData *layerdata;
 static int Size;
-static int theta;
 static int init_flag = 0;
 
 static int ***EditLayer;
@@ -496,7 +494,7 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_draw(
 
 JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_Bucket(
 		JNIEnv* env, jobject obj, jint jx, jint jy, jint t) {
-//fill(jx, jy, t);
+	fill(jx, jy, t);
 	return JNI_TRUE;
 }
 
@@ -1292,104 +1290,112 @@ void Bilinear(int x, int y) {
 		}
 	}
 }
-//
-///*
-// * 線分からシードを探索してバッファに登録する関数
-// *
-// * int lx,rx:線分のX座標の範囲
-// * int y:線分のY座標
-// * unsigned int col:領域色
-// */
-//void scanLine(int lx, int rx, int y, unsigned int col) {
-//	while (lx <= rx) {
-//		//非領域色を飛ばす
-//		for (; lx <= rx; lx++) {
-//			if (img[lx][y] == col) {
-//				break;
-//			}
-//		}
-//		if (img[lx][y] != col) {
-//			break;
-//		}
-//
-//		//領域色を飛ばす
-//		for (; lx <= rx; lx++) {
-//			if (img[lx][y] != col) {
-//				break;
-//			}
-//		}
-//
-//		eIdx->sx = lx - 1;
-//		eIdx->sy = y;
-//		if (++eIdx == &buff[MAXSIZE]) {
-//			eIdx = buff;
-//		}
-//	}
-//}
-//
-///*
-// * 塗りつぶし関数
-// *
-// * int x,y:開始座標
-// * unsigned int paintCol : 描画色
-// */
-//void fill(int x, int y, unsigned int paintCol) {
-//	int lx, rx;
-//	int ly;
-//	int i;
-//	unsigned int col = img[x][y];
-//	if (col == paintCol) {
-//		return;
-//	}
-//	sIdx = buff;
-//	sIdx = buff + 1;
-//	sIdx->sx = x;
-//	sIdx->sy = y;
-//
-//	do {
-//		lx = rx = sIdx->sx;
-//		ly = sIdx->sy;
-//		if (++sIdx == &buff[MAXSIZE]) {
-//			sIdx = buff;
-//		}
-//
-//		//処理済みのシードなら無視
-//		if (img[lx][ly] != col) {
-//			continue;
-//		}
-//
-//		//右方向の境界を走査
-//		while (rx < c.width) {
-//			if (img[rx + 1][ly] != col) {
-//				break;
-//			}
-//			rx++;
-//		}
-//
-//		//左方向の境界を走査
-//		while (lx > 0) {
-//			if (img[lx - 1][ly] != col) {
-//				break;
-//			}
-//			lx--;
-//		}
-//
-//		//lx-rxの線分を描画
-//		for (i = lx; i <= rx; i++) {
-//			img[i][ly] = paintCol;
-//		}
-//
-//		//真上のスキャンラインを走査
-//		if (ly - 1 >= 0) {
-//			scanLine(lx, rx, ly - 1, col);
-//		}
-//
-//		//真下のスキャンラインを走査
-//		if (ly + 1 <= c.height) {
-//			scanLine(lx, rx, ly + 1, col);
-//		}
-//	} while (sIdx != eIdx);
-//}
+
+/*
+ * 線分からシードを探索してバッファに登録する関数
+ *
+ * int lx,rx:線分のX座標の範囲
+ * int y:線分のY座標
+ * unsigned int col:領域色
+ */
+void scanLine(int lx, int rx, int y, unsigned int col) {
+	while (lx < rx) {
+		//i_printf("scanLine lx = %d, rx = %d, y = %d", lx, rx, y);
+		//非領域色を飛ばす
+		for (; lx < rx; lx++) {
+			if (layerdata[layers.current_layer].img[lx][y] == col) {
+				break;
+			}
+		}
+		if (layerdata[layers.current_layer].img[lx][y] != col) {
+			break;
+		}
+
+		//領域色を飛ばす
+		for (; lx < rx; lx++) {
+			if (layerdata[layers.current_layer].img[lx][y] != col) {
+				break;
+			}
+		}
+
+		eIdx->sx = lx - 1;
+		eIdx->sy = y;
+		if (++eIdx == &buff[MAXSIZE]) {
+			eIdx = buff;
+		}
+	}
+	i_printf("end scanLine");
+}
+
+/*
+ * TODO
+ * 塗りつぶし関数
+ *
+ * int x,y:開始座標
+ * int threshold 閾値
+ */
+void fill(int x, int y, int threshold) {
+	i_printf("fill start!");
+	unsigned int paintCol = brush[0].color;
+	int lx, rx;
+	int ly;
+	int i;
+	unsigned int col = layerdata[layers.current_layer].img[x][y];
+	if (col == paintCol) {
+		return;
+	}
+	sIdx = buff;
+	eIdx = buff + 1;
+	sIdx->sx = x;
+	sIdx->sy = y;
+
+	do {
+		lx = rx = sIdx->sx;
+		ly = sIdx->sy;
+		if (++sIdx == &buff[MAXSIZE]) {
+			sIdx = buff;
+		}
+
+		//処理済みのシードなら無視
+		if (layerdata[layers.current_layer].img[lx][ly] != col) {
+			continue;
+		}
+
+		//右方向の境界を走査
+		while (rx < c.width - 1) {
+			if (layerdata[layers.current_layer].img[rx + 1][ly] != col) {
+				break;
+			}
+			rx++;
+		}
+
+		//左方向の境界を走査
+		while (lx > 0) {
+			if (layerdata[layers.current_layer].img[lx - 1][ly] != col) {
+				break;
+			}
+			lx--;
+		}
+
+		//lx-rxの線分を描画
+		for (i = lx; i <= rx; i++) {
+			layerdata[layers.current_layer].img[i][ly] = paintCol;
+		}
+
+		i_printf("真上のスキャンラインを走査");
+		//真上のスキャンラインを走査
+		if (ly - 1 > 0) {
+			scanLine(lx, rx, ly - 1, col);
+		}
+
+		i_printf("真下のスキャンラインを走査");
+		//真下のスキャンラインを走査
+		if (ly + 1 < c.height) {
+			scanLine(lx, rx, ly + 1, col);
+		}
+		i_printf("end fill loop");
+	} while (sIdx != eIdx);
+}
 
 /*
  * 新規ブラシマップセット関数
