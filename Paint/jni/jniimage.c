@@ -97,6 +97,8 @@ struct LayerData {
 	int **img;
 	int alpha;
 	int mode;
+	int opacity_protect;
+	int clipping;
 };
 
 static clock_t start, end;
@@ -753,6 +755,8 @@ JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_init(
 		for (i = 0; i < MAX_LAYER_SIZE; i++) {
 			layerdata[i].mode = 0;
 			layerdata[i].alpha = 255;
+			layerdata[i].opacity_protect = 0;
+			layerdata[i].clipping = 0;
 		}
 
 		//EditLayerの確保と初期化
@@ -986,8 +990,8 @@ void brush_draw(int x, int y, int flag) {
 	bwidth = brush[flag].width / 2;
 	bheight = brush[flag].height / 2;
 
-//描画
-//i_printf( "width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
+	//描画
+	//i_printf( "width = %d,height = %d,x = %d,y = %d", c.width, c.height, x, y);
 	for (i = -bwidth; i < bwidth; i++) {
 		for (j = -bheight; j < bheight; j++) {
 			if (((x + i) > 0) && ((x + i) < c.width) && ((y + j) > 0)
@@ -995,6 +999,7 @@ void brush_draw(int x, int y, int flag) {
 				if (get_alpha(EditLayer[flag][x + i][y + j])
 						< get_alpha(
 								brush[flag].brush_img[i + bwidth][j + bheight])) {
+					// TODO 不透明度保護　クリッピング
 					EditLayer[flag][x + i][y + j] = brush[flag].brush_img[i
 							+ bwidth][j + bheight];
 					blendBuff(x + i, y + j, flag);
@@ -1777,12 +1782,73 @@ int Blend_Layer(int mode, int src, int dest, int layer_num) {
 		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 8: //比較（暗）
+		if (src_r < dest_r) {
+			r = src_r;
+		} else {
+			r = dest_r;
+		}
+		if (src_g < dest_g) {
+			g = src_g;
+		} else {
+			g = dest_g;
+		}
+		if (src_b < dest_b) {
+			b = src_b;
+		} else {
+			b = dest_b;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 9: //比較（明）
+		if (src_r >= dest_r) {
+			r = src_r;
+		} else {
+			r = dest_r;
+		}
+		if (src_g >= dest_g) {
+			g = src_g;
+		} else {
+			g = dest_g;
+		}
+		if (src_b >= dest_b) {
+			b = src_b;
+		} else {
+			b = dest_b;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 10: //差の絶対値
+		result = abs(dest - src);
 		break;
 	case 11: //除外
+		src_r = src_r + dest_r - 2 * src_r * dest_r / 255;
+		r = alphablend(src_r, dest_r, src_a);
+		if (r > 255) {
+			r = 255;
+		}
+		src_g = src_g + dest_g - 2 * src_g * dest_g / 255;
+		g = alphablend(src_g, dest_g, src_a);
+		if (g > 255) {
+			g = 255;
+		}
+		src_b = src_b + dest_b - 2 * src_b * dest_b / 255;
+		b = alphablend(src_b, dest_b, src_a);
+		if (b > 255) {
+			b = 255;
+		}
+		a = src_a + dest_a;
+		if (a > 255) {
+			a = 255;
+		}
+		result = (a << 24) | (r << 16) | (g << 8) | b;
 		break;
 	case 12: //インビジブル
 		result = dest;
