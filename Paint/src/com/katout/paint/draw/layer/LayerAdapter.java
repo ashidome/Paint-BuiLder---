@@ -83,7 +83,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 								if(fastFlag){
 									setLayermode(position);
 									
-									new RecompositionAsyncTask(context, func,lisner).execute();
+									new RecompositionAsyncTask(context, func,lisner,null).execute();
 									notifyDataSetChanged();
 								}else{
 									fastFlag = true;
@@ -99,7 +99,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 					@Override
 					public void onStopTrackingTouch(SeekBar seekBar) {
 						setAlpher(seekBar.getProgress());
-						new RecompositionAsyncTask(context, func,lisner).execute();
+						new RecompositionAsyncTask(context, func,lisner,null).execute();
 
 						notifyDataSetChanged();
 					}

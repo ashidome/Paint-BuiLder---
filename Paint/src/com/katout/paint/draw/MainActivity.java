@@ -319,10 +319,15 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			}
 
 			@Override
-			public void bucket(int x, int y) {
+			public void bucket(final int x, final int y) {
 				Log.e("test", "bucket!!");
-				nativefunc.bucket(x, y, 3);
-				new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this).execute();
+				
+				new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,new Runnable() {
+					@Override
+					public void run() {
+						nativefunc.bucket(x, y, 3);
+					}
+				}).execute();
 			}
 
 			@Override
@@ -434,7 +439,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		boolean temp = layerAdapter.deleteLayer();
 		if(temp){
 			nativefunc.deleteLayer();
-			new RecompositionAsyncTask(MainActivity.this, nativefunc,this).execute();
+			new RecompositionAsyncTask(MainActivity.this, nativefunc,this,null).execute();
 		}
 	}
 

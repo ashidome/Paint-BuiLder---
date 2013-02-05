@@ -18,15 +18,17 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 	private RePreviewLisner lisner;
 	private long startTime;
 	private long endTime;
+	private Runnable run;
 	
 	public interface RePreviewLisner{
 		void setPreView();
 	}
 
-	public RecompositionAsyncTask(Context context, NativeFunction nativefunc,RePreviewLisner lisner) {
+	public RecompositionAsyncTask(Context context, NativeFunction nativefunc,RePreviewLisner lisner,Runnable run) {
 		this.context = context;
 		this.nativefunc = nativefunc;
 		this.lisner = lisner;
+		this.run =run;
 	}
 
 	@Override
@@ -43,7 +45,9 @@ public class RecompositionAsyncTask extends AsyncTask<String, Integer, Long>
 
 	@Override
 	protected Long doInBackground(String... params) {
-		
+		if(run != null){
+			run.run();
+		}
 		nativefunc.Recomposition();
 		lisner.setPreView();
 		return 123L;
