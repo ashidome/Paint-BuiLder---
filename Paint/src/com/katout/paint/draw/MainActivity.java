@@ -321,7 +321,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public void bucket(int x, int y) {
 				Log.e("test", "bucket!!");
-				nativefunc.bucket(x, y, 255);
+				nativefunc.bucket(x, y, 3);
+				new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this).execute();
 			}
 
 			@Override
