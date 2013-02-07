@@ -25,6 +25,8 @@ public final class R {
         public static final int white=0x7f040000;
     }
     public static final class dimen {
+        public static final int padding_10dp=0x7f050005;
+        public static final int padding_12dp=0x7f050006;
         public static final int padding_1dp=0x7f050003;
         public static final int padding_4dp=0x7f050004;
         public static final int padding_large=0x7f050002;
@@ -79,12 +81,11 @@ public final class R {
         public static final int TextView04=0x7f0a002e;
         public static final int add_book=0x7f0a000e;
         public static final int add_shelf=0x7f0a000d;
+        public static final int alpha_save=0x7f0a0003;
         public static final int back=0x7f0a000c;
         public static final int button1=0x7f0a001d;
         public static final int button2=0x7f0a001e;
         public static final int cancel=0x7f0a0036;
-        public static final int checkBox1=0x7f0a0003;
-        public static final int checkBox2=0x7f0a0004;
         public static final int colorPicker=0x7f0a0012;
         public static final int colorview=0x7f0a002f;
         public static final int create=0x7f0a0022;
@@ -131,6 +132,7 @@ public final class R {
         public static final int textView2=0x7f0a002c;
         public static final int textView3=0x7f0a002d;
         public static final int title=0x7f0a000f;
+        public static final int under_clip=0x7f0a0004;
         public static final int view_pager=0x7f0a001f;
     }
     public static final class layout {

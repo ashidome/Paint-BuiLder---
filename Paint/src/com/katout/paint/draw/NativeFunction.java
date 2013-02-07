@@ -83,4 +83,8 @@ public class NativeFunction {
 	public native int getLayerNum();
 	public native boolean getLayersData(int[] mode , int[] alpha);
 	public native int getCurrentNum();
+	
+	public native void setAlphaSave(boolean value);
+
+	public native void setUnderClip(boolean value);
 }

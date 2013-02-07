@@ -83,12 +83,19 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		convertView.setTag(position);
 		return convertView;
 	}
+	
+	public void init_layers(int[] mode, int[] alpha){
+		for(int i = 0; i < mode.length; i++){
+			LayerData data = new LayerData();
+			data.tempEdit = true;
+			data.alpha = alpha[i];
+			data.layermode = mode[i];
+			layers.add(data);
+		}
+	}
+	
 	public void addLayer(){
 		LayerData layerdata = new LayerData();
-		layerdata.tempEdit = true;
-
-		layerdata.alpha = 255;
-		layerdata.layermode = 0;
 		
 		if(layers.size() == 0){
 			layers.add(layerdata);
@@ -97,15 +104,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 			layers.add(currentlayer, layerdata);
 		}
 		layernum++;
-
-	
 	}
-	
-	public void setPreviewflag(){
-		layers.get(currentlayer).tempEdit = true;
-	
-	}
-	
 	
 	public boolean deleteLayer(){
 		if(layernum <= 1){
@@ -116,9 +115,26 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 			currentlayer--;
 		}
 		layernum--;
-	
 		return true;
 	}
+	
+	public void setPreviewflag(){
+		layers.get(currentlayer).tempEdit = true;
+	
+	}
+	
+	public int getCurrentlayer() {
+		return currentlayer;
+	}
+	
+	public void selectLayer(int c) {
+		currentlayer = c ;
+		
+		func.selectLayer(layernum - currentlayer - 1);
+	}
+	
+	
+	
 	
 	public void setLayermode(int num){
 		LayerData data = layers.get(currentlayer);
@@ -129,10 +145,6 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 	
 	public int getLayermode(){
 		return layers.get(currentlayer).layermode;
-	}
-	
-	public int getCurrentlayer() {
-		return currentlayer;
 	}
 
 	public void setAlpher(int progress) {
@@ -146,22 +158,28 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		return layers.get(currentlayer).alpha;
 	}
 	
-	public void init_layers(int[] mode, int[] alpha){
-		for(int i = 0; i < mode.length; i++){
-			LayerData data = new LayerData();
-			data.tempEdit = true;
-			data.alpha = alpha[i];
-			data.layermode = mode[i];
-			layers.add(data);
-		}
-	
+	public void setAlpha_save(boolean value){
+		LayerData data = layers.get(currentlayer);
+		data.alpha_save = value;
+		//func.setAlphaSave(value);
 	}
+	
+	public boolean getAlpha_save(){
+		return layers.get(currentlayer).alpha_save;
+	}
+	
+	public void setUnder_clip(boolean value){
+		LayerData data = layers.get(currentlayer);
+		data.under_clip = value;
+		//func.setUnderClip(value);
+	}
+	
+	public boolean getUnder_clip(){
+		return layers.get(currentlayer).under_clip;
+	}
+	
 
-	public void selectLayer(int c) {
-		currentlayer = c ;
-		
-		func.selectLayer(layernum - currentlayer - 1);
-	
-	}
+
+
 }
 

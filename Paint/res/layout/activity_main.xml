@@ -52,18 +52,21 @@
                 android:layout_height="wrap_content" >
 
                 <CheckBox
-                    android:id="@+id/checkBox1"
-                    android:layout_width="0dp"
+                    android:id="@+id/alpha_save"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="CheckBox" />
+                    android:text="不透明度保護"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/padding_12dp" />
 
                 <CheckBox
-                    android:id="@+id/checkBox2"
+                    android:id="@+id/under_clip"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="CheckBox" />
+                    android:text="下のレイヤーでクリッピング"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/padding_12dp" />
 
             </LinearLayout>
 
@@ -104,7 +107,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible" >
+        android:visibility="invisible" >
 
         <LinearLayout
             android:id="@+id/paint_menu_t"
