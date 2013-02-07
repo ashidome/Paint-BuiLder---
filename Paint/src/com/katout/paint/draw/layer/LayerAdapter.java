@@ -3,22 +3,16 @@ package com.katout.paint.draw.layer;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.katout.paint.R;
 import com.katout.paint.draw.NativeFunction;
-import com.katout.paint.draw.RecompositionAsyncTask;
 import com.katout.paint.draw.RecompositionAsyncTask.RePreviewLisner;
 
 public class LayerAdapter extends ArrayAdapter<LayerData>{
@@ -28,137 +22,74 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 	private ArrayList<LayerData> layers;//左右にあるレイヤーのレイアウト
 	private int layernum;
 	private int currentlayer;
-	private int previewheight;
-	private int previewwidth;
 	private NativeFunction func;
-	private Spinner	spinner_l;
-	private RePreviewLisner lisner;
-	private SeekBar	alpher_seek;
-	private boolean fastFlag;
-	private ArrayAdapter adapter;
+
 	
 	public LayerAdapter(Context context, ArrayList<LayerData> list, 
 			NativeFunction func, RePreviewLisner lisner) {
 		super(context,0, list);
 		layers = list;
-		this.lisner = lisner;
 		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		layernum = 0;
-		currentlayer = 1;
+		currentlayer = 0;
 		this.context = context;
 		this.func = func;
 		handler = new Handler();
-		fastFlag = false;
 	}
 	
+	private int count=0;
+	 
 	@Override
-    public int getItemViewType (int position) {
-		if(position == 0){
-			return 0;
-		}else {
-			return 1;
-		}
+	public int getCount(){
+	    return count;
 	}
+	 
 	@Override
-    public int getViewTypeCount () {
-        //セルは2種類
-        return 2;
-    }
+	public void notifyDataSetChanged(){
+	    super.notifyDataSetChanged();
+	    count=layers.size();
+	}
+
 	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		if(position == 0){
-			//レイヤー設定の場合
-			if(convertView == null){
-				convertView = mInflater.inflate(R.layout.layer_menu, null);
-				adapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item,context.getResources().getStringArray(R.array.SpinnerItems));
-		        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-				spinner_l = (Spinner)convertView.findViewById(R.id.spinner1);
-				spinner_l.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-							
-							@Override
-							public void onItemSelected(AdapterView<?> parent,View view, int position, long id) {
-								Log.d("test", "onItemSelected:" + position);
-								if(fastFlag){
-									setLayermode(position);
-									
-									new RecompositionAsyncTask(context, func,lisner,null).execute();
-									notifyDataSetChanged();
-								}else{
-									fastFlag = true;
-								}
-							}
-							@Override
-							public void onNothingSelected(AdapterView<?> arg0) {}
-						});
-				spinner_l.setAdapter(adapter);
-				alpher_seek = (SeekBar)convertView.findViewById(R.id.seek_alphr);
-				alpher_seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-					
-					@Override
-					public void onStopTrackingTouch(SeekBar seekBar) {
-						setAlpher(seekBar.getProgress());
-						new RecompositionAsyncTask(context, func,lisner,null).execute();
-
-						notifyDataSetChanged();
-					}
-					
-					@Override
-					public void onStartTrackingTouch(SeekBar seekBar) {}
-					
-					@Override
-					public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
-				});
-		
-			}
-		}else{
-			LayerData item = this.getItem(position);
-			if(convertView == null){
-				convertView = mInflater.inflate(R.layout.layer_column, null);
-			}
-			
-			//選択による背景色
-			if(position != currentlayer){
-				convertView.setBackgroundColor(0xffffffff);
-			}else{
-				convertView.setBackgroundColor(0xffdddddd);
-			}
-			//レイヤーモード
-			TextView text = (TextView)convertView.findViewById(R.id.layer_mode);
-			text.setText(context.getResources().getStringArray(R.array.SpinnerItems)[item.layermode]);
-			
-			//不透明度
-			text = (TextView)convertView.findViewById(R.id.layer_alpha);
-			text.setText("不透明度：" + item.alpha);
-			
-			
-			//プレビューのセット
-			final ImageView img = (ImageView) convertView.findViewById(R.id.preview_image);
-			previewwidth = img.getWidth();
-			previewheight = img.getHeight();
-			Bitmap bitmap = item.preview ;
-			if(bitmap == null & previewwidth >0){
-				bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
-				item.preview = bitmap;
-			}
-			final Bitmap bitmap2 = bitmap;
-			
-			func.getPreview(layernum - position, bitmap);
-			handler.post(new Runnable() {
-				@Override
-				public void run() {
-					img.setImageBitmap(bitmap2);
-				}
-			});
-			item.tempEdit = false;
+		LayerData item = this.getItem(position);
+		if(convertView == null){
+			convertView = mInflater.inflate(R.layout.layer_column, null);
+			convertView.setTag(position);
 		}
 		
+		//選択による背景色
+		if(position != currentlayer){
+			convertView.setBackgroundColor(0xffffffff);
+		}else{
+			convertView.setBackgroundColor(0xffdddddd);
+		}
+		//レイヤーモード
+		TextView text = (TextView)convertView.findViewById(R.id.layer_mode);
+		text.setText(context.getResources().getStringArray(R.array.SpinnerItems)[item.layermode]);
+		
+		//不透明度
+		text = (TextView)convertView.findViewById(R.id.layer_alpha);
+		text.setText("不透明度：" + item.alpha);
+		
+		
+		//プレビューのセット
+		final ImageView img = (ImageView) convertView.findViewById(R.id.preview_image);
+		if(item.tempEdit | (Integer)convertView.getTag() != position){
+			new PreviewAsyncTask(context, func, img, item, layernum - position -1).execute();
+		}
+		
+		convertView.setTag(position);
 		return convertView;
 	}
 	public void addLayer(){
 		LayerData layerdata = new LayerData();
 		layerdata.tempEdit = true;
+
+		layerdata.alpha = 255;
+		layerdata.layermode = 0;
+		
 		if(layers.size() == 0){
 			layers.add(layerdata);
 			currentlayer = 0;
@@ -167,14 +98,12 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		}
 		layernum++;
 
-		layerdata.alpha = 255;
-		layerdata.layermode = 0;
-		
-		notifyDataSetChanged();
+	
 	}
 	
 	public void setPreviewflag(){
 		layers.get(currentlayer).tempEdit = true;
+	
 	}
 	
 	
@@ -187,7 +116,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 			currentlayer--;
 		}
 		layernum--;
-		notifyDataSetChanged();
+	
 		return true;
 	}
 	
@@ -195,6 +124,7 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		LayerData data = layers.get(currentlayer);
 		data.layermode = num;
 		func.setLayerMode(num);
+	
 	}
 	
 	public int getLayermode(){
@@ -205,10 +135,11 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		return currentlayer;
 	}
 
-	private void setAlpher(int progress) {
+	public void setAlpher(int progress) {
 		LayerData data = layers.get(currentlayer);
 		data.alpha = progress;
 		func.setLayerAlpha(progress);
+	
 	}
 
 	public int getLayerAlpha() {
@@ -216,41 +147,21 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 	}
 	
 	public void init_layers(int[] mode, int[] alpha){
-		layers.get(0).layermode = mode[0];
-		layers.get(0).alpha = alpha[0];
-		
-		if(mode.length > 1){
-			for(int i = 1; i < mode.length; i++){
-				LayerData data = new LayerData();
-				data.tempEdit = true;
-				data.alpha = alpha[i];
-				data.layermode = mode[i];
-				layers.add(data);
-			}
+		for(int i = 0; i < mode.length; i++){
+			LayerData data = new LayerData();
+			data.tempEdit = true;
+			data.alpha = alpha[i];
+			data.layermode = mode[i];
+			layers.add(data);
 		}
-		notifyDataSetChanged();
+	
 	}
 
 	public void selectLayer(int c) {
 		currentlayer = c ;
 		
-		func.selectLayer(layernum - currentlayer);
-		spinner_l.setSelection(getLayermode());
-		alpher_seek.setProgress(getLayerAlpha());
-	}
-	public void onVisibility() {
-		if(getLayermode()==12){
-			setLayermode(0);
-			spinner_l.setSelection(0,true);
-//			adapter.notifyDataSetChanged();
-//			spinner_l.invalidate();
-		}else{
-			setLayermode(12);
-			spinner_l.setSelection(12,true);
-//			adapter.notifyDataSetChanged();
-//			spinner_l.invalidate();
-		}
-		
+		func.selectLayer(layernum - currentlayer - 1);
+	
 	}
 }
 
