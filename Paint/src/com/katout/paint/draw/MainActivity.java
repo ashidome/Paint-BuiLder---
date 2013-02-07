@@ -34,11 +34,13 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.OnColorChangedListener;
 import com.katout.paint.R;
+import com.katout.paint.Utility;
 import com.katout.paint.conect.ConnectCore;
 import com.katout.paint.conect.RoomDialog;
 import com.katout.paint.draw.RecompositionAsyncTask.RePreviewLisner;
@@ -74,11 +76,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	private SeekBar					seek_brush_t;
 	private SeekBar					seek_brush_b;
 	
+	//レイヤーメニュー
+	private Spinner	spinner_l;
+	private SeekBar	alpher_seek;
+	private boolean fastFlag;
+	
 	private boolean	preview_Change_flag;
 	private ImageView				preview;
 	private int	previewwidth;
 	private int	previewheight;
 	private Bitmap	preview_bitmap;
+	
 
 
 	@Override
@@ -89,6 +97,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		path = intent.getStringExtra("path");
 		new_flag = intent.getBooleanExtra("newflag", false);
 		filename = intent.getStringExtra("name");
+		fastFlag = false;
 		
 		nativefunc = new NativeFunction();
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -153,10 +162,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	@Override
 	public void layerMenuPos(int w, int x, boolean animation) {
 		if (x > 20) {
-			if (paint_layer_l.getVisibility() == View.GONE ||
-					paint_layer_l.getVisibility() ==View.INVISIBLE) {
-				paint_layer_l.setVisibility(View.VISIBLE);
-			}
+			
 			paint_layer_l.layout((x * paint_menuW / 100) - paint_menuW,
 					paint_layer_l.getTop(), (x * paint_menuW / 100),
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
@@ -167,7 +173,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		} else {
 			paint_layer_l.layout(-paint_menuW, paint_layer_l.getTop(), 0,
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
-			paint_layer_l.setVisibility(View.INVISIBLE);
+			
 		}
 	}
 
@@ -184,19 +190,62 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 
 		listview = (ListView)findViewById(R.id.layer_listview);
 		listdata = new ArrayList<LayerData>();
-		listdata.add(new LayerData());
 		layerAdapter = new LayerAdapter(this, listdata,nativefunc, this);
 		listview.setAdapter(layerAdapter);
 		
 		listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+				fastFlag = false;
 				layerAdapter.selectLayer(position);
-				layerAdapter.notifyDataSetChanged();
-				listview.invalidate();
-				Toast.makeText(MainActivity.this, "num = " + position, Toast.LENGTH_SHORT).show();
+				handler.post(new Runnable() {
+					
+					@Override
+					public void run() {
+						spinner_l.setSelection(layerAdapter.getLayermode());
+						alpher_seek.setProgress(layerAdapter.getLayerAlpha());
+						layerAdapter.notifyDataSetChanged();
+					}
+				});
 			}
 		});
+		
+		/**
+		 * レイヤーメニュー
+		 */
+		spinner_l = (Spinner)findViewById(R.id.spinner1);
+		spinner_l.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					
+					@Override
+					public void onItemSelected(AdapterView<?> parent,View view, int position, long id) {
+						Log.d("test", "onItemSelected:" + position);
+						if(fastFlag){
+							layerAdapter.setLayermode(position);
+							layerAdapter.notifyDataSetChanged();
+							new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
+						}
+						fastFlag = true;
+					}
+					@Override
+					public void onNothingSelected(AdapterView<?> arg0) {}
+				});
+		alpher_seek = (SeekBar)findViewById(R.id.seek_alphr);
+		alpher_seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				layerAdapter.setAlpher(seekBar.getProgress());
+				layerAdapter.notifyDataSetChanged();
+				new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
+			}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
+		});
+
 		
 
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
@@ -244,6 +293,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		paint = new PaintView(this, surface, this, new EventLisner() {
 			@Override
 			public boolean startDraw(int x, int y) {
+
+				layerAdapter.setPreviewflag();
 				return nativefunc.startDraw(x, y);
 			}
 
@@ -292,8 +343,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 						int[] map = new int[x*y];
 						bitmap.getPixels(map, 0, x, 0, 0, x, y);
 						init_flag =  nativefunc.init(x, y,1,map);
-						layerAdapter.notifyDataSetChanged();
 						listview.invalidate();
+						Utility.setListViewHeightBasedOnChildren(listview);
 					} catch (FileNotFoundException e) {
 						init_flag =  nativefunc.init(w, h, 0, null);
 					}
@@ -364,7 +415,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					String mes = j_message.getMessage();
 					connectCore.shareMessage(mes);
 				}
-				layerAdapter.setPreviewflag();
 			}
 		});
 	}
@@ -380,7 +430,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
-				paint_layer_l.setVisibility(View.INVISIBLE);
+				paint_layer_l.layout(-paint_menuW, paint_layer_l.getTop(), 0,
+						paint_layer_l.getTop() + paint_layer_l.getHeight());
 				paint_menu_b.layout(paint_menu_b.getLeft(), h + 0,
 						paint_menu_b.getLeft() + paint_menu_b.getWidth(), h + 0
 								+ paint_menuH);
@@ -432,13 +483,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	}
 	private void add(){
 		layerAdapter.addLayer();
-		listview.invalidate();
+		layerAdapter.notifyDataSetChanged();
+
+		Utility.setListViewHeightBasedOnChildren(listview);
 	}
 	
 	public void ondeleteLayer(View v) {
 		boolean temp = layerAdapter.deleteLayer();
 		if(temp){
 			nativefunc.deleteLayer();
+			layerAdapter.notifyDataSetChanged();
+			Utility.setListViewHeightBasedOnChildren(listview);
 			new RecompositionAsyncTask(MainActivity.this, nativefunc,this,null).execute();
 		}
 	}
@@ -605,7 +660,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			public void run() {
 				preview.setImageBitmap(preview_bitmap);
 				layerAdapter.notifyDataSetChanged();
-				listview.invalidate();
 			}
 		});
 		
@@ -613,8 +667,13 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	}
 	
 	public void onVisibility(View v) {
-		layerAdapter.onVisibility();
-		layerAdapter.notifyDataSetChanged();
-		listview.invalidate();
+		fastFlag = true;
+		if(layerAdapter.getLayermode()==12){
+			layerAdapter.setLayermode(0);
+			spinner_l.setSelection(0);
+		}else{
+			layerAdapter.setLayermode(12);
+			spinner_l.setSelection(12);
+		}
 	}
 }
