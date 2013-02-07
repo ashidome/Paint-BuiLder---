@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="0.1258106711">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="0.1258106711" moduleId="org.eclipse.cdt.core.settings" name="デフォルト">
@@ -22,27 +24,31 @@
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.349263833" name="ライブラリー設定フォルダー" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.50979550" name="アセンブリー" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.928749658" name="インクルード・パス" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}/sources/cxx-stl/gnu-libstdc++/4.4.3/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}/platforms/android-8/arch-arm/usr/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}/platforms/android-14/arch-arm/usr/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}/sources/cxx-stl/gnu-libstdc++/4.4.3/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}/platforms/android-8/arch-arm/usr/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}/platforms/android-14/arch-arm/usr/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;M:\android-ndk\sources\cxx-stl\gnu-libstdc++\4.4.3\include&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.155498391" languageId="org.eclipse.cdt.core.assembly" languageName="アセンブリー" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.199136074" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1019189051" name="インクルード・パス" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}\platforms\android-14\arch-arm\usr\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}/sources/cxx-stl/gnu-libstdc++/4.4.3/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}/platforms/android-8/arch-arm/usr/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}\platforms\android-14\arch-arm\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}/platforms/android-8/arch-arm/usr/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}/sources/cxx-stl/gnu-libstdc++/4.4.3/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;M:\android-ndk\platforms\android-14\arch-arm\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;M:\android-ndk\sources\cxx-stl\gnu-libstdc++\4.6\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;M:\android-ndk\platforms\android-8\arch-arm\usr\include&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1051948621" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.691251213" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.705424274" name="インクルード・パス" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}\platforms\android-14\arch-arm\usr\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}\sources\cxx-stl\gnu-libstdc++\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}\sources\cxx-stl\gnu-libstdc++\4.6\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}/platforms/android-14/arch-arm/usr/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ANDROID_NDK_HOME}/sources/cxx-stl/gnu-libstdc++/4.6/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}\platforms\android-14\arch-arm\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}\sources\cxx-stl\gnu-libstdc++\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../${ANDROID_NDK_HOME}\sources\cxx-stl\gnu-libstdc++\4.6\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;M:\android-ndk\platforms\android-14\arch-arm\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;M:\android-ndk\sources\cxx-stl\gnu-libstdc++\4.6\include&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1716499502" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>

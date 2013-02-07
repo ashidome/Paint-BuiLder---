@@ -26,8 +26,9 @@ void Bicubic(int sx, int sy, double by, int flag);
 double First_Neighborhood(double d);
 double Second_Neighborhood(double d);
 void Bilinear(int x, int y);
-void scanLine(int lx, int rx, int y, unsigned int col);
+void scanLine(int lx, int rx, int y, unsigned int col, int threshold);
 void fill(int x, int y, int threshold);
+int mean_difference(int x, int y);
 void setBrush(jchar brush_img[], int flag);
 int Normal_Draw(int src, int dest);
 int Eraser_Draw(int src, int dest);
@@ -1298,22 +1299,25 @@ void Bilinear(int x, int y) {
  * int y:線分のY座標
  * unsigned int col:領域色
  */
-void scanLine(int lx, int rx, int y, unsigned int col) {
+void scanLine(int lx, int rx, int y, unsigned int col, int threshold) {
 	while (lx < rx) {
 		//i_printf("scanLine lx = %d, rx = %d, y = %d", lx, rx, y);
 		//非領域色を飛ばす
 		for (; lx < rx; lx++) {
-			if (layerdata[layers.current_layer].img[lx][y] == col) {
+			if (mean_difference(layerdata[layers.current_layer].img[lx][y], col)
+					< threshold) {
 				break;
 			}
 		}
-		if (layerdata[layers.current_layer].img[lx][y] != col) {
+		if (mean_difference(layerdata[layers.current_layer].img[lx][y], col)
+				> threshold) {
 			break;
 		}
 
 		//領域色を飛ばす
 		for (; lx < rx; lx++) {
-			if (layerdata[layers.current_layer].img[lx][y] != col) {
+			if (mean_difference(layerdata[layers.current_layer].img[lx][y], col)
+					> threshold) {
 				break;
 			}
 		}
@@ -1336,6 +1340,7 @@ void scanLine(int lx, int rx, int y, unsigned int col) {
  */
 void fill(int x, int y, int threshold) {
 	i_printf("fill start!");
+	threshold = 10;
 	unsigned int paintCol = swap_rgb(brush[0].color);
 	int lx, rx;
 	int ly;
@@ -1357,13 +1362,15 @@ void fill(int x, int y, int threshold) {
 		}
 
 		//処理済みのシードなら無視
-		if (layerdata[layers.current_layer].img[lx][ly] != col) {
+		if (mean_difference(layerdata[layers.current_layer].img[lx][ly], col)
+				> threshold) {
 			continue;
 		}
 
 		//右方向の境界を走査
 		while (rx < c.width - 1) {
-			if (layerdata[layers.current_layer].img[rx + 1][ly] != col) {
+			if (mean_difference(layerdata[layers.current_layer].img[rx + 1][ly],
+					col) > threshold) {
 				break;
 			}
 			rx++;
@@ -1371,7 +1378,8 @@ void fill(int x, int y, int threshold) {
 
 		//左方向の境界を走査
 		while (lx > 0) {
-			if (layerdata[layers.current_layer].img[lx - 1][ly] != col) {
+			if (mean_difference(layerdata[layers.current_layer].img[lx - 1][ly],
+					col) > threshold) {
 				break;
 			}
 			lx--;
@@ -1385,16 +1393,42 @@ void fill(int x, int y, int threshold) {
 		i_printf("真上のスキャンラインを走査");
 		//真上のスキャンラインを走査
 		if (ly - 1 > 0) {
-			scanLine(lx, rx, ly - 1, col);
+			scanLine(lx, rx, ly - 1, col, threshold);
 		}
 
 		i_printf("真下のスキャンラインを走査");
 		//真下のスキャンラインを走査
 		if (ly + 1 < c.height) {
-			scanLine(lx, rx, ly + 1, col);
+			scanLine(lx, rx, ly + 1, col, threshold);
 		}
 		i_printf("end fill loop");
 	} while (sIdx != eIdx);
+}
+
+/*
+ * ARGBの差の平均を返す関数
+ */
+int mean_difference(int x, int y) {
+	int x_a, x_r, x_g, x_b;
+	int y_a, y_r, y_g, y_b;
+	int a, r, g, b;
+
+	x_a = (x & 0xFF000000) >> 24;
+	x_r = (x & 0x00FF0000) >> 16;
+	x_g = (x & 0x0000FF00) >> 8;
+	x_b = (x & 0x000000FF);
+
+	y_a = (y & 0xFF000000) >> 24;
+	y_r = (y & 0x00FF0000) >> 16;
+	y_g = (y & 0x0000FF00) >> 8;
+	y_b = (y & 0x000000FF);
+
+	a = abs(x_a - y_a);
+	r = abs(x_r - y_r);
+	g = abs(x_g - y_g);
+	b = abs(x_b - y_b);
+
+	return (a + r + g + b) / 4;
 }
 
 /*
