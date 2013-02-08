@@ -28,6 +28,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -87,6 +90,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	private int	previewheight;
 	private Bitmap	preview_bitmap;
 	
+	private CheckBox alpha_save;
+	private CheckBox under_clip;
+	private boolean alpha_save_f;
+	private boolean under_clip_f;
+	
 
 
 	@Override
@@ -98,6 +106,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		new_flag = intent.getBooleanExtra("newflag", false);
 		filename = intent.getStringExtra("name");
 		fastFlag = false;
+		alpha_save_f = false;
+		under_clip_f = false;
 		
 		nativefunc = new NativeFunction();
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -143,9 +153,21 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	@Override
 	public void paintMenuPos(int h, int y, boolean animation) {
 		if (y > 20) {
+			int visible = paint_menu_t.getVisibility();
+			if (visible == View.GONE || visible == View.INVISIBLE
+					|| paint_menu_b.getVisibility() == View.VISIBLE) {
+				paint_menu_b.setVisibility(View.INVISIBLE);
+				paint_menu_t.setVisibility(View.VISIBLE);
+			}
 			paint_menu_t.layout(paint_menu_t.getLeft(), y - paint_menuH,
 					paint_menu_t.getLeft() + paint_menu_t.getWidth(), y);
 		} else if (y < -20) {
+			int visible = paint_menu_b.getVisibility();
+			if (visible == View.GONE || visible == View.INVISIBLE
+					|| paint_menu_t.getVisibility() == View.VISIBLE) {
+				paint_menu_t.setVisibility(View.INVISIBLE);
+				paint_menu_b.setVisibility(View.VISIBLE);
+			}
 			paint_menu_b.layout(paint_menu_b.getLeft(), h + y,
 					paint_menu_b.getLeft() + paint_menu_b.getWidth(), h + y
 							+ paint_menuH);
@@ -156,13 +178,18 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			paint_menu_b.layout(paint_menu_b.getLeft(), h,
 					paint_menu_b.getLeft() + paint_menu_b.getWidth(), h
 							+ paint_menuH);
+			paint_menu_t.setVisibility(View.INVISIBLE);
+			paint_menu_b.setVisibility(View.INVISIBLE);
 		}
 	}
 
 	@Override
 	public void layerMenuPos(int w, int x, boolean animation) {
 		if (x > 20) {
-			
+			if (paint_layer_l.getVisibility() == View.GONE ||
+					paint_layer_l.getVisibility() ==View.INVISIBLE) {
+				paint_layer_l.setVisibility(View.VISIBLE);
+			}
 			paint_layer_l.layout((x * paint_menuW / 100) - paint_menuW,
 					paint_layer_l.getTop(), (x * paint_menuW / 100),
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
@@ -173,22 +200,29 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		} else {
 			paint_layer_l.layout(-paint_menuW, paint_layer_l.getTop(), 0,
 					paint_layer_l.getTop() + paint_layer_l.getHeight());
-			
+			paint_layer_l.setVisibility(View.INVISIBLE);
 		}
 	}
 
 	@Override
 	public void onContentChanged() {
 		super.onContentChanged();
-		paint_menu_t = (LinearLayout) findViewById(R.id.paint_menu_t);
-		paint_menu_b = (LinearLayout) findViewById(R.id.paint_menu_b);
-		colorV_t = (ColorView) paint_menu_t.findViewById(R.id.colorview);
-		colorV_b = (ColorView) paint_menu_b.findViewById(R.id.colorview);
+		
+		/***************************************************************
+		 *                        レイヤーメニュー
+		 ***************************************************************/
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
 		preview = (ImageView)findViewById(R.id.preview);
-		
-
 		listview = (ListView)findViewById(R.id.layer_listview);
+		
+		alpher_seek = (SeekBar)findViewById(R.id.seek_alphr);
+
+		spinner_l = (Spinner)findViewById(R.id.spinner1);
+		
+		alpha_save = (CheckBox)findViewById(R.id.alpha_save);
+		under_clip = (CheckBox)findViewById(R.id.under_clip);
+		
+		
 		listdata = new ArrayList<LayerData>();
 		layerAdapter = new LayerAdapter(this, listdata,nativefunc, this);
 		listview.setAdapter(layerAdapter);
@@ -197,6 +231,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
 				fastFlag = false;
+				alpha_save_f = false;
+				under_clip_f = false;
 				layerAdapter.selectLayer(position);
 				handler.post(new Runnable() {
 					
@@ -204,16 +240,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					public void run() {
 						spinner_l.setSelection(layerAdapter.getLayermode());
 						alpher_seek.setProgress(layerAdapter.getLayerAlpha());
+						alpha_save.setChecked(layerAdapter.getAlpha_save());
+						under_clip.setChecked(layerAdapter.getUnder_clip());
+						fastFlag = true;
+						alpha_save_f = true;
+						under_clip_f = true;
 						layerAdapter.notifyDataSetChanged();
 					}
 				});
 			}
 		});
-		
-		/**
-		 * レイヤーメニュー
-		 */
-		spinner_l = (Spinner)findViewById(R.id.spinner1);
+
 		spinner_l.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 					
 					@Override
@@ -229,7 +266,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					@Override
 					public void onNothingSelected(AdapterView<?> arg0) {}
 				});
-		alpher_seek = (SeekBar)findViewById(R.id.seek_alphr);
+		
 		alpher_seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			
 			@Override
@@ -245,14 +282,43 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
 		});
-
+		
+		alpha_save.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(alpha_save_f){
+					layerAdapter.setAlpha_save(isChecked);
+					new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
+				}
+				alpha_save_f = true;
+			}
+		});
+		
+		under_clip.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(under_clip_f){
+					layerAdapter.setUnder_clip(isChecked);
+					new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
+				}
+				under_clip_f = true;
+			}
+		});
+		
 		
 
+
+
+		/***************************************************************
+		 *                        ペイントメニュー
+		 ***************************************************************/
+		paint_menu_t = (LinearLayout) findViewById(R.id.paint_menu_t);
+		paint_menu_b = (LinearLayout) findViewById(R.id.paint_menu_b);
+		colorV_t = (ColorView) paint_menu_t.findViewById(R.id.colorview);
+		colorV_b = (ColorView) paint_menu_b.findViewById(R.id.colorview);
+		
 		seek_brush_t = (SeekBar) paint_menu_t.findViewById(R.id.seek_brush);
 		seek_brush_b = (SeekBar) paint_menu_b.findViewById(R.id.seek_brush);
-		
-
-		
 		
 		seek_brush_t.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
@@ -284,9 +350,13 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 
 		//初期に１枚のレイヤーを登録
 		onAddLayer(null);
-		// layerAdapter_r = new LayerAdapter(this, layer_list);
-		// layer_l.setAdapter(layerAdapter_l);
-		// layer_r.setAdapter(layerAdapter_r);
+		fastFlag = false;
+		alpha_save_f = false;
+		under_clip_f = false;
+		
+		/***************************************************************
+		 *                        ペイント画面
+		 ***************************************************************/
 		surface = (SurfaceView) findViewById(R.id.surfaceView1);
 		//surface.setZOrderOnTop(false);
 		surface.setZOrderMediaOverlay(true);
@@ -430,13 +500,16 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
+				paint_layer_l.setVisibility(View.INVISIBLE);
 				paint_layer_l.layout(-paint_menuW, paint_layer_l.getTop(), 0,
 						paint_layer_l.getTop() + paint_layer_l.getHeight());
 				paint_menu_b.layout(paint_menu_b.getLeft(), h + 0,
 						paint_menu_b.getLeft() + paint_menu_b.getWidth(), h + 0
 								+ paint_menuH);
+				paint_menu_b.setVisibility(View.INVISIBLE);
 				paint_menu_t.layout(paint_menu_t.getLeft(), 0 - paint_menuH,
 						paint_menu_t.getLeft() + paint_menu_t.getWidth(), 0);
+				paint_menu_t.setVisibility(View.INVISIBLE);
 			}
 		});
 
@@ -484,6 +557,17 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	private void add(){
 		layerAdapter.addLayer();
 		layerAdapter.notifyDataSetChanged();
+		
+		fastFlag = false;
+		alpha_save_f = false;
+		under_clip_f = false;
+		spinner_l.setSelection(layerAdapter.getLayermode());
+		alpher_seek.setProgress(layerAdapter.getLayerAlpha());
+		alpha_save.setChecked(layerAdapter.getAlpha_save());
+		under_clip.setChecked(layerAdapter.getUnder_clip());
+		fastFlag = true;
+		alpha_save_f = true;
+		under_clip_f = true;
 
 		Utility.setListViewHeightBasedOnChildren(listview);
 	}
@@ -492,6 +576,18 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		boolean temp = layerAdapter.deleteLayer();
 		if(temp){
 			nativefunc.deleteLayer();
+			
+			fastFlag = false;
+			alpha_save_f = false;
+			under_clip_f = false;
+			spinner_l.setSelection(layerAdapter.getLayermode());
+			alpher_seek.setProgress(layerAdapter.getLayerAlpha());
+			alpha_save.setChecked(layerAdapter.getAlpha_save());
+			under_clip.setChecked(layerAdapter.getUnder_clip());
+			fastFlag = true;
+			alpha_save_f = true;
+			under_clip_f = true;
+			
 			layerAdapter.notifyDataSetChanged();
 			Utility.setListViewHeightBasedOnChildren(listview);
 			new RecompositionAsyncTask(MainActivity.this, nativefunc,this,null).execute();
@@ -667,7 +763,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	}
 	
 	public void onVisibility(View v) {
-		fastFlag = true;
 		if(layerAdapter.getLayermode()==12){
 			layerAdapter.setLayermode(0);
 			spinner_l.setSelection(0);
