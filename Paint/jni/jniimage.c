@@ -1301,7 +1301,6 @@ void Bilinear(int x, int y) {
  */
 void scanLine(int lx, int rx, int y, unsigned int col, int threshold) {
 	while (lx < rx) {
-		//i_printf("scanLine lx = %d, rx = %d, y = %d", lx, rx, y);
 		//非領域色を飛ばす
 		for (; lx < rx; lx++) {
 			if (mean_difference(layerdata[layers.current_layer].img[lx][y], col)
@@ -1328,7 +1327,6 @@ void scanLine(int lx, int rx, int y, unsigned int col, int threshold) {
 			eIdx = buff;
 		}
 	}
-	i_printf("end scanLine");
 }
 
 /*
@@ -1339,8 +1337,7 @@ void scanLine(int lx, int rx, int y, unsigned int col, int threshold) {
  * int threshold 閾値
  */
 void fill(int x, int y, int threshold) {
-	i_printf("fill start!");
-	threshold = 10;
+	threshold = 5;
 	unsigned int paintCol = swap_rgb(brush[0].color);
 	int lx, rx;
 	int ly;
@@ -1390,18 +1387,15 @@ void fill(int x, int y, int threshold) {
 			layerdata[layers.current_layer].img[i][ly] = paintCol;
 		}
 
-		i_printf("真上のスキャンラインを走査");
 		//真上のスキャンラインを走査
 		if (ly - 1 > 0) {
 			scanLine(lx, rx, ly - 1, col, threshold);
 		}
 
-		i_printf("真下のスキャンラインを走査");
 		//真下のスキャンラインを走査
 		if (ly + 1 < c.height) {
 			scanLine(lx, rx, ly + 1, col, threshold);
 		}
-		i_printf("end fill loop");
 	} while (sIdx != eIdx);
 }
 
