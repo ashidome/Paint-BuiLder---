@@ -133,7 +133,7 @@
 		</FrameLayout>
 
         <ImageButton
-            android:id="@+id/imageButton1"
+            android:id="@+id/dropper"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@color/list_item"
