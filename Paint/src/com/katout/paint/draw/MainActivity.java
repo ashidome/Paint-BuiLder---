@@ -432,9 +432,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					layerAdapter.selectLayer(c);
 				}
 				int color = sp.getInt("wid_back_color", Color.argb(255, 51, 181, 229));
-				colorV_t.setColor(color);
-				colorV_b.setColor(color);
-				nativefunc.setColor(color);
+				setColor(color);
 				
 				return true;
 			}
@@ -526,21 +524,22 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	}
 
 	public void onSelectColor(View v) {
-		ColorPickerDialog mColorPickerDialog;
-
-		mColorPickerDialog = new ColorPickerDialog(this,
-				new OnColorChangedListener() {
+		final ColorPickerDialog mColorPickerDialog = new ColorPickerDialog(this,
+				 sp.getInt("wid_back_color", Color.argb(255, 51, 181, 229)));
+		mColorPickerDialog.setlisner(new OnColorChangedListener() {
 					@Override
 					public void colorChanged(int color) {
-						Editor ed = sp.edit();
-						ed.putInt("wid_back_color", color);
-						ed.commit();
+						
 						// ネイティブに色情報を渡す
-						nativefunc.setColor(color);
-						colorV_t.setColor(color);
-						colorV_b.setColor(color);
+						setColor(color);
 					}
-				}, sp.getInt("wid_back_color", Color.argb(255, 51, 181, 229)));
+
+					@Override
+					public void onDropper() {
+						paint.setMode(PaintMode.Spuit);
+						mColorPickerDialog.dismiss();
+					}
+				});
 		mColorPickerDialog.show();
 	}
 
@@ -770,5 +769,16 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			layerAdapter.setLayermode(12);
 			spinner_l.setSelection(12);
 		}
+	}
+
+	@Override
+	public void setColor(int color) {
+		Editor ed = sp.edit();
+		ed.putInt("wid_back_color", color);
+		ed.commit();
+		colorV_t.setColor(color);
+		colorV_b.setColor(color);
+		paint.setMem_color(color);
+		nativefunc.setColor(color);
 	}
 }

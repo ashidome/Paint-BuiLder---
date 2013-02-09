@@ -92,11 +92,11 @@ public final class R {
         public static final int delete=0x7f0a0020;
         public static final int delete_button=0x7f0a000a;
         public static final int download=0x7f0a0034;
+        public static final int dropper=0x7f0a001b;
         public static final int file_button=0x7f0a0009;
         public static final int file_image=0x7f0a0024;
         public static final int file_mode=0x7f0a0008;
         public static final int file_name=0x7f0a0023;
-        public static final int imageButton1=0x7f0a001b;
         public static final int imageView1=0x7f0a000b;
         public static final int imageView2=0x7f0a0025;
         public static final int imageView3=0x7f0a0026;

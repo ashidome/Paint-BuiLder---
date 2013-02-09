@@ -32,6 +32,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 		void setup();
 		
+		void setColor(int color);
+		
 
 	}
 
@@ -43,6 +45,8 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	private MenuLiner menu_lisner;
 	private EventLisner event_lisner;
 	private FrameRate rate;
+	
+	private Dropper dropper;
 
 	// タッチまわり
 	private int touch_count; // 前フレームのタッチ数
@@ -73,6 +77,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 	
 	//共有用
 	private ArrayList<Integer> paint_points;
+	private int mem_color;
 
 	public PaintView(Context context, SurfaceView sv, MenuLiner menu_lisner, EventLisner event_lisner) {
 		Log.d("java", "PaintView initial");
@@ -158,7 +163,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 						paint_points.add((int )(-nowPosX + points[0][0]/Scale));
 						paint_points.add((int )(-nowPosY + points[1][0]/Scale));
 					}
-					if(mode == PaintMode.Bucket){
+					if(mode == PaintMode.Bucket || mode == PaintMode.Spuit){
 						touch_count = 1;
 					}
 				}
@@ -286,6 +291,12 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			}
 			menu_lisner.layerMenuPos(w, nowMenuPosX * 100 / menuW, false);
 			menu_lisner.paintMenuPos(h, nowMenuPosY, false);
+			if(mode == PaintMode.Spuit && touch_count == 1){
+				int color = dropper.getcolor(points[0][0], points[1][0]);
+				menu_lisner.setColor(color);
+				dropper.setColor(color);
+			}
+			
 			if(mode == PaintMode.Bucket && touch_count == 1){
 				event_lisner.bucket((int )(-nowPosX + points[0][0]/Scale), 
 						(int )(-nowPosY + points[1][0]/Scale));
@@ -294,8 +305,9 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			if (state == State.Drawing || state == State.DrawStart) {
 				// TODO event_lisner.stopDraw(points[0][0], points[1][0]);
 				event_lisner.endDraw(paint_points);
-				
 			}
+			
+			
 			state = State.Non;
 		}
 		return true;
@@ -308,6 +320,7 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 			w = sv.getWidth();
 			h = sv.getHeight();
 			bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+			dropper = new Dropper(bitmap);
 			event_lisner.init(w, h);
 			init_flag = true;
 			Log.e("test", "init");
@@ -340,6 +353,10 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 		if (temp_flag) {
 
 			canvas.drawBitmap(bitmap, 0, 0, null);
+		}
+		
+		if(touch_count == 1 && mode == PaintMode.Spuit){
+			dropper.drawCircle(canvas, points[0][0], points[1][0]);
 		}
 		ondebag(true, canvas);
 
@@ -397,6 +414,13 @@ public class PaintView implements SurfaceHolder.Callback, View.OnTouchListener,
 
 	public void setMode(PaintMode mode) {
 		this.mode = mode;
+		if(mode == PaintMode.Spuit){
+			dropper.setColor(mem_color);
+		}
+	}
+	
+	public void setMem_color(int mem_color) {
+		this.mem_color = mem_color;
 	}
 	
 	public PaintMode getMode(){
