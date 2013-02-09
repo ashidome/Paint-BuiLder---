@@ -22,7 +22,12 @@ public class Dropper {
 	}
 
 	public int getcolor(int x, int y) {
-		return bitmap.getPixel(x, y);
+		try{
+			return bitmap.getPixel(x, y);
+		}catch(Exception e){
+			return 0;
+		}
+		
 	}
 	
 	public void setColor(int mem_color) {
