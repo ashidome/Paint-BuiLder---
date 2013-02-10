@@ -34,7 +34,6 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
@@ -43,15 +42,17 @@ import android.widget.Toast;
 import com.katout.paint.ColorPickerDialog;
 import com.katout.paint.OnColorChangedListener;
 import com.katout.paint.R;
-import com.katout.paint.Utility;
 import com.katout.paint.conect.ConnectCore;
 import com.katout.paint.conect.RoomDialog;
 import com.katout.paint.draw.RecompositionAsyncTask.RePreviewLisner;
 import com.katout.paint.draw.brush.SelectBrushDialog;
 import com.katout.paint.draw.layer.LayerAdapter;
 import com.katout.paint.draw.layer.LayerData;
+import com.katout.paint.draw.layer.MyListView;
 
 public class MainActivity extends Activity implements PaintView.MenuLiner ,RePreviewLisner{
+	final String TAG = "MainActivity";
+	
 	private NativeFunction			nativefunc;
 	private ConnectCore				connectCore;
 	private Handler					handler;
@@ -66,9 +67,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	private boolean 				new_flag;
 	
 	private LinearLayout			paint_layer_l;
-	private ListView 				listview;
+	private LinearLayout 			listview;
 	private ArrayList<LayerData>	listdata;
 	private LayerAdapter			layerAdapter;
+	private MyListView				listview_helper;
 	private int						paint_menuW;
 
 	private SharedPreferences		sp;
@@ -82,7 +84,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	//レイヤーメニュー
 	private Spinner	spinner_l;
 	private SeekBar	alpher_seek;
-	private boolean fastFlag;
 	
 	private boolean	preview_Change_flag;
 	private ImageView				preview;
@@ -92,22 +93,18 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	
 	private CheckBox alpha_save;
 	private CheckBox under_clip;
-	private boolean alpha_save_f;
-	private boolean under_clip_f;
 	
 
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		Log.d(TAG, "onCreate");
 		super.onCreate(savedInstanceState);
 		
 		Intent intent = this.getIntent();
 		path = intent.getStringExtra("path");
 		new_flag = intent.getBooleanExtra("newflag", false);
 		filename = intent.getStringExtra("name");
-		fastFlag = false;
-		alpha_save_f = false;
-		under_clip_f = false;
 		
 		nativefunc = new NativeFunction();
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -206,6 +203,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 
 	@Override
 	public void onContentChanged() {
+		Log.d(TAG, "onContentChanged");
 		super.onContentChanged();
 		
 		/***************************************************************
@@ -213,7 +211,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		 ***************************************************************/
 		paint_layer_l = (LinearLayout) findViewById(R.id.layer_menu_l);
 		preview = (ImageView)findViewById(R.id.preview);
-		listview = (ListView)findViewById(R.id.layer_listview);
+		listview = (LinearLayout)findViewById(R.id.layer_listview);
 		
 		alpher_seek = (SeekBar)findViewById(R.id.seek_alphr);
 
@@ -225,14 +223,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		
 		listdata = new ArrayList<LayerData>();
 		layerAdapter = new LayerAdapter(this, listdata,nativefunc, this);
-		listview.setAdapter(layerAdapter);
-		
-		listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+		layerAdapter.addLayer();
+		listview_helper = new MyListView(listview, layerAdapter);
+		listview_helper.setOnClickLisner(new AdapterView.OnItemClickListener(){
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-				fastFlag = false;
-				alpha_save_f = false;
-				under_clip_f = false;
 				layerAdapter.selectLayer(position);
 				handler.post(new Runnable() {
 					
@@ -242,10 +237,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 						alpher_seek.setProgress(layerAdapter.getLayerAlpha());
 						alpha_save.setChecked(layerAdapter.getAlpha_save());
 						under_clip.setChecked(layerAdapter.getUnder_clip());
-						fastFlag = true;
-						alpha_save_f = true;
-						under_clip_f = true;
-						layerAdapter.notifyDataSetChanged();
+						refreshList();
 					}
 				});
 			}
@@ -255,13 +247,11 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 					
 					@Override
 					public void onItemSelected(AdapterView<?> parent,View view, int position, long id) {
-						Log.d("test", "onItemSelected:" + position);
-						if(fastFlag){
-							layerAdapter.setLayermode(position);
-							layerAdapter.notifyDataSetChanged();
+						Log.d(TAG, "onItemSelected:" + position);
+						if(layerAdapter.setLayermode(position)){
+							listview_helper.invalidate_select();
 							new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
 						}
-						fastFlag = true;
 					}
 					@Override
 					public void onNothingSelected(AdapterView<?> arg0) {}
@@ -272,7 +262,8 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				layerAdapter.setAlpher(seekBar.getProgress());
-				layerAdapter.notifyDataSetChanged();
+
+				listview_helper.invalidate_select();
 				new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
 			}
 			
@@ -286,22 +277,20 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		alpha_save.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if(alpha_save_f){
-					layerAdapter.setAlpha_save(isChecked);
+				if(layerAdapter.setAlpha_save(isChecked)){
+					listview_helper.invalidate_select();
 					new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
 				}
-				alpha_save_f = true;
 			}
 		});
 		
 		under_clip.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if(under_clip_f){
-					layerAdapter.setUnder_clip(isChecked);
+				if(layerAdapter.setUnder_clip(isChecked)){
+					listview_helper.invalidate_select();
 					new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,null).execute();
 				}
-				under_clip_f = true;
 			}
 		});
 		
@@ -348,11 +337,6 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {}
 		});
 
-		//初期に１枚のレイヤーを登録
-		onAddLayer(null);
-		fastFlag = false;
-		alpha_save_f = false;
-		under_clip_f = false;
 		
 		/***************************************************************
 		 *                        ペイント画面
@@ -364,7 +348,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public boolean startDraw(int x, int y) {
 
-				layerAdapter.setPreviewflag();
+				
 				return nativefunc.startDraw(x, y);
 			}
 
@@ -400,6 +384,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 
 			@Override
 			public boolean init(int w, int h) {
+				Log.d(TAG, "init");
 				boolean init_flag = false;
 
 				if(!new_flag){
@@ -413,8 +398,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 						int[] map = new int[x*y];
 						bitmap.getPixels(map, 0, x, 0, 0, x, y);
 						init_flag =  nativefunc.init(x, y,1,map);
-						listview.invalidate();
-						Utility.setListViewHeightBasedOnChildren(listview);
+						
 					} catch (FileNotFoundException e) {
 						init_flag =  nativefunc.init(w, h, 0, null);
 					}
@@ -433,13 +417,15 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 				}
 				int color = sp.getInt("wid_back_color", Color.argb(255, 51, 181, 229));
 				setColor(color);
-				
+
+				refreshList();
+				Log.d(TAG, "init fin");
 				return true;
 			}
 
 			@Override
 			public void bucket(final int x, final int y) {
-				Log.e("test", "bucket!!");
+				Log.e(TAG, "bucket!!");
 				
 				new RecompositionAsyncTask(MainActivity.this, nativefunc,MainActivity.this,new Runnable() {
 					@Override
@@ -452,6 +438,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public void endDraw(ArrayList<Integer> list) {
 				nativefunc.endDraw();
+				layerAdapter.setPreviewflag();
 				preview_Change_flag = true;
 				if(connectCore.getInRoom()){
 					ShareMessage j_message = new ShareMessage();
@@ -485,13 +472,16 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 				}
 			}
 		});
+
+		Log.d(TAG, "onContentChanged fin");
 	}
 
 	@Override
 	public void setup() {
+		Log.d(TAG, "setUp");
 		final int h = surface.getHeight();
 		try {
-			Thread.sleep(200);
+			Thread.sleep(600);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -508,9 +498,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 				paint_menu_t.layout(paint_menu_t.getLeft(), 0 - paint_menuH,
 						paint_menu_t.getLeft() + paint_menu_t.getWidth(), 0);
 				paint_menu_t.setVisibility(View.INVISIBLE);
+				Log.d(TAG, "setUp run");
 			}
 		});
-
+		Log.d(TAG, "setUp fin");
 	}
 
 	@Override
@@ -544,51 +535,31 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	}
 
 	public void onAddLayer(View v) {
-		//ようは初期レイヤーの追加ではネイティブ呼ばない
-		if(v != null){
-			if(nativefunc.addLayer()){
-				add();
-			}
-		}else{
+		if(nativefunc.addLayer()){
 			add();
 		}
 	}
 	private void add(){
 		layerAdapter.addLayer();
-		layerAdapter.notifyDataSetChanged();
-		
-		fastFlag = false;
-		alpha_save_f = false;
-		under_clip_f = false;
 		spinner_l.setSelection(layerAdapter.getLayermode());
 		alpher_seek.setProgress(layerAdapter.getLayerAlpha());
 		alpha_save.setChecked(layerAdapter.getAlpha_save());
 		under_clip.setChecked(layerAdapter.getUnder_clip());
-		fastFlag = true;
-		alpha_save_f = true;
-		under_clip_f = true;
-
-		Utility.setListViewHeightBasedOnChildren(listview);
+		refreshList();
+		
 	}
 	
 	public void ondeleteLayer(View v) {
 		boolean temp = layerAdapter.deleteLayer();
 		if(temp){
 			nativefunc.deleteLayer();
-			
-			fastFlag = false;
-			alpha_save_f = false;
-			under_clip_f = false;
 			spinner_l.setSelection(layerAdapter.getLayermode());
 			alpher_seek.setProgress(layerAdapter.getLayerAlpha());
 			alpha_save.setChecked(layerAdapter.getAlpha_save());
 			under_clip.setChecked(layerAdapter.getUnder_clip());
-			fastFlag = true;
-			alpha_save_f = true;
-			under_clip_f = true;
 			
-			layerAdapter.notifyDataSetChanged();
-			Utility.setListViewHeightBasedOnChildren(listview);
+			refreshList();
+			
 			new RecompositionAsyncTask(MainActivity.this, nativefunc,this,null).execute();
 		}
 	}
@@ -694,7 +665,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 	
 	@Override
 	protected void onDestroy() {
-		Log.d("test", "onDestroy");
+		Log.d(TAG, "onDestroy");
 		if(connectCore.getInRoom()){
 			connectCore.exit_room();
 		}
@@ -754,7 +725,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			@Override
 			public void run() {
 				preview.setImageBitmap(preview_bitmap);
-				layerAdapter.notifyDataSetChanged();
+				refreshList();
 			}
 		});
 		
@@ -769,6 +740,7 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 			layerAdapter.setLayermode(12);
 			spinner_l.setSelection(12);
 		}
+		refreshList();
 	}
 
 	@Override
@@ -781,4 +753,10 @@ public class MainActivity extends Activity implements PaintView.MenuLiner ,RePre
 		paint.setMem_color(color);
 		nativefunc.setColor(color);
 	}
+	private void refreshList() {
+		Log.d(TAG, "refreshList");
+		listview_helper.invalidate();
+		Log.d(TAG, "refreshList fin");
+	}
+	
 }

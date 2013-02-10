@@ -27,6 +27,5 @@ public class Utility {
 		params.height = totalHeight
 				+ (listView.getDividerHeight() * (listAdapter.getCount() - 1));
 		listView.setLayoutParams(params);
-		listView.requestLayout();
 	}
 }

@@ -37,18 +37,6 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		handler = new Handler();
 	}
 	
-	private int count=0;
-	 
-	@Override
-	public int getCount(){
-	    return count;
-	}
-	 
-	@Override
-	public void notifyDataSetChanged(){
-	    super.notifyDataSetChanged();
-	    count=layers.size();
-	}
 
 	
 	@Override
@@ -76,9 +64,8 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 		
 		//プレビューのセット
 		final ImageView img = (ImageView) convertView.findViewById(R.id.preview_image);
-		if(item.tempEdit | (Integer)convertView.getTag() != position){
-			new PreviewAsyncTask(context, func, img, item, layernum - position -1).execute();
-		}
+		new PreviewAsyncTask(context, func, img, item, layernum - position -1).execute();
+		
 		
 		convertView.setTag(position);
 		return convertView;
@@ -136,42 +123,56 @@ public class LayerAdapter extends ArrayAdapter<LayerData>{
 	
 	
 	
-	public void setLayermode(int num){
+	public boolean setLayermode(int num){
 		LayerData data = layers.get(currentlayer);
+		if(data.layermode == num){
+			return false;
+		}
 		data.layermode = num;
 		func.setLayerMode(num);
-	
+		return true;
 	}
 	
 	public int getLayermode(){
 		return layers.get(currentlayer).layermode;
 	}
 
-	public void setAlpher(int progress) {
+	public boolean setAlpher(int progress) {
 		LayerData data = layers.get(currentlayer);
+		if(data.alpha == progress){
+			return false;
+		}
 		data.alpha = progress;
 		func.setLayerAlpha(progress);
-	
+		return true;
 	}
 
 	public int getLayerAlpha() {
 		return layers.get(currentlayer).alpha;
 	}
 	
-	public void setAlpha_save(boolean value){
+	public boolean setAlpha_save(boolean value){
 		LayerData data = layers.get(currentlayer);
+		if(data.alpha_save == value){
+			return false;
+		}
 		data.alpha_save = value;
 		//func.setAlphaSave(value);
+		return true;
 	}
 	
 	public boolean getAlpha_save(){
 		return layers.get(currentlayer).alpha_save;
 	}
 	
-	public void setUnder_clip(boolean value){
+	public boolean setUnder_clip(boolean value){
 		LayerData data = layers.get(currentlayer);
+		if(data.under_clip == value){
+			return false;
+		}
 		data.under_clip = value;
 		//func.setUnderClip(value);
+		return true;
 	}
 	
 	public boolean getUnder_clip(){

@@ -35,13 +35,8 @@ public class PreviewAsyncTask extends AsyncTask<String, Integer, Bitmap>
 	@Override
 	protected Bitmap doInBackground(String... params) {
 		Log.d(TAG, "doInBackground start-----" + num);
-		int previewwidth = img.getWidth();
-		int previewheight = img.getHeight();
 		Bitmap bitmap = data.preview ;
-		if(bitmap == null && previewwidth >0){
-			bitmap= Bitmap.createBitmap(previewwidth, previewheight, Bitmap.Config.ARGB_8888);
-			data.preview = bitmap;
-		}
+
 
 		if(bitmap != null && data.tempEdit){
 			Log.d(TAG, "	getpreview");
@@ -62,9 +57,7 @@ public class PreviewAsyncTask extends AsyncTask<String, Integer, Bitmap>
 
 	@Override
 	protected void onPostExecute(Bitmap result) {
-		if(data.preview != null){
-			img.setImageBitmap(data.preview);
-		}
+		img.setImageBitmap(data.preview);
 
 		Log.d(TAG, "doInBackground end-----");
 	}

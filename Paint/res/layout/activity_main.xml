@@ -24,6 +24,7 @@
             android:layout_weight="1" >
 
             <LinearLayout
+                android:id="@+id/layer_listview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" >
@@ -32,12 +33,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     layout="@layout/layer_menu" />
-
-                <ListView
-                    android:id="@+id/layer_listview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" >
-                </ListView>
             </LinearLayout>
         </ScrollView>
 
