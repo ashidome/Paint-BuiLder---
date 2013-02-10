@@ -17,5 +17,7 @@ public class LayerData {
 		tempEdit = true;
 		alpha_save = false;
 		under_clip = false;
+
+		preview= Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
 	}
 }
