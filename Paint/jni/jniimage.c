@@ -980,6 +980,34 @@ JNICALL Java_com_katout_paint_draw_NativeFunction_joint(JNIEnv* env,
 }
 
 /*
+ * レイヤーの不透明度を保護
+ * num == 0 : 保護しない
+ * num >= 1 : 保護する
+ */
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setAlphaSave(
+		JNIEnv* env, jobject obj, jint num) {
+	i_printf("setAlphaSava\n");
+
+	layerdata[layers.current_layer].opacity_protect = num;
+	return JNI_TRUE;
+}
+
+/*
+ * 下のレイヤーでクリッピング
+ * num == 0 : クリッピングしない
+ * num >= 1 : クリッピングする
+ */
+JNIEXPORT jboolean JNICALL Java_com_katout_paint_draw_NativeFunction_setUnderClip(
+		JNIEnv* env, jobject obj, jint num) {
+	i_printf("setUnderClip\n");
+
+	if (layers.current_layer != 0) {
+		layerdata[layers.current_layer].clipping = num;
+	}
+	return JNI_TRUE;
+}
+
+/*
  * ブラシによる描画関数
  */
 void brush_draw(int x, int y, int flag) {
@@ -998,9 +1026,19 @@ void brush_draw(int x, int y, int flag) {
 				if (get_alpha(EditLayer[flag][x + i][y + j])
 						< get_alpha(
 								brush[flag].brush_img[i + bwidth][j + bheight])) {
-					// TODO 不透明度保護　クリッピング
-					EditLayer[flag][x + i][y + j] = brush[flag].brush_img[i
-							+ bwidth][j + bheight];
+					// TODO 不透明度保護
+					if (layerdata[layers.current_layer].opacity_protect > 0) {
+						if (get_alpha(
+								layerdata[layers.current_layer].img[x + i][y + j])
+								> 0) {
+							EditLayer[flag][x + i][y + j] =
+									brush[flag].brush_img[i + bwidth][j
+											+ bheight];
+						}
+					} else {
+						EditLayer[flag][x + i][y + j] = brush[flag].brush_img[i
+								+ bwidth][j + bheight];
+					}
 					blendBuff(x + i, y + j, flag);
 				}
 			}
@@ -1029,11 +1067,23 @@ void blendBuff(int x, int y, int flag) {
 	}
 	for (i = 0; i < layers.layer_max; i++) {
 		if (i == layers.current_layer) {
-			Pixel = Blend_Layer(layerdata[layers.current_layer].mode, Edit,
-					Pixel, i);
+			if (layerdata[i].clipping > 0) {
+				if (get_alpha(layerdata[i - 1].img[x][y]) > 0) {
+					Pixel = Blend_Layer(layerdata[i].mode, Edit, Pixel, i);
+				}
+			} else {
+				Pixel = Blend_Layer(layerdata[i].mode, Edit, Pixel, i);
+			}
 		} else {
-			Pixel = Blend_Layer(layerdata[i].mode, layerdata[i].img[x][y],
-					Pixel, i);
+			if (layerdata[i].clipping > 0) {
+				if (get_alpha(layerdata[i - 1].img[x][y]) > 0) {
+					Pixel = Blend_Layer(layerdata[i].mode,
+							layerdata[i].img[x][y], Pixel, i);
+				}
+			} else {
+				Pixel = Blend_Layer(layerdata[i].mode, layerdata[i].img[x][y],
+						Pixel, i);
+			}
 		}
 	}
 	BuffImg[y * c.width + x] = Pixel;
@@ -1330,7 +1380,6 @@ void scanLine(int lx, int rx, int y, unsigned int col, int threshold) {
 }
 
 /*
- * TODO
  * 塗りつぶし関数
  *
  * int x,y:開始座標
@@ -1531,6 +1580,7 @@ void initLayer(int current) {
 
 /*
  * レイヤー合成関数
+ * TODO クリッピング
  */
 int Blend_Layer(int mode, int src, int dest, int layer_num) {
 	int src_a, src_r, src_g, src_b;
